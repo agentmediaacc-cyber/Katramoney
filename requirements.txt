@@ -10,3 +10,7 @@ realtime
 storage3
 gotrue
 httpx
+
+reportlab
+pypdf
+Pillow
