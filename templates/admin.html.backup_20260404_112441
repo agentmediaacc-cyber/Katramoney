@@ -1,0 +1,1012 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Katramoney Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg2:#0d1b2d;
+      --panel:#0f1a2b;
+      --panel2:#13233a;
+      --card:#122033;
+      --line:rgba(255,255,255,.08);
+      --text:#e9f1fb;
+      --muted:#9cb1ca;
+      --primary:#1d9bf0;
+      --primary2:#19b6ff;
+      --success:#17b26a;
+      --warn:#f79009;
+      --danger:#f04438;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:Inter,sans-serif;background:
+      radial-gradient(circle at top right, rgba(29,155,240,.18), transparent 25%),
+      radial-gradient(circle at bottom left, rgba(25,182,255,.12), transparent 30%),
+      linear-gradient(180deg,var(--bg),var(--bg2));
+      color:var(--text);
+      min-height:100%;
+    }
+
+    a{text-decoration:none;color:inherit}
+    button,input,select,textarea{font:inherit}
+    .hidden{display:none!important}
+
+    .app{
+      display:grid;
+      grid-template-columns:280px 1fr;
+      min-height:100vh;
+    }
+
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      padding:20px 16px;
+      background:rgba(7,17,31,.92);
+      backdrop-filter:blur(12px);
+      border-right:1px solid var(--line);
+      overflow-y:auto;
+      z-index:50;
+    }
+
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-bottom:22px;
+      padding:10px;
+      border-radius:16px;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+    }
+
+    .brand-badge{
+      width:48px;height:48px;border-radius:14px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+      font-size:22px;font-weight:900;color:#fff;
+      box-shadow:var(--shadow);
+    }
+
+    .brand h1{margin:0;font-size:16px}
+    .brand p{margin:4px 0 0;color:var(--muted);font-size:12px}
+
+    .menu-title{
+      margin:18px 10px 8px;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:12px;
+    }
+
+    .nav-btn{
+      width:100%;
+      text-align:left;
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      padding:13px 14px;
+      border-radius:14px;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-weight:600;
+      transition:.2s ease;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active{
+      background:linear-gradient(180deg, rgba(29,155,240,.12), rgba(29,155,240,.06));
+      color:var(--text);
+      border:1px solid rgba(29,155,240,.18);
+    }
+
+    .main{
+      min-width:0;
+      padding:24px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+      padding:18px 20px;
+      border-radius:20px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      backdrop-filter:blur(12px);
+      box-shadow:var(--shadow);
+      margin-bottom:22px;
+    }
+
+    .topbar h2{margin:0;font-size:24px}
+    .topbar p{margin:6px 0 0;color:var(--muted);font-size:13px}
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      border:none;
+      border-radius:12px;
+      padding:11px 16px;
+      cursor:pointer;
+      font-weight:700;
+      transition:.2s ease;
+      color:#fff;
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn.secondary{
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    .btn.success{background:var(--success)}
+    .btn.warn{background:var(--warn)}
+    .btn.danger{background:var(--danger)}
+    .btn.sm{padding:8px 12px;font-size:12px;border-radius:10px}
+
+    .section{display:none;animation:fade .22s ease}
+    .section.active{display:block}
+    @keyframes fade{
+      from{opacity:0;transform:translateY(8px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:16px;
+      margin-bottom:22px;
+    }
+
+    .stat{
+      border-radius:18px;
+      padding:20px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+    }
+
+    .stat small{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      margin-bottom:8px;
+    }
+
+    .stat .num{
+      font-size:28px;
+      font-weight:900;
+      line-height:1.1;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:1.35fr .95fr;
+      gap:20px;
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px;
+      margin-bottom:20px;
+      box-shadow:var(--shadow);
+      min-width:0;
+    }
+
+    .card-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+
+    .card-head h3{margin:0;font-size:18px}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+      gap:14px;
+    }
+
+    .field label{
+      display:block;
+      margin-bottom:6px;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    input,select,textarea{
+      width:100%;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      padding:12px 14px;
+      outline:none;
+    }
+    textarea{min-height:110px;resize:vertical}
+    input:focus,select:focus,textarea:focus{
+      border-color:rgba(29,155,240,.6);
+      background:rgba(255,255,255,.06);
+    }
+
+    .table-wrap{
+      overflow:auto;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.08);
+    }
+
+    table{
+      width:100%;
+      min-width:900px;
+      border-collapse:collapse;
+    }
+
+    th,td{
+      padding:14px 12px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      vertical-align:middle;
+      font-size:14px;
+    }
+
+    th{
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    tr:hover td{
+      background:rgba(255,255,255,.025);
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:11px;
+      font-weight:800;
+      background:rgba(255,255,255,.08);
+    }
+    .pending{color:#ffcf5a;background:rgba(247,144,9,.16)}
+    .approved{color:#7ce2a7;background:rgba(23,178,106,.16)}
+    .rejected{color:#ff938b;background:rgba(240,68,56,.15)}
+    .active-pill{color:#84d7ff;background:rgba(29,155,240,.18)}
+
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .overview-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .overview-item{
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+    }
+
+    .modal-wrap{
+      position:fixed;
+      inset:0;
+      background:rgba(2,8,15,.72);
+      backdrop-filter:blur(8px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:120;
+    }
+    .modal-wrap.show{display:flex}
+
+    .modal{
+      width:100%;
+      max-width:760px;
+      max-height:90vh;
+      overflow:auto;
+      background:linear-gradient(180deg,#0f1b2c,#0e1828);
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+    }
+
+    .modal-head,.modal-body{
+      padding:18px;
+    }
+
+    .modal-head{
+      border-bottom:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .mobile-toggle{
+      display:none;
+    }
+
+    @media (max-width:980px){
+      .app{grid-template-columns:1fr}
+      .sidebar{
+        position:fixed;
+        left:-110%;
+        width:290px;
+        transition:.25s ease;
+      }
+      .sidebar.show{left:0}
+      .mobile-toggle{display:inline-flex}
+      .grid-2{grid-template-columns:1fr}
+      .main{padding:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-badge">K</div>
+        <div>
+          <h1>KATRAMONEY Admin</h1>
+          <p>Modern Control Center</p>
+        </div>
+      </div>
+
+      <div class="menu-title">Overview</div>
+      <div class="nav">
+        <button class="nav-btn active" data-section="overview">Dashboard <span>→</span></button>
+      </div>
+
+      <div class="menu-title">Operations</div>
+      <div class="nav">
+        <button class="nav-btn" data-section="applications">Applications <span>→</span></button>
+        <button class="nav-btn" data-section="products">Loan Products <span>→</span></button>
+        <button class="nav-btn" data-section="customers">Customers <span>→</span></button>
+        <button class="nav-btn" data-section="messages">Messages <span>→</span></button>
+      </div>
+
+      <div class="menu-title">Website</div>
+      <div class="nav">
+        <button class="nav-btn" data-section="site-config">Frontend Content <span>→</span></button>
+        <button class="nav-btn" data-section="site-settings">System Rates <span>→</span></button>
+      </div>
+
+      <div class="menu-title">Session</div>
+      <div class="nav">
+        <a class="nav-btn" href="/" target="_blank">View Live Site <span>↗</span></a>
+        <a class="nav-btn" href="/admin/logout">Logout <span>↗</span></a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="pageTitle">Dashboard Overview</h2>
+          <p id="pageSubtitle">Everything important in one place.</p>
+        </div>
+        <div class="toolbar">
+          <button class="btn secondary mobile-toggle" type="button" onclick="toggleSidebar()">☰ Menu</button>
+          <button class="btn secondary" type="button" onclick="window.location.reload()">Refresh</button>
+          <button class="btn" type="button" onclick="openProductModal()">+ New Product</button>
+        </div>
+      </div>
+
+      <section class="section active" id="section-overview">
+        <div class="stats">
+          <div class="stat">
+            <small>Total Applications</small>
+            <div class="num">{{ apps|length }}</div>
+          </div>
+          <div class="stat">
+            <small>Pending Reviews</small>
+            <div class="num">{{ pending or 0 }}</div>
+          </div>
+          <div class="stat">
+            <small>Loan Products</small>
+            <div class="num">{{ loan_products|length if loan_products is defined else 0 }}</div>
+          </div>
+          <div class="stat">
+            <small>Unread Messages</small>
+            <div class="num">{{ contacts|length if contacts is defined else 0 }}</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <div class="card">
+              <div class="card-head">
+                <h3>Recent Applications</h3>
+                <span class="muted small">Latest loan requests</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Ref</th>
+                      <th>Name</th>
+                      <th>Product</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for a in apps[:8] %}
+                    <tr>
+                      <td><strong>{{ a.reference }}</strong></td>
+                      <td>{{ a.full_name }}</td>
+                      <td>{{ a.product_name }}</td>
+                      <td>N$ {{ a.amount }}</td>
+                      <td>
+                        <span class="pill {% if a.status == 'APPROVED' %}approved{% elif a.status == 'REJECTED' %}rejected{% else %}pending{% endif %}">
+                          {{ a.status or 'PENDING' }}
+                        </span>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-head">
+                <h3>Quick Overview</h3>
+                <span class="muted small">System summary</span>
+              </div>
+              <div class="overview-list">
+                <div class="overview-item">
+                  <div>
+                    <div><strong>Total Value Requested</strong></div>
+                    <div class="muted small">All application amounts</div>
+                  </div>
+                  <div><strong>N$ {{ "%.2f"|format(total_val or 0) }}</strong></div>
+                </div>
+                <div class="overview-item">
+                  <div>
+                    <div><strong>Products Active</strong></div>
+                    <div class="muted small">Available to customers</div>
+                  </div>
+                  <div><strong>{{ active_products or 0 }}</strong></div>
+                </div>
+                <div class="overview-item">
+                  <div>
+                    <div><strong>Support Tickets</strong></div>
+                    <div class="muted small">Needs admin action</div>
+                  </div>
+                  <div><strong>{{ support_tickets|length if support_tickets is defined else 0 }}</strong></div>
+                </div>
+                <div class="overview-item">
+                  <div>
+                    <div><strong>Customer Profiles</strong></div>
+                    <div class="muted small">Saved in system</div>
+                  </div>
+                  <div><strong>{{ customer_profiles|length if customer_profiles is defined else 0 }}</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-applications">
+        <div class="card">
+          <div class="card-head">
+            <h3>Loan Applications</h3>
+            <input id="appSearch" type="text" placeholder="Search applications..." onkeyup="filterTable('applicationsTable', this.value)" style="max-width:280px;">
+          </div>
+          <div class="table-wrap">
+            <table id="applicationsTable">
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Applicant</th>
+                  <th>Product</th>
+                  <th>Amount</th>
+                  <th>Term</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in apps %}
+                <tr>
+                  <td><strong>{{ a.reference }}</strong></td>
+                  <td>
+                    <div>{{ a.full_name }}</div>
+                    <div class="muted small">{{ a.email }} · {{ a.phone }}</div>
+                  </td>
+                  <td>{{ a.product_name }}</td>
+                  <td>N$ {{ a.amount }}</td>
+                  <td>{{ a.term }} months</td>
+                  <td>
+                    <span class="pill {% if a.status == 'APPROVED' %}approved{% elif a.status == 'REJECTED' %}rejected{% else %}pending{% endif %}">
+                      {{ a.status or 'PENDING' }}
+                    </span>
+                  </td>
+                  <td>{{ a.created_at }}</td>
+                  <td>
+                    <div class="actions">
+                      <button class="btn sm secondary" type="button"
+                        onclick='openApplicationModal({{ a.id|tojson }}, {{ a.reference|tojson }}, {{ a.full_name|tojson }}, {{ a.email|tojson }}, {{ a.phone|tojson }}, {{ a.amount|tojson }}, {{ a.status|tojson }}, {{ a.admin_note|default("", true)|tojson }})'>
+                        Open
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-products">
+        <div class="card">
+          <div class="card-head">
+            <h3>Loan Products</h3>
+            <button class="btn" type="button" onclick="openProductModal()">+ Create Product</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Rate</th>
+                  <th>Fee</th>
+                  <th>Min</th>
+                  <th>Max</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in loan_products %}
+                <tr>
+                  <td><strong>{{ p.name }}</strong></td>
+                  <td>{{ p.interest_rate }}%</td>
+                  <td>N$ {{ p.service_fee }}</td>
+                  <td>N$ {{ p.min_amount }}</td>
+                  <td>N$ {{ p.max_amount }}</td>
+                  <td>
+                    <span class="pill {% if p.active %}active-pill{% else %}rejected{% endif %}">
+                      {{ 'ACTIVE' if p.active else 'DISABLED' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="actions">
+                      <button class="btn sm secondary" type="button"
+                        onclick='openEditProduct({{ p.id|tojson }}, {{ p.name|tojson }}, {{ p.interest_rate|tojson }}, {{ p.service_fee|tojson }}, {{ p.min_amount|tojson }}, {{ p.max_amount|tojson }}, {{ p.active|tojson }})'>
+                        Edit
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-customers">
+        <div class="card">
+          <div class="card-head">
+            <h3>Customer Records</h3>
+            <span class="muted small">Profiles and customer accounts</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Address</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in customer_profiles %}
+                <tr>
+                  <td>{{ c.full_name }}</td>
+                  <td>{{ c.email }}</td>
+                  <td>{{ c.phone }}</td>
+                  <td>{{ c.address }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-messages">
+        <div class="card">
+          <div class="card-head">
+            <h3>Customer Messages</h3>
+            <span class="muted small">Messages from contact forms or customer dashboard</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>From</th>
+                  <th>Subject</th>
+                  <th>Message</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in contacts %}
+                <tr>
+                  <td>{{ m.name }}<br><span class="muted small">{{ m.email }}</span></td>
+                  <td>{{ m.subject }}</td>
+                  <td>{{ m.message }}</td>
+                  <td>{{ m.created_at }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-site-config">
+        <div class="card">
+          <div class="card-head">
+            <h3>Frontend Content</h3>
+            <button class="btn success" type="button" onclick="saveForm('siteConfigForm', '/admin/site-config/save')">Save Changes</button>
+          </div>
+          <form id="siteConfigForm">
+            <div class="form-grid">
+              <div class="field"><label>Site Name</label><input name="site_name" value="{{ site_config.site_name if site_config else '' }}"></div>
+              <div class="field"><label>Promo Text</label><input name="promo_text" value="{{ site_config.promo_text if site_config else '' }}"></div>
+              <div class="field"><label>Hero Title</label><input name="hero_title" value="{{ site_config.hero_title if site_config else '' }}"></div>
+              <div class="field"><label>Support Phone</label><input name="support_phone" value="{{ site_config.support_phone if site_config else '' }}"></div>
+              <div class="field"><label>Contact Email</label><input name="email" value="{{ site_config.email if site_config else '' }}"></div>
+              <div class="field"><label>Office Hours</label><input name="office_hours" value="{{ site_config.office_hours if site_config else '' }}"></div>
+            </div>
+            <div class="field" style="margin-top:14px;">
+              <label>Hero Subtitle</label>
+              <textarea name="hero_subtitle">{{ site_config.hero_subtitle if site_config else '' }}</textarea>
+            </div>
+            <div class="field" style="margin-top:14px;">
+              <label>Footer Text</label>
+              <textarea name="footer_text">{{ site_config.footer_text if site_config else '' }}</textarea>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="section" id="section-site-settings">
+        <div class="card">
+          <div class="card-head">
+            <h3>System Rates</h3>
+            <button class="btn success" type="button" onclick="saveForm('siteSettingsForm', '/admin/site-settings/save')">Save Rates</button>
+          </div>
+          <form id="siteSettingsForm">
+            <div class="form-grid">
+              <div class="field"><label>Base Interest Rate (%)</label><input type="number" step="0.01" name="interest_rate" value="{{ site_settings.interest_rate if site_settings else '' }}"></div>
+              <div class="field"><label>Base Service Fee (N$)</label><input type="number" step="0.01" name="service_fee" value="{{ site_settings.service_fee if site_settings else '' }}"></div>
+              <div class="field"><label>Business Loan Rate (%)</label><input type="number" step="0.01" name="business_loan_rate" value="{{ site_settings.business_loan_rate if site_settings else '' }}"></div>
+              <div class="field"><label>Personal Loan Rate (%)</label><input type="number" step="0.01" name="personal_loan_rate" value="{{ site_settings.personal_loan_rate if site_settings else '' }}"></div>
+              <div class="field"><label>Salary Advance Rate (%)</label><input type="number" step="0.01" name="salary_advance_rate" value="{{ site_settings.salary_advance_rate if site_settings else '' }}"></div>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-wrap" id="productModalWrap">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="productModalTitle" style="margin:0;">Create Product</h3>
+        <button class="btn secondary sm" type="button" onclick="closeModal('productModalWrap')">Close</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="product_id">
+        <div class="form-grid">
+          <div class="field">
+            <label>Product Name</label>
+            <input type="text" id="product_name">
+          </div>
+          <div class="field">
+            <label>Interest Rate (%)</label>
+            <input type="number" step="0.01" id="product_rate">
+          </div>
+          <div class="field">
+            <label>Service Fee</label>
+            <input type="number" step="0.01" id="product_fee">
+          </div>
+          <div class="field">
+            <label>Min Amount</label>
+            <input type="number" step="0.01" id="product_min">
+          </div>
+          <div class="field">
+            <label>Max Amount</label>
+            <input type="number" step="0.01" id="product_max">
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="product_active">
+              <option value="true">Active</option>
+              <option value="false">Disabled</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px;">
+          <button class="btn danger" id="deleteProductBtn" type="button" onclick="deleteProduct()">Delete</button>
+          <button class="btn success" type="button" onclick="saveProduct()">Save Product</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-wrap" id="applicationModalWrap">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 style="margin:0;">Application Review</h3>
+        <button class="btn secondary sm" type="button" onclick="closeModal('applicationModalWrap')">Close</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="app_id">
+        <div class="form-grid">
+          <div class="field"><label>Reference</label><input id="app_ref" disabled></div>
+          <div class="field"><label>Applicant Name</label><input id="app_name" disabled></div>
+          <div class="field"><label>Email</label><input id="app_email" disabled></div>
+          <div class="field"><label>Phone</label><input id="app_phone" disabled></div>
+          <div class="field"><label>Amount</label><input id="app_amount" disabled></div>
+          <div class="field">
+            <label>Status</label>
+            <select id="app_status">
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>Admin Note</label>
+          <textarea id="app_admin_note"></textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+          <button class="btn success" type="button" onclick="saveApplicationDecision()">Save Decision</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const titles = {
+      overview: ["Dashboard Overview", "Everything important in one place."],
+      applications: ["Applications", "Review and manage all loan applications."],
+      products: ["Loan Products", "Create, update, and control product settings."],
+      customers: ["Customers", "Customer profiles and account overview."],
+      messages: ["Messages", "Read customer messages and dashboard messages."],
+      "site-config": ["Frontend Content", "Manage website text and homepage content."],
+      "site-settings": ["System Rates", "Control base rates and loan pricing."]
+    };
+
+    function toggleSidebar(){
+      document.getElementById("sidebar").classList.toggle("show");
+    }
+
+    document.querySelectorAll(".nav-btn[data-section]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const sectionName = btn.dataset.section;
+
+        document.querySelectorAll(".nav-btn[data-section]").forEach(x => x.classList.remove("active"));
+        btn.classList.add("active");
+
+        document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+        document.getElementById("section-" + sectionName).classList.add("active");
+
+        document.getElementById("pageTitle").textContent = titles[sectionName][0];
+        document.getElementById("pageSubtitle").textContent = titles[sectionName][1];
+
+        if (window.innerWidth <= 980) {
+          document.getElementById("sidebar").classList.remove("show");
+        }
+      });
+    });
+
+    function filterTable(tableId, searchValue){
+      const q = String(searchValue || "").toLowerCase();
+      const table = document.getElementById(tableId);
+      if (!table) return;
+      table.querySelectorAll("tbody tr").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(q) ? "" : "none";
+      });
+    }
+
+    function openModal(id){
+      document.getElementById(id).classList.add("show");
+    }
+
+    function closeModal(id){
+      document.getElementById(id).classList.remove("show");
+    }
+
+    function openProductModal(){
+      document.getElementById("productModalTitle").textContent = "Create Product";
+      document.getElementById("product_id").value = "";
+      document.getElementById("product_name").value = "";
+      document.getElementById("product_rate").value = "";
+      document.getElementById("product_fee").value = "";
+      document.getElementById("product_min").value = "";
+      document.getElementById("product_max").value = "";
+      document.getElementById("product_active").value = "true";
+      document.getElementById("deleteProductBtn").classList.add("hidden");
+      openModal("productModalWrap");
+    }
+
+    function openEditProduct(id, name, rate, fee, minAmount, maxAmount, active){
+      document.getElementById("productModalTitle").textContent = "Edit Product";
+      document.getElementById("product_id").value = id || "";
+      document.getElementById("product_name").value = name || "";
+      document.getElementById("product_rate").value = rate || "";
+      document.getElementById("product_fee").value = fee || "";
+      document.getElementById("product_min").value = minAmount || "";
+      document.getElementById("product_max").value = maxAmount || "";
+      document.getElementById("product_active").value = String(active) === "true" || String(active) === "True" ? "true" : "false";
+      document.getElementById("deleteProductBtn").classList.remove("hidden");
+      openModal("productModalWrap");
+    }
+
+    async function saveProduct(){
+      const id = document.getElementById("product_id").value;
+      const payload = {
+        name: document.getElementById("product_name").value,
+        interest_rate: parseFloat(document.getElementById("product_rate").value || 0),
+        service_fee: parseFloat(document.getElementById("product_fee").value || 0),
+        min_amount: parseFloat(document.getElementById("product_min").value || 0),
+        max_amount: parseFloat(document.getElementById("product_max").value || 0),
+        active: document.getElementById("product_active").value === "true"
+      };
+
+      const url = id ? `/admin/products/${id}/update` : `/admin/products/create`;
+
+      try{
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || "Save failed");
+        alert("Product saved successfully.");
+        window.location.reload();
+      }catch(err){
+        alert("Product save failed: " + err.message);
+      }
+    }
+
+    async function deleteProduct(){
+      const id = document.getElementById("product_id").value;
+      if(!id){
+        alert("No product selected.");
+        return;
+      }
+      if(!confirm("Delete this product?")) return;
+
+      try{
+        const res = await fetch(`/admin/products/${id}/delete`, {
+          method:"POST",
+          headers: {"Content-Type":"application/json"}
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || "Delete failed");
+        alert("Product deleted successfully.");
+        window.location.reload();
+      }catch(err){
+        alert("Delete failed: " + err.message);
+      }
+    }
+
+    function openApplicationModal(id, ref, fullName, email, phone, amount, status, adminNote){
+      document.getElementById("app_id").value = id || "";
+      document.getElementById("app_ref").value = ref || "";
+      document.getElementById("app_name").value = fullName || "";
+      document.getElementById("app_email").value = email || "";
+      document.getElementById("app_phone").value = phone || "";
+      document.getElementById("app_amount").value = amount || "";
+      document.getElementById("app_status").value = status || "PENDING";
+      document.getElementById("app_admin_note").value = adminNote || "";
+      openModal("applicationModalWrap");
+    }
+
+    async function saveApplicationDecision(){
+      const id = document.getElementById("app_id").value;
+      const payload = {
+        status: document.getElementById("app_status").value,
+        admin_note: document.getElementById("app_admin_note").value
+      };
+
+      try{
+        const res = await fetch(`/admin/applications/${id}/status`, {
+          method:"POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || "Update failed");
+        alert("Application updated.");
+        window.location.reload();
+      }catch(err){
+        alert("Application update failed: " + err.message);
+      }
+    }
+
+    async function saveForm(formId, url){
+      const form = document.getElementById(formId);
+      const fd = new FormData(form);
+      const payload = {};
+      for(const [k,v] of fd.entries()) payload[k] = v;
+
+      try{
+        const res = await fetch(url, {
+          method:"POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || "Save failed");
+        alert("Saved successfully.");
+      }catch(err){
+        alert("Save failed: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>S

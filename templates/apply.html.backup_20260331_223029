@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Loan Configuration | KATRAMONEY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
+        .card { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .result-box { background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #004d40; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-next { width: 100%; background: #004d40; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 style="color: #004d40; margin-top:0;">Loan Configuration</h2>
+        <p style="color: #666; font-size: 14px;">Adjust your amount and term to see the repayment schedule.</p>
+        
+        <label>Requested Amount (N$):</label>
+        <input type="number" id="amt" value="2000" oninput="calc()">
+        
+        <label>Repayment Term:</label>
+        <select id="term" onchange="calc()">
+            <option value="1">1 Month (Payday Loan)</option>
+            <option value="2">2 Months</option>
+            <option value="3">3 Months</option>
+            <option value="6">6 Months</option>
+        </select>
+
+        <div class="result-box">
+            <p style="margin: 5px 0;">Monthly Installment: <strong>N$ <span id="monthly">0.00</span></strong></p>
+            <p style="margin: 5px 0;">Total Repayment: <strong>N$ <span id="total">0.00</span></strong></p>
+        </div>
+
+        <button class="btn-next" onclick="alert('Proceeding to Document Upload & Camera Verification...')">Next: Upload Documents</button>
+    </div>
+
+    <script>
+        function calc() {
+            let amt = parseFloat(document.getElementById('amt').value) || 0;
+            let term = parseInt(document.getElementById('term').value);
+            
+            // Example: 15% flat interest rate per month (standard microlending)
+            let interestRate = 0.15; 
+            let totalInterest = amt * interestRate * term;
+            let totalRepay = amt + totalInterest;
+            
+            document.getElementById('monthly').innerText = (totalRepay / term).toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('total').innerText = totalRepay.toLocaleString('en-US', {minimumFractionDigits: 2});
+        }
+        calc(); // Run on load
+    </script>
+</body>
+</html>

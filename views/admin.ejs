@@ -1,0 +1,20 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>Admin Dashboard - Katramoney</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+    <h1>Loan Approvals Dashboard</h1>
+    <table border="1" width="100%">
+        <tr><th>ID</th><th>Client Name</th><th>Amount</th><th>Term</th><th>Status</th><th>Action</th></tr>
+        <% loans.forEach(loan => { %>
+        <tr>
+            <td><%= loan.id %></td>
+            <td><%= loan.name %></td>
+            <td>NAD <%= loan.amount %></td>
+            <td><%= loan.months %> Months</td>
+            <td><%= loan.status %></td>
+            <td><button>Approve</button> <button style="color:red">Reject</button></td>
+        </tr>
+        <% }) %>
+    </table>
+</body>
+</html>

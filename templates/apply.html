@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KATRAMONEY | Smart Loan Application</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <style>
+    :root{
+      --primary:#0b3d2e;
+      --primary-2:#145c46;
+      --accent:#ffd447;
+      --accent-2:#ffb703;
+      --bg:#f4f8f6;
+      --card:#ffffff;
+      --text:#243746;
+      --muted:#64748b;
+      --line:#dbe4ea;
+      --danger:#dc2626;
+      --success:#16a34a;
+      --shadow:0 20px 50px rgba(2,12,27,.10);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:'Inter',sans-serif;
+      background:linear-gradient(135deg,#eef7f2 0%, #f8fbfa 100%);
+      color:var(--text);
+    }
+
+    .shell{
+      width:min(1100px,95%);
+      margin:14px auto 30px;
+    }
+
+    .topbar{
+      display:flex;
+      gap:10px;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .topbar a{
+      text-decoration:none;
+      color:var(--primary);
+      font-weight:800;
+      background:#fff;
+      border:1px solid var(--line);
+      padding:10px 14px;
+      border-radius:12px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,var(--primary),var(--primary-2));
+      color:#fff;
+      border-radius:28px;
+      padding:24px;
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      font-size:clamp(1.8rem,4vw,2.8rem);
+    }
+
+    .hero p{
+      margin:0;
+      color:rgba(255,255,255,.88);
+      line-height:1.7;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:280px 1fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    .sidebar,.main-card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+    }
+
+    .sidebar{
+      padding:18px;
+      position:sticky;
+      top:14px;
+    }
+
+    .sidebar h3{
+      margin:0 0 12px;
+      color:var(--primary);
+    }
+
+    .step-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .step-item{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+      background:#f8fafc;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+
+    .step-item.active{
+      background:#edf9f2;
+      border-color:#9fd7bf;
+    }
+
+    .step-no{
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      background:var(--primary);
+      color:#fff;
+      display:grid;
+      place-items:center;
+      font-size:12px;
+      font-weight:900;
+      flex:0 0 auto;
+    }
+
+    .step-item strong{
+      display:block;
+      color:var(--primary);
+      font-size:14px;
+      margin-bottom:3px;
+    }
+
+    .step-item span{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .main-card{
+      padding:22px;
+    }
+
+    .status-banner{
+      display:none;
+      margin-bottom:14px;
+      padding:14px 16px;
+      border-radius:14px;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .status-banner.show{display:block}
+    .status-banner.success{background:#ecfdf5;color:#166534;border:1px solid #bbf7d0}
+    .status-banner.error{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+    .status-banner.warn{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+
+    .progress-wrap{margin-bottom:18px}
+    .progress-top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:8px;
+    }
+
+    .progress-top strong{color:var(--primary)}
+    .progress-bar{
+      width:100%;
+      height:10px;
+      border-radius:999px;
+      background:#edf2f7;
+      overflow:hidden;
+    }
+
+    .progress-fill{
+      height:100%;
+      width:20%;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      transition:width .25s ease;
+    }
+
+    .section{display:none}
+    .section.active{display:block}
+
+    .section h2{
+      margin:0 0 10px;
+      color:var(--primary);
+      font-size:26px;
+    }
+
+    .lead{
+      margin:0 0 18px;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:16px;
+    }
+
+    .full{grid-column:1 / -1}
+
+    .field label{
+      display:block;
+      margin-bottom:8px;
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+      text-transform:uppercase;
+    }
+
+    input,select,textarea{
+      width:100%;
+      padding:14px 15px;
+      border:1.5px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      color:var(--text);
+      font:inherit;
+      outline:none;
+    }
+
+    input:focus,select:focus,textarea:focus{
+      border-color:#9fd7bf;
+      box-shadow:0 0 0 4px rgba(20,92,70,.08);
+    }
+
+    textarea{min-height:100px;resize:vertical}
+
+    .hint{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .doc-group{
+      display:none;
+      margin-top:10px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#f8fafc;
+      padding:16px;
+    }
+
+    .doc-group.active{display:block}
+
+    .doc-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+    }
+
+    .upload-box{
+      border:1.5px dashed #a8b7c7;
+      border-radius:18px;
+      background:#fff;
+      padding:14px;
+    }
+
+    .upload-box h4{
+      margin:0 0 8px;
+      color:var(--primary);
+      font-size:15px;
+    }
+
+    .upload-box p{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .camera-wrap{
+      display:grid;
+      grid-template-columns:1fr 280px;
+      gap:18px;
+      align-items:start;
+    }
+
+    .camera-box{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background:#f8fafc;
+    }
+
+    .camera-box video,
+    .camera-box canvas,
+    .camera-box img{
+      width:100%;
+      display:block;
+      border-radius:14px;
+      background:#000;
+    }
+
+    .meta-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .meta-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      padding:12px;
+    }
+
+    .meta-card strong{
+      display:block;
+      color:var(--primary);
+      font-size:12px;
+      margin-bottom:5px;
+      text-transform:uppercase;
+    }
+
+    .meta-card span{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+      word-break:break-word;
+    }
+
+    .terms-box{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#f8fafc;
+      padding:16px;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:14px;
+    }
+
+    .checkbox-line{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      margin-top:14px;
+    }
+
+    .checkbox-line input{width:auto;margin-top:4px}
+
+    .loan-summary-box{
+      margin-top:18px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      background:#f8fafc;
+    }
+
+    .loan-summary-box h4{
+      margin:0 0 10px;
+      color:var(--primary);
+    }
+
+    .loan-summary-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+
+    .loan-summary-item{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+    }
+
+    .loan-summary-item strong{
+      display:block;
+      color:var(--primary);
+      font-size:12px;
+      margin-bottom:4px;
+      text-transform:uppercase;
+    }
+
+    .loan-summary-item span{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:22px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border:none;
+      border-radius:14px;
+      padding:14px 18px;
+      font-weight:900;
+      cursor:pointer;
+      font-size:14px;
+      min-width:150px;
+    }
+
+    .btn-secondary{
+      background:#fff;
+      color:var(--primary);
+      border:1px solid var(--line);
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:#1f2937;
+    }
+
+    .btn-dark{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{position:static}
+      .camera-wrap{grid-template-columns:1fr}
+    }
+
+    @media (max-width: 760px){
+      .shell{width:min(100%,97%)}
+      .topbar{flex-direction:column}
+      .topbar a{width:100%}
+      .main-card,.sidebar,.hero{padding:16px}
+      .grid,.doc-grid,.loan-summary-grid{grid-template-columns:1fr}
+      .actions{flex-direction:column}
+      .btn{width:100%;min-width:0}
+      input,select,textarea{font-size:16px}
+    }
+  
+    .duplicate-help-box{
+      margin-top:10px;
+      border:1px solid #fecaca;
+      background:#fef2f2;
+      color:#991b1b;
+      border-radius:14px;
+      padding:14px;
+      font-size:14px;
+      line-height:1.6;
+      display:none;
+    }
+
+  
+    .field-checking{
+      margin-top:6px;
+      font-size:12px;
+      color:var(--warning);
+      font-weight:700;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <a href="/">← Back to Home</a>
+      <a href="/admin/login">Admin Login</a>
+    </div>
+
+    <div class="hero">
+      <h1>KATRAMONEY Smart Loan Application</h1>
+      <p>
+        Complete a shorter application, upload only the correct documents for your employment type, verify with face capture and location, accept the terms, then submit and download your PDF copy.
+      </p>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <h3>Application Flow</h3>
+        <div class="step-list">
+          <div class="step-item active" data-step="1">
+            <div class="step-no">1</div>
+            <div><strong>Identity</strong><span>Basic applicant details</span></div>
+          </div>
+          <div class="step-item" data-step="2">
+            <div class="step-no">2</div>
+            <div><strong>Employment & Documents</strong><span>Smart upload requirements</span></div>
+          </div>
+          <div class="step-item" data-step="3">
+            <div class="step-no">3</div>
+            <div><strong>Camera & Location</strong><span>Verification step</span></div>
+          </div>
+          <div class="step-item" data-step="4">
+            <div class="step-no">4</div>
+            <div><strong>Terms</strong><span>Accept and review</span></div>
+          </div>
+          <div class="step-item" data-step="5">
+            <div class="step-no">5</div>
+            <div><strong>Submit & PDF</strong><span>Download copy and continue</span></div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-card">
+        <div id="statusBanner" class="status-banner"></div>
+        <div id="liveDuplicateStatus" class="status-banner warn" style="display:none;"></div>
+        <div id="duplicateWarningBox" class="status-banner error" style="display:none;">
+          This application appears to already exist. Please go back to the home page, click <strong>View My Application Progress</strong>, and log in using the same email and your phone number as password.
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <strong id="progressLabel">Step 1 of 5</strong>
+            <span style="color:var(--muted);font-size:13px;">Short mobile-friendly workflow</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <form id="loanApplicationForm" method="POST" action="/customer/secure-apply" enctype="multipart/form-data">
+          <input type="hidden" name="product_id" id="product_id">
+          <input type="hidden" name="geo_lat" id="geo_lat">
+          <input type="hidden" name="geo_lng" id="geo_lng">
+          <input type="hidden" name="geo_accuracy" id="geo_accuracy">
+          <input type="hidden" name="geo_timestamp" id="geo_timestamp">
+          <input type="hidden" name="device_type" id="device_type">
+          <input type="hidden" name="user_agent" id="user_agent">
+          <input type="hidden" name="platform_info" id="platform_info">
+          <input type="hidden" name="screen_info" id="screen_info">
+          <input type="hidden" name="timezone_info" id="timezone_info">
+          <input type="hidden" name="language_info" id="language_info">
+          <input type="hidden" name="face_capture_data" id="face_capture_data">
+
+          <section class="section active" data-section="1">
+            <h2>Identity</h2>
+            <p class="lead">Enter the basic details required to start your application.</p>
+
+            <div class="grid">
+              <div class="field">
+                <label>Full Name *</label>
+                <input type="text" name="full_name" required>
+              </div>
+              <div class="field">
+                <label>ID Number *</label>
+                <input type="text" name="id_number" id="id_number" required>
+              </div>
+              <div class="field">
+                <label>Cellphone Number *</label>
+                <input type="text" name="phone" id="phone" required>
+              </div>
+              <div class="field">
+                <label>Email Address *</label>
+                <input type="email" name="email" id="email" required>
+                <div class="hint">This email will be used to open your application progress dashboard later.</div>
+              </div>
+              <div class="field">
+                <label>Gender *</label>
+                <select name="gender" required>
+                  <option value="">Select</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Prefer not to say</option>
+                </select>
+              </div>
+            </div>
+            <div id="duplicateHelpBox" class="duplicate-help-box">
+              We found an existing application using this email, phone number, or ID number.
+              Please go back to the home page and use <strong>View My Application Progress</strong>.
+              Log in with your application email and use your phone number as password.
+            </div>
+          </section>
+
+          <section class="section" data-section="2">
+            <h2>Employment, Loan & Documents</h2>
+            <p class="lead">Select your employment type. The correct document list will open automatically.</p>
+
+            <div class="grid">
+              <div class="field">
+                <label>Loan Product *</label>
+                <select name="loan_product_select" id="apply_product_select" required>
+                  <option value="">Loading products...</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Employment Status *</label>
+                <select name="employment_status" id="employment_status" required>
+                  <option value="">Select</option>
+                  <option value="employed">Employed</option>
+                  <option value="self_employed">Self-Employed</option>
+                  <option value="business">Business Person</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Requested Loan Amount (N$) *</label>
+                <input type="number" name="loan_amount" id="loan_amount" min="1" required>
+              </div>
+
+              <div class="field">
+                <label>Repayment Term *</label>
+                <select name="loan_term" id="loan_term" required>
+                  <option value="1">1 Month</option>
+                  <option value="2">2 Months</option>
+                  <option value="3">3 Months</option>
+                  <option value="6">6 Months</option>
+                  <option value="12">12 Months</option>
+                </select>
+              </div>
+
+              <div class="field full">
+                <label>Loan Purpose *</label>
+                <textarea name="loan_purpose" required placeholder="Explain clearly what this loan will be used for"></textarea>
+              </div>
+            </div>
+
+            <div class="loan-summary-box">
+              <h4>Live Loan Summary</h4>
+              <div class="loan-summary-grid">
+                <div class="loan-summary-item">
+                  <strong>Product</strong>
+                  <span id="liveProductName">Not selected yet</span>
+                </div>
+                <div class="loan-summary-item">
+                  <strong>Interest Rate</strong>
+                  <span id="liveInterestRate">0%</span>
+                </div>
+                <div class="loan-summary-item">
+                  <strong>Estimated Monthly</strong>
+                  <span id="liveMonthlyPayment">N$ 0.00</span>
+                </div>
+                <div class="loan-summary-item">
+                  <strong>Total Repayment</strong>
+                  <span id="liveTotalRepayment">N$ 0.00</span>
+                </div>
+              </div>
+              <div class="hint" id="liveLoanWarning"></div>
+            </div>
+
+            <div class="doc-group" id="docGroupEmployee">
+              <h3 style="color:var(--primary);margin-top:0;">Required Documents for Employed / Self-Employed</h3>
+              <div class="doc-grid">
+                <div class="upload-box">
+                  <h4>Certified ID Copy *</h4>
+                  <p>Certified copy with stamp, not older than 1 month.</p>
+                  <input type="file" name="emp_certified_id" id="emp_certified_id" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+                <div class="upload-box">
+                  <h4>3-Month Bank Statement *</h4>
+                  <p>Original bank statement with official bank stamp.</p>
+                  <input type="file" name="emp_bank_statement" id="emp_bank_statement" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+                <div class="upload-box">
+                  <h4>Payslip *</h4>
+                  <p>Upload a clear payslip or proof of salary.</p>
+                  <input type="file" name="emp_payslip" id="emp_payslip" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+              </div>
+            </div>
+
+            <div class="doc-group" id="docGroupBusiness">
+              <h3 style="color:var(--primary);margin-top:0;">Required Documents for Business Person</h3>
+              <div class="doc-grid">
+                <div class="upload-box">
+                  <h4>Certified ID Copy *</h4>
+                  <p>Certified copy with valid stamp.</p>
+                  <input type="file" name="biz_certified_id" id="biz_certified_id" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+                <div class="upload-box">
+                  <h4>6-Month Bank Statement *</h4>
+                  <p>Recent business or personal bank statement covering 6 months.</p>
+                  <input type="file" name="biz_bank_statement" id="biz_bank_statement" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+                <div class="upload-box">
+                  <h4>Founding Statement *</h4>
+                  <p>Upload the business founding statement document.</p>
+                  <input type="file" name="biz_founding_statement" id="biz_founding_statement" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+                <div class="upload-box">
+                  <h4>Letter of Request *</h4>
+                  <p>Upload the signed letter of request for the loan.</p>
+                  <input type="file" name="biz_request_letter" id="biz_request_letter" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" data-section="3">
+            <h2>Camera Verification & Location</h2>
+            <p class="lead">Capture your face photo and allow location access for verification.</p>
+
+            <div class="camera-wrap">
+              <div class="camera-box">
+                <video id="camera" autoplay playsinline style="display:none;"></video>
+                <canvas id="photoCanvas" style="display:none;"></canvas>
+                <img id="photoPreview" alt="Face capture preview" style="display:none;">
+                <div class="hint" style="margin-top:10px;">
+                  Take a clear face photo. This will be included in your application and PDF copy.
+                </div>
+
+                <div class="actions" style="margin-top:14px;">
+                  <button type="button" class="btn btn-dark" id="startCameraBtn">Open Camera</button>
+                  <button type="button" class="btn btn-secondary" id="capturePhotoBtn">Capture Photo</button>
+                  <button type="button" class="btn btn-secondary" id="retakePhotoBtn">Retake</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="camera-box">
+                  <h3 style="margin-top:0;color:var(--primary);">Location Snapshot</h3>
+                  <p style="margin-top:0;color:var(--muted);line-height:1.6;">
+                    Capture your current location to support verification.
+                  </p>
+                  <div class="actions" style="margin-top:12px;">
+                    <button type="button" class="btn btn-dark" id="captureLocationBtn">Capture Location</button>
+                  </div>
+                </div>
+
+                <div class="meta-grid">
+                  <div class="meta-card">
+                    <strong>Coordinates</strong>
+                    <span id="geoDisplay">Not captured yet</span>
+                  </div>
+                  <div class="meta-card">
+                    <strong>Accuracy</strong>
+                    <span id="accuracyDisplay">Not captured yet</span>
+                  </div>
+                  <div class="meta-card">
+                    <strong>Device</strong>
+                    <span id="deviceDisplay">Will detect automatically</span>
+                  </div>
+                  <div class="meta-card">
+                    <strong>Timezone</strong>
+                    <span id="timezoneDisplay">Will detect automatically</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" data-section="4">
+            <h2>Terms & Acknowledgement</h2>
+            <p class="lead">Please confirm the information and documents are correct before you continue.</p>
+
+            <div class="terms-box">
+              By continuing, you confirm that the information you provided is true, the uploaded documents belong to you or your business, and the camera photo and location verification may be used by KATRAMONEY during manual review. Any false or misleading application may be rejected.
+            </div>
+
+            <div class="checkbox-line">
+              <input type="checkbox" name="agree_terms" id="agree_terms" value="yes" required>
+              <label for="agree_terms" style="margin:0;font-size:14px;color:var(--text);font-weight:600;text-transform:none;">
+                I accept the KATRAMONEY application terms and review process.
+              </label>
+            </div>
+
+            <div class="checkbox-line">
+              <input type="checkbox" name="confirm_truth" id="confirm_truth" value="yes" required>
+              <label for="confirm_truth" style="margin:0;font-size:14px;color:var(--text);font-weight:600;text-transform:none;">
+                I confirm that my details, face image, and uploaded documents are true and correct.
+              </label>
+            </div>
+          </section>
+
+          <section class="section" data-section="5">
+            <h2>Submit & Download PDF Copy</h2>
+            <p class="lead">Before final submission, you can generate and save a PDF copy of your application.</p>
+
+            <div class="loan-summary-box">
+              <h4>Final Reminder</h4>
+              <div class="hint">
+                Your PDF copy will include your identity details, selected product, loan values, employment type, verification details, and the captured face image.
+              </div>
+            </div>
+
+            <div class="actions" style="margin-top:18px;">
+              <button type="button" class="btn btn-secondary" id="downloadPdfBtn">Download My Application PDF</button>
+            </div>
+
+            <div class="hint" style="margin-top:10px;">
+              After you submit, the system should redirect you to the customer dashboard route.
+            </div>
+          </section>
+
+          <div class="actions">
+            <button type="button" class="btn btn-secondary" id="prevBtn">Previous</button>
+            <button type="button" class="btn btn-primary" id="nextBtn">Next Step</button>
+            <button type="submit" class="btn btn-dark" id="submitBtn" style="display:none;">Submit Application</button>
+          </div>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const idEl = document.getElementById('id_number');
+  const phoneEl = document.getElementById('phone');
+  const emailEl = document.getElementById('email');
+  const liveBox = document.getElementById('liveDuplicateStatus');
+  const nextBtn = document.getElementById('nextBtn');
+  const form = document.getElementById('loanApplicationForm');
+
+  let duplicateBlocked = false;
+
+  function showBox(message, type='warn') {
+    if (!liveBox) return;
+    liveBox.className = 'status-banner show ' + type;
+    liveBox.style.display = 'block';
+    liveBox.innerHTML = message;
+  }
+
+  function hideBox() {
+    if (!liveBox) return;
+    liveBox.style.display = 'none';
+    liveBox.textContent = '';
+    liveBox.className = 'status-banner warn';
+  }
+
+  function cleanValue(name, value) {
+    const v = String(value || '').trim();
+    if (name === 'email') return v.toLowerCase();
+    if (name === 'phone') return v.replace(/\D/g, '');
+    if (name === 'id_number') return v.replace(/\s+/g, '').toUpperCase();
+    return v;
+  }
+
+  async function checkSingleField(fieldName, fieldValue) {
+    const value = cleanValue(fieldName, fieldValue);
+    if (!value) {
+      duplicateBlocked = false;
+      hideBox();
+      return { exists: false };
+    }
+
+    showBox('Checking ' + fieldName.replace('_', ' ') + ' in the system...', 'warn');
+
+    try {
+      const payload = {
+        email: fieldName === 'email' ? value : '',
+        phone: fieldName === 'phone' ? value : '',
+        id_number: fieldName === 'id_number' ? value : ''
+      };
+
+      const res = await fetch('/api/check-application-identity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (data && data.exists) {
+        duplicateBlocked = true;
+
+        let msg = 'This value was once used.';
+        if (fieldName === 'id_number') msg = 'This ID number was once used. Please go to the home page, click <strong>View My Application Progress</strong>, and log in with your application email and phone number.';
+        if (fieldName === 'phone') msg = 'This cellphone number was once used. Please go to the home page, click <strong>View My Application Progress</strong>, and log in with your application email and phone number.';
+        if (fieldName === 'email') msg = 'This email was once used. Please go to the home page, click <strong>View My Application Progress</strong>, and log in with this email and your phone number.';
+
+        showBox(msg, 'error');
+        return { exists: true };
+      }
+
+      duplicateBlocked = false;
+      hideBox();
+      return { exists: false };
+    } catch (err) {
+      console.error('Single-field duplicate check failed:', err);
+      showBox('Could not verify this field right now.', 'warn');
+      return { exists: false };
+    }
+  }
+
+  async function checkAllImportantFields() {
+    const idVal = idEl ? idEl.value : '';
+    const phoneVal = phoneEl ? phoneEl.value : '';
+    const emailVal = emailEl ? emailEl.value : '';
+
+    if (idVal) {
+      const r1 = await checkSingleField('id_number', idVal);
+      if (r1.exists) return false;
+    }
+
+    if (phoneVal) {
+      const r2 = await checkSingleField('phone', phoneVal);
+      if (r2.exists) return false;
+    }
+
+    if (emailVal) {
+      const r3 = await checkSingleField('email', emailVal);
+      if (r3.exists) return false;
+    }
+
+    return true;
+  }
+
+  if (idEl) {
+    idEl.addEventListener('blur', function () {
+      checkSingleField('id_number', idEl.value);
+    });
+  }
+
+  if (phoneEl) {
+    phoneEl.addEventListener('blur', function () {
+      checkSingleField('phone', phoneEl.value);
+    });
+  }
+
+  if (emailEl) {
+    emailEl.addEventListener('blur', function () {
+      checkSingleField('email', emailEl.value);
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', async function (e) {
+      const activeSection = document.querySelector('.section.active');
+      if (activeSection && activeSection.dataset.section === '1') {
+        const ok = await checkAllImportantFields();
+        if (!ok || duplicateBlocked) {
+          e.preventDefault();
+          return false;
+        }
+      }
+    }, true);
+  }
+
+  if (form) {
+    form.addEventListener('submit', async function (e) {
+      const ok = await checkAllImportantFields();
+      if (!ok || duplicateBlocked) {
+        e.preventDefault();
+        return false;
+      }
+    }, true);
+  }
+});
+</script>
+
+</body>
+</html>

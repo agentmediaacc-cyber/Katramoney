@@ -1,0 +1,759 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KATRAMONEY Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#06140e;
+      --panel:rgba(9,22,16,.96);
+      --card:rgba(255,255,255,.05);
+      --line:rgba(255,255,255,.10);
+      --text:#edf7f0;
+      --muted:#a1c0ab;
+      --primary:#22c55e;
+      --primary2:#15803d;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --success:#22c55e;
+      --shadow:0 14px 40px rgba(0,0,0,.28);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,sans-serif;
+      color:var(--text);
+      background:
+        linear-gradient(rgba(3,11,8,.84), rgba(5,15,10,.94)),
+        url("https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1800&q=80") center/cover fixed no-repeat;
+      overflow-x:hidden;
+    }
+    .shell{min-height:100vh;display:grid;grid-template-columns:280px minmax(0,1fr)}
+    .sidebar{
+      background:var(--panel);
+      border-right:1px solid var(--line);
+      padding:18px 14px;
+      position:sticky;top:0;height:100vh;overflow:auto;z-index:20
+    }
+    .brand{padding:16px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.04);margin-bottom:18px;box-shadow:var(--shadow)}
+    .brand h1{margin:0;font-size:20px}
+    .brand p{margin:6px 0 0;color:var(--muted);font-size:12px}
+    .nav-title{margin:18px 10px 8px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.12em}
+    .nav{display:flex;flex-direction:column;gap:8px}
+    .nav button,.nav a{
+      border:none;background:transparent;color:var(--muted);padding:13px 14px;border-radius:14px;
+      text-align:left;font-weight:800;cursor:pointer;text-decoration:none;border:1px solid transparent
+    }
+    .nav button.active,.nav button:hover,.nav a:hover{background:rgba(34,197,94,.12);color:var(--text);border-color:rgba(34,197,94,.18)}
+    .main{padding:20px;min-width:0}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;
+      background:rgba(9,18,15,.72);border:1px solid var(--line);border-radius:22px;padding:18px 20px;margin-bottom:18px;box-shadow:var(--shadow)
+    }
+    .topbar h2{margin:0}
+    .topbar p{margin:6px 0 0;color:var(--muted);font-size:13px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{
+      border:none;border-radius:12px;padding:10px 14px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2));
+      font-weight:800;cursor:pointer;box-shadow:var(--shadow)
+    }
+    .btn.secondary{background:rgba(255,255,255,.06);border:1px solid var(--line)}
+    .btn.success{background:linear-gradient(135deg,#22c55e,#15803d)}
+    .btn.warn{background:linear-gradient(135deg,#f59e0b,#d97706)}
+    .btn.danger{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+    .btn.sm{padding:8px 12px;font-size:12px}
+    .section{display:none}
+    .section.active{display:block}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:18px}
+    .stat,.card{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+    .stat small{display:block;color:var(--muted);font-size:12px;font-weight:900;text-transform:uppercase;margin-bottom:8px}
+    .stat .num{font-size:28px;font-weight:900}
+    .card{margin-bottom:16px}
+    .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}
+    table{width:100%;min-width:900px;border-collapse:collapse}
+    th,td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{font-size:12px;color:var(--muted);text-transform:uppercase}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:900}
+    .pending{background:rgba(245,158,11,.16);color:#ffd58a}
+    .approved{background:rgba(34,197,94,.16);color:#a7f3c0}
+    .rejected{background:rgba(239,68,68,.16);color:#fecaca}
+    .active-pill{background:rgba(34,197,94,.16);color:#a7f3c0}
+    .disabled-pill{background:rgba(239,68,68,.16);color:#fecaca}
+    .modal-wrap{position:fixed;inset:0;background:rgba(4,10,18,.72);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .modal-wrap.show{display:flex}
+    .modal{width:100%;max-width:900px;max-height:90vh;overflow:auto;background:#0c1828;border:1px solid var(--line);border-radius:22px}
+    .modal-head,.modal-body{padding:18px}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .field label{display:block;margin-bottom:6px;color:var(--muted);font-size:12px;font-weight:800}
+    input,select,textarea{
+      width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(255,255,255,.05);color:var(--text)
+    }
+    textarea{min-height:110px;resize:vertical}
+    .docs-list{display:grid;gap:10px}
+    .doc-item{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.04)}
+    .loading,.empty{padding:20px;color:var(--muted);font-weight:700;text-align:center}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;z-index:15}
+    .overlay.show{display:block}
+    @media (max-width:980px){
+      .shell{grid-template-columns:1fr}
+      .sidebar{position:fixed;left:-110%;width:280px;transition:.25s}
+      .sidebar.show{left:0}
+      .main{padding:14px}
+    }
+  </style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <h1>KATRAMONEY Admin</h1>
+      <p>Premium Loan & Finance Control Center</p>
+    </div>
+
+    <div class="nav-title">Dashboard</div>
+    <div class="nav">
+      <button class="nav-btn active" data-section="overview">Overview</button>
+    </div>
+
+    <div class="nav-title">Loan Management</div>
+    <div class="nav">
+      <button class="nav-btn" data-section="applications">Applications</button>
+      <button class="nav-btn" data-section="products">Loan Products</button>
+      <button class="nav-btn" data-section="messages">Messages</button>
+      <button class="nav-btn" data-section="site-settings">System Rates</button>
+    </div>
+
+    <div class="nav-title">Account</div>
+    <div class="nav">
+      <a href="/admin/logout">Logout</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="pageTitle">Overview</h2>
+        <p id="pageSubtitle">Manage applications, products, messages, approvals, and settings.</p>
+      </div>
+      <div class="actions">
+        <button class="btn secondary" type="button" onclick="toggleSidebar()">☰ Menu</button>
+        <button class="btn secondary" type="button" onclick="refreshCurrent()">Refresh</button>
+        <button class="btn" type="button" onclick="openProductModal()">+ New Product</button>
+      </div>
+    </div>
+
+    <section class="section active" id="section-overview">
+      <div class="stats" id="overviewStats"></div>
+      <div class="card">
+        <div class="card-head"><h3>Recent Applications</h3></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ref</th><th>Applicant</th><th>Product</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="recentAppsBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-applications">
+      <div class="card">
+        <div class="card-head"><h3>Applications</h3></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ref</th><th>Applicant</th><th>Phone</th><th>Product</th><th>Amount</th><th>Term</th><th>Status</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="applicationsBody"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-products">
+      <div class="card">
+        <div class="card-head">
+          <h3>Loan Products</h3>
+          <button class="btn" type="button" onclick="openProductModal()">+ Create Product</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Interest</th><th>Fee</th><th>Min</th><th>Max</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="productsBody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-messages">
+      <div class="card">
+        <div class="card-head"><h3>Contacts</h3></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Subject</th><th>Message</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="contactsBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Customer Messages</h3></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Subject</th><th>Message</th><th>Sender</th><th>Read</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="customerMessagesBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Support Tickets</h3></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Customer</th><th>Email</th><th>Subject</th><th>Message</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="supportTicketsBody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-site-settings">
+      <div class="card">
+        <div class="card-head">
+          <h3>System Rates</h3>
+          <div class="actions">
+            <button class="btn success" type="button" onclick="saveSiteSettings()">Save Rates</button>
+            <button class="btn warn" type="button" onclick="applySettingsToProducts()">Apply Rates To Products</button>
+          </div>
+        </div>
+        <form id="siteSettingsForm">
+          <div class="form-grid">
+            <div class="field"><label>Base Interest Rate (%)</label><input type="number" step="0.01" id="ss_interest_rate" name="interest_rate"></div>
+            <div class="field"><label>Base Service Fee (N$)</label><input type="number" step="0.01" id="ss_service_fee" name="service_fee"></div>
+            <div class="field"><label>Business Loan Rate (%)</label><input type="number" step="0.01" id="ss_business_loan_rate" name="business_loan_rate"></div>
+            <div class="field"><label>Personal Loan Rate (%)</label><input type="number" step="0.01" id="ss_personal_loan_rate" name="personal_loan_rate"></div>
+            <div class="field"><label>Salary Advance Rate (%)</label><input type="number" step="0.01" id="ss_salary_advance_rate" name="salary_advance_rate"></div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-wrap" id="productModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="productModalTitle">Create Product</h3>
+      <button class="btn secondary sm" type="button" onclick="closeModal('productModalWrap')">Close</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="product_id">
+      <div class="form-grid">
+        <div class="field"><label>Product Name</label><input id="product_name"></div>
+        <div class="field"><label>Interest Rate (%)</label><input type="number" step="0.01" id="product_rate"></div>
+        <div class="field"><label>Service Fee</label><input type="number" step="0.01" id="product_fee"></div>
+        <div class="field"><label>Minimum Amount</label><input type="number" step="0.01" id="product_min"></div>
+        <div class="field"><label>Maximum Amount</label><input type="number" step="0.01" id="product_max"></div>
+        <div class="field"><label>Status</label><select id="product_active"><option value="true">Active</option><option value="false">Disabled</option></select></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
+        <button class="btn danger" id="deleteProductBtn" type="button" style="display:none" onclick="deleteProduct()">Delete</button>
+        <button class="btn success" type="button" onclick="saveProduct()">Save Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="replyModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Reply To Customer</h3>
+      <button class="btn secondary sm" type="button" onclick="closeModal('replyModalWrap')">Close</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="reply_customer_id">
+      <div class="field"><label>Subject</label><input id="reply_subject"></div>
+      <div class="field" style="margin-top:14px"><label>Message</label><textarea id="reply_message"></textarea></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px">
+        <button class="btn success" type="button" onclick="sendReply()">Send Reply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="applicationModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Application Detail</h3>
+      <button class="btn secondary sm" type="button" onclick="closeModal('applicationModalWrap')">Close</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="app_detail_id">
+
+      <div class="form-grid">
+        <div class="field"><label>Full Name</label><input id="app_full_name"></div>
+        <div class="field"><label>Phone</label><input id="app_phone"></div>
+        <div class="field"><label>Email</label><input id="app_email"></div>
+        <div class="field"><label>Product</label><input id="app_product_name"></div>
+        <div class="field"><label>Amount</label><input id="app_amount" type="number" step="0.01"></div>
+        <div class="field"><label>Term</label><input id="app_term"></div>
+        <div class="field"><label>Status</label>
+          <select id="app_status">
+            <option value="PENDING">PENDING</option>
+            <option value="APPROVED">APPROVED</option>
+            <option value="REJECTED">REJECTED</option>
+            <option value="UNDER REVIEW">UNDER REVIEW</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label>Review Note</label>
+        <textarea id="app_review_note"></textarea>
+      </div>
+
+      <div style="margin-top:16px">
+        <h4 style="margin:0 0 10px 0">Uploaded Documents</h4>
+        <div id="applicationDocuments" class="docs-list"></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
+        <button class="btn warn" type="button" onclick="updateApplication()">Update</button>
+        <button class="btn success" type="button" onclick="approveApplication()">Approve</button>
+        <button class="btn danger" type="button" onclick="rejectApplication()">Reject</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const titles = {
+  overview:["Overview","Manage applications, products, messages, approvals, and settings."],
+  applications:["Applications","View all client loan applications and uploaded documents."],
+  products:["Loan Products","Create, edit, delete, and activate real loan products."],
+  messages:["Messages","Reply to customers and manage support records."],
+  "site-settings":["System Rates","Save rates and apply them to products."]
+};
+
+let currentSection = "overview";
+
+function esc(v){
+  return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function money(v){
+  const n = Number(v || 0);
+  return isNaN(n) ? "0.00" : n.toFixed(2);
+}
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("show");
+  document.getElementById("overlay").classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
+}
+function openModal(id){ document.getElementById(id).classList.add("show"); }
+function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+
+function statusPill(status){
+  const s = String(status || "PENDING").toUpperCase();
+  let cls = "pending";
+  if (s === "APPROVED" || s === "ACTIVE") cls = "approved";
+  if (s === "REJECTED" || s === "DISABLED") cls = "rejected";
+  return `<span class="pill ${cls}">${esc(s)}</span>`;
+}
+function activePill(active){
+  return active
+    ? '<span class="pill active-pill">ACTIVE</span>'
+    : '<span class="pill disabled-pill">DISABLED</span>';
+}
+
+async function fetchJSON(url, options={}){
+  const res = await fetch(url, options);
+  let data = {};
+  try { data = await res.json(); } catch(e) { throw new Error("Invalid server response."); }
+  if (!res.ok || !data.success) throw new Error(data.error || "Request failed.");
+  return data;
+}
+
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+  btn.addEventListener("click", async ()=>{
+    const name = btn.dataset.section;
+    currentSection = name;
+    document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+    document.getElementById("section-"+name).classList.add("active");
+    document.getElementById("pageTitle").textContent = titles[name][0];
+    document.getElementById("pageSubtitle").textContent = titles[name][1];
+    closeSidebar();
+    await refreshCurrent();
+  });
+});
+
+async function refreshCurrent(){
+  if (currentSection === "overview") await loadOverview();
+  if (currentSection === "applications") await loadApplications();
+  if (currentSection === "products") await loadProducts();
+  if (currentSection === "messages") await loadMessages();
+  if (currentSection === "site-settings") await loadSiteSettings();
+}
+
+async function loadOverview(){
+  const data = await fetchJSON("/api/admin/overview");
+  const c = data.counts || {};
+
+  document.getElementById("overviewStats").innerHTML = `
+    <div class="stat"><small>Total Applications</small><div class="num">${esc(c.applications || 0)}</div></div>
+    <div class="stat"><small>Pending</small><div class="num">${esc(c.pending || 0)}</div></div>
+    <div class="stat"><small>Approved</small><div class="num">${esc(c.approved || 0)}</div></div>
+    <div class="stat"><small>Rejected</small><div class="num">${esc(c.rejected || 0)}</div></div>
+    <div class="stat"><small>Loan Products</small><div class="num">${esc(c.loan_products || 0)}</div></div>
+    <div class="stat"><small>Total Requested</small><div class="num">N$ ${money(c.total_requested || 0)}</div></div>
+  `;
+
+  const rows = data.recent_applications || [];
+  if (!rows.length) {
+    document.getElementById("recentAppsBody").innerHTML = '<tr><td colspan="6" class="empty">No recent applications found.</td></tr>';
+    return;
+  }
+
+  document.getElementById("recentAppsBody").innerHTML = rows.map(a => `
+    <tr>
+      <td>${esc(a.reference || a.ref || "-")}</td>
+      <td>${esc(a.full_name || "-")}</td>
+      <td>${esc(a.product_name || "-")}</td>
+      <td>N$ ${money(a.amount)}</td>
+      <td>${statusPill(a.status)}</td>
+      <td><button class="btn sm secondary" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button></td>
+    </tr>
+  `).join("");
+}
+
+async function loadApplications(){
+  const data = await fetchJSON("/api/admin/applications");
+  const rows = data.data || [];
+
+  if (!rows.length) {
+    document.getElementById("applicationsBody").innerHTML = '<tr><td colspan="8" class="empty">No applications found.</td></tr>';
+    return;
+  }
+
+  document.getElementById("applicationsBody").innerHTML = rows.map(a => `
+    <tr>
+      <td>${esc(a.reference || a.ref || "-")}</td>
+      <td>${esc(a.full_name || "-")}</td>
+      <td>${esc(a.phone || a.contact_number || "-")}</td>
+      <td>${esc(a.product_name || "-")}</td>
+      <td>N$ ${money(a.amount)}</td>
+      <td>${esc(a.term || "-")}</td>
+      <td>${statusPill(a.status)}</td>
+      <td><button class="btn sm secondary" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button></td>
+    </tr>
+  `).join("");
+}
+
+async function viewApplication(id){
+  const data = await fetchJSON(`/api/admin/applications/${id}`);
+  const a = data.data || {};
+  document.getElementById("app_detail_id").value = a.id || "";
+  document.getElementById("app_full_name").value = a.full_name || "";
+  document.getElementById("app_phone").value = a.phone || a.contact_number || "";
+  document.getElementById("app_email").value = a.email || "";
+  document.getElementById("app_product_name").value = a.product_name || "";
+  document.getElementById("app_amount").value = a.amount || "";
+  document.getElementById("app_term").value = a.term || "";
+  document.getElementById("app_status").value = (a.status || "PENDING");
+  document.getElementById("app_review_note").value = a.review_note || "";
+
+  const docs = a.documents_list || [];
+  const holder = document.getElementById("applicationDocuments");
+  if (!docs.length) {
+    holder.innerHTML = `<div class="doc-item">No uploaded documents found in this application row.</div>`;
+  } else {
+    holder.innerHTML = docs.map(d => `
+      <div class="doc-item">
+        <strong>${esc(d.label || "Document")}</strong><br>
+        <a href="${esc(d.url)}" target="_blank" style="color:#86efac">Open document</a>
+      </div>
+    `).join("");
+  }
+
+  openModal("applicationModalWrap");
+}
+
+async function updateApplication(){
+  const id = document.getElementById("app_detail_id").value;
+  const payload = {
+    full_name: document.getElementById("app_full_name").value.trim(),
+    phone: document.getElementById("app_phone").value.trim(),
+    email: document.getElementById("app_email").value.trim(),
+    product_name: document.getElementById("app_product_name").value.trim(),
+    amount: parseFloat(document.getElementById("app_amount").value || 0),
+    term: document.getElementById("app_term").value.trim(),
+    status: document.getElementById("app_status").value,
+    review_note: document.getElementById("app_review_note").value.trim()
+  };
+
+  const data = await fetchJSON(`/admin/applications/${id}/update`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+
+  await loadApplications();
+  await loadOverview();
+  alert(data.message || "Application updated.");
+}
+
+async function approveApplication(){
+  const id = document.getElementById("app_detail_id").value;
+  const payload = { review_note: document.getElementById("app_review_note").value.trim() };
+  const data = await fetchJSON(`/admin/applications/${id}/approve`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+  await viewApplication(id);
+  await loadApplications();
+  await loadOverview();
+  alert(data.message || "Application approved.");
+}
+
+async function rejectApplication(){
+  const id = document.getElementById("app_detail_id").value;
+  const payload = { review_note: document.getElementById("app_review_note").value.trim() };
+  const data = await fetchJSON(`/admin/applications/${id}/reject`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+  await viewApplication(id);
+  await loadApplications();
+  await loadOverview();
+  alert(data.message || "Application rejected.");
+}
+
+async function loadProducts(){
+  const data = await fetchJSON("/api/admin/loan-products");
+  const rows = data.data || [];
+  if (!rows.length) {
+    document.getElementById("productsBody").innerHTML = '<tr><td colspan="7" class="empty">No loan products found.</td></tr>';
+    return;
+  }
+  document.getElementById("productsBody").innerHTML = rows.map(p => `
+    <tr>
+      <td>${esc(p.name || "-")}</td>
+      <td>${esc(p.interest_rate || 0)}%</td>
+      <td>N$ ${money(p.service_fee)}</td>
+      <td>N$ ${money(p.min_amount)}</td>
+      <td>N$ ${money(p.max_amount)}</td>
+      <td>${activePill(!!p.active)}</td>
+      <td><button class="btn sm secondary" onclick='openEditProduct(${JSON.stringify(p.id)}, ${JSON.stringify(p.name)}, ${JSON.stringify(p.interest_rate)}, ${JSON.stringify(p.service_fee)}, ${JSON.stringify(p.min_amount)}, ${JSON.stringify(p.max_amount)}, ${JSON.stringify(!!p.active)})'>Edit</button></td>
+    </tr>
+  `).join("");
+}
+
+function openProductModal(){
+  document.getElementById("productModalTitle").textContent = "Create Product";
+  document.getElementById("product_id").value = "";
+  document.getElementById("product_name").value = "";
+  document.getElementById("product_rate").value = "";
+  document.getElementById("product_fee").value = "";
+  document.getElementById("product_min").value = "";
+  document.getElementById("product_max").value = "";
+  document.getElementById("product_active").value = "true";
+  document.getElementById("deleteProductBtn").style.display = "none";
+  openModal("productModalWrap");
+}
+
+function openEditProduct(id, name, rate, fee, minAmount, maxAmount, active){
+  document.getElementById("productModalTitle").textContent = "Edit Product";
+  document.getElementById("product_id").value = id || "";
+  document.getElementById("product_name").value = name || "";
+  document.getElementById("product_rate").value = rate || "";
+  document.getElementById("product_fee").value = fee || "";
+  document.getElementById("product_min").value = minAmount || "";
+  document.getElementById("product_max").value = maxAmount || "";
+  document.getElementById("product_active").value = String(active) === "true" ? "true" : "false";
+  document.getElementById("deleteProductBtn").style.display = "";
+  openModal("productModalWrap");
+}
+
+async function saveProduct(){
+  const id = document.getElementById("product_id").value.trim();
+  const payload = {
+    name: document.getElementById("product_name").value.trim(),
+    interest_rate: parseFloat(document.getElementById("product_rate").value || 0),
+    service_fee: parseFloat(document.getElementById("product_fee").value || 0),
+    min_amount: parseFloat(document.getElementById("product_min").value || 0),
+    max_amount: parseFloat(document.getElementById("product_max").value || 0),
+    active: document.getElementById("product_active").value === "true"
+  };
+  if (!payload.name) return alert("Product name is required.");
+
+  const url = id ? `/admin/products/${id}/update` : `/admin/products/create`;
+  const data = await fetchJSON(url,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+  closeModal("productModalWrap");
+  await loadProducts();
+  await loadOverview();
+  alert(data.message || "Product saved.");
+}
+
+async function deleteProduct(){
+  const id = document.getElementById("product_id").value.trim();
+  if (!id) return;
+  if (!confirm("Delete this product?")) return;
+
+  const data = await fetchJSON(`/admin/products/${id}/delete`,{
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+  closeModal("productModalWrap");
+  await loadProducts();
+  await loadOverview();
+  alert(data.message || "Product deleted.");
+}
+
+async function loadMessages(){
+  const data = await fetchJSON("/api/admin/messages-feed");
+
+  const contacts = data.contacts || [];
+  const customerMessages = data.customer_messages || [];
+  const supportTickets = data.support_tickets || [];
+
+  document.getElementById("contactsBody").innerHTML = contacts.length ? contacts.map(m => `
+    <tr>
+      <td>${esc(m.name || "-")}</td>
+      <td>${esc(m.email || "-")}</td>
+      <td>${esc(m.subject || "-")}</td>
+      <td>${esc(m.message || "-")}</td>
+      <td>${esc(m.created_at || "-")}</td>
+      <td>
+        <button class="btn sm secondary" onclick='openReply(${JSON.stringify(m.customer_id || "")}, ${JSON.stringify("Reply: " + (m.subject || "Customer Message"))})'>Reply</button>
+        <button class="btn sm danger" onclick='deleteMessage("contacts", ${JSON.stringify(m.id)})'>Delete</button>
+      </td>
+    </tr>
+  `).join("") : '<tr><td colspan="6" class="empty">No contacts found.</td></tr>';
+
+  document.getElementById("customerMessagesBody").innerHTML = customerMessages.length ? customerMessages.map(m => `
+    <tr>
+      <td>${esc(m.subject || "-")}</td>
+      <td>${esc(m.message || "-")}</td>
+      <td>${esc(m.sender_role || "-")}</td>
+      <td>${esc(m.is_read ?? "-")}</td>
+      <td>${esc(m.created_at || "-")}</td>
+      <td>
+        <button class="btn sm danger" onclick='deleteMessage("customer_messages", ${JSON.stringify(m.id)})'>Delete</button>
+      </td>
+    </tr>
+  `).join("") : '<tr><td colspan="6" class="empty">No customer messages found.</td></tr>';
+
+  document.getElementById("supportTicketsBody").innerHTML = supportTickets.length ? supportTickets.map(s => `
+    <tr>
+      <td>${esc(s.customer_name || "-")}</td>
+      <td>${esc(s.customer_email || "-")}</td>
+      <td>${esc(s.subject || "-")}</td>
+      <td>${esc(s.message || "-")}</td>
+      <td>${esc(s.status || "-")}</td>
+      <td>${esc(s.created_at || "-")}</td>
+      <td>
+        <button class="btn sm secondary" onclick='openReply(${JSON.stringify(s.customer_id || "")}, ${JSON.stringify("Support Reply: " + (s.subject || "Ticket"))})'>Reply</button>
+        <button class="btn sm danger" onclick='deleteMessage("support_tickets", ${JSON.stringify(s.id)})'>Delete</button>
+      </td>
+    </tr>
+  `).join("") : '<tr><td colspan="7" class="empty">No support tickets found.</td></tr>';
+}
+
+function openReply(customerId, subject){
+  document.getElementById("reply_customer_id").value = customerId || "";
+  document.getElementById("reply_subject").value = subject || "Admin Reply";
+  document.getElementById("reply_message").value = "";
+  openModal("replyModalWrap");
+}
+
+async function sendReply(){
+  const payload = {
+    customer_id: document.getElementById("reply_customer_id").value,
+    subject: document.getElementById("reply_subject").value.trim(),
+    message: document.getElementById("reply_message").value.trim()
+  };
+
+  if (!payload.subject) return alert("Subject required.");
+  if (!payload.message) return alert("Message required.");
+
+  const data = await fetchJSON("/admin/messages/reply",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+
+  closeModal("replyModalWrap");
+  await loadMessages();
+  alert(data.message || "Reply sent.");
+}
+
+async function deleteMessage(tableName, id){
+  if (!confirm("Delete this record?")) return;
+
+  const data = await fetchJSON(`/admin/messages/${tableName}/${id}/delete`,{
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+  await loadMessages();
+  await loadOverview();
+  alert(data.message || "Deleted.");
+}
+
+async function loadSiteSettings(){
+  const data = await fetchJSON("/api/admin/site-settings");
+  const s = data.data || {};
+  document.getElementById("ss_interest_rate").value = s.interest_rate ?? "";
+  document.getElementById("ss_service_fee").value = s.service_fee ?? "";
+  document.getElementById("ss_business_loan_rate").value = s.business_loan_rate ?? "";
+  document.getElementById("ss_personal_loan_rate").value = s.personal_loan_rate ?? "";
+  document.getElementById("ss_salary_advance_rate").value = s.salary_advance_rate ?? "";
+}
+
+async function saveSiteSettings(){
+  const fd = new FormData(document.getElementById("siteSettingsForm"));
+  const payload = {};
+  for (const [k,v] of fd.entries()) payload[k] = v;
+
+  const data = await fetchJSON("/admin/site-settings/save",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+  alert(data.message || "Rates saved.");
+}
+
+async function applySettingsToProducts(){
+  const data = await fetchJSON("/admin/site-settings/apply-products",{
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+  await loadProducts();
+  await loadOverview();
+  alert(data.message || "Applied.");
+}
+
+refreshCurrent();
+</script>
+</body>
+</html>

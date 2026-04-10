@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>KATRAMONEY | Customer Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--primary:#0b3d2e;--primary2:#145c46;--accent:#ffd447;--line:#e2e8f0;--text:#243746;--muted:#64748b;--card:#ffffff;--shadow:0 20px 50px rgba(2,12,27,.10)}
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:Inter,sans-serif;color:var(--text);
+      background:
+        linear-gradient(rgba(5,18,14,.68),rgba(5,18,14,.78)),
+        url('{{ customer_wallpaper_url if customer_wallpaper_url else "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1800&q=80" }}') center/cover fixed no-repeat;
+    }
+    .layout{display:grid;grid-template-columns:290px 1fr;min-height:100vh}
+    .sidebar{background:rgba(8,16,14,.82);backdrop-filter:blur(14px);color:#fff;padding:24px;border-right:1px solid rgba(255,255,255,.08)}
+    .brand{font-size:30px;font-weight:900}
+    .brand-sub{margin:6px 0 20px;color:rgba(255,255,255,.76);font-size:13px;line-height:1.6}
+    .nav a{display:block;padding:12px 14px;color:#fff;text-decoration:none;border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.08);font-weight:700}
+    .nav a.active-link{background:rgba(255,212,71,.18);border:1px solid rgba(255,212,71,.35)}
+    .main{padding:24px}
+    .mobile-topbar{display:none}
+    .menu-toggle{border:none;background:var(--primary);color:#fff;border-radius:12px;padding:12px 14px;font-weight:900;cursor:pointer}
+    .mobile-overlay{display:none}
+    .hero{background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.6);border-radius:28px;box-shadow:var(--shadow);padding:24px;margin-bottom:18px}
+    .hero-top{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:center}
+    .hero h1{margin:0;color:var(--primary);font-size:34px}
+    .hero p{margin:8px 0 0;color:var(--muted);line-height:1.7}
+    .logout{background:var(--primary);color:#fff;text-decoration:none;padding:12px 16px;border-radius:14px;font-weight:800}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
+    .stat{background:rgba(255,255,255,.92);border-radius:24px;padding:20px;border:1px solid rgba(255,255,255,.6);box-shadow:var(--shadow)}
+    .stat small{display:block;color:var(--muted);font-weight:800;text-transform:uppercase;margin-bottom:8px}
+    .stat strong{font-size:28px;color:var(--primary)}
+    .card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;border:1px solid rgba(255,255,255,.6);box-shadow:var(--shadow);margin-bottom:18px}
+    .card h3{margin:0 0 10px;color:var(--primary);font-size:22px}
+    .muted{color:var(--muted);line-height:1.7}
+    .pill{display:inline-flex;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:900;background:#eff6ff;color:#1d4ed8}
+    .pill.approved{background:#dcfce7;color:#166534}
+    .pill.pending{background:#fef3c7;color:#92400e}
+    .pill.rejected{background:#fee2e2;color:#991b1b}
+    .row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 0;border-bottom:1px solid var(--line)}
+    .row:last-child{border-bottom:none}
+    .timeline,.items{display:grid;gap:10px;margin-top:12px}
+    .item{background:#f8fafc;border:1px solid var(--line);border-radius:18px;padding:14px}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);font-size:14px}
+    th{color:var(--muted);text-transform:uppercase;font-size:12px}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .field label{display:block;margin-bottom:6px;font-size:12px;font-weight:900;color:var(--muted);text-transform:uppercase}
+    input,select,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:14px;font:inherit}
+    textarea{min-height:100px;resize:vertical}
+    .full{grid-column:1 / -1}
+    .btn{border:none;border-radius:14px;padding:13px 16px;font-weight:900;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#ffb703);color:#1f2937}
+    .btn-dark{background:var(--primary);color:#fff}
+    .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .weather{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:18px;background:#f8fafc}
+    .footer-credit{margin-top:8px;color:var(--muted);font-size:13px}
+    .repayment-progress{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:18px;background:#f8fafc}
+    .progress-track{width:100%;height:12px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:10px}
+    .progress-bar{height:100%;border-radius:999px;background:linear-gradient(135deg,#16a34a,#22c55e)}
+    .profile-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+    .profile-box{background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:14px}
+    .profile-box strong{display:block;color:var(--primary);font-size:12px;text-transform:uppercase;margin-bottom:6px}
+    .profile-box span{color:var(--muted);font-size:14px;line-height:1.6;word-break:break-word}
+    .notif-badge{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 8px;border-radius:999px;background:#dc2626;color:#fff;font-size:12px;font-weight:900}
+    .menu-section-title{margin:16px 0 8px;color:rgba(255,255,255,.72);font-size:11px;text-transform:uppercase;font-weight:900;letter-spacing:.08em}
+    .quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+    .quick-action{display:block;text-decoration:none;background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:14px;color:var(--primary);font-weight:800}
+    .message-alert{margin-top:12px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.6}
+    .chat-box{margin-top:14px;border:1px solid var(--line);border-radius:18px;padding:14px;background:#f8fafc}
+    .dashboard-section{display:none}
+    .dashboard-section.active{display:block}
+
+    @media (max-width:1050px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{
+        position:fixed;top:0;left:0;width:min(320px,88vw);height:100vh;overflow:auto;z-index:1200;
+        transform:translateX(-100%);transition:transform .25s ease;border-right:none
+      }
+      .sidebar.open{transform:translateX(0)}
+      .mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1100}
+      .mobile-overlay.show{display:block}
+      .mobile-topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.6);border-radius:18px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:16px}
+      .main{padding:16px}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:700px){
+      .stats,.form-grid,.mini-grid,.profile-summary,.quick-actions{grid-template-columns:1fr}
+      .main{padding:12px}
+      .hero,.card,.stat{border-radius:18px;padding:16px}
+      .hero h1{font-size:24px}
+      .hero-top{align-items:flex-start}
+      .hero-top > div:last-child{width:100%}
+      .hero-top > div:last-child .logout{display:block;width:100%;text-align:center}
+      table{display:block;overflow-x:auto;white-space:nowrap}
+      th,td{padding:10px 8px;font-size:13px}
+      .row,.weather{flex-direction:column;align-items:flex-start}
+      input,select,textarea{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebarMenu">
+      <div class="brand">KATRAMONEY</div>
+      <div class="brand-sub">{{ powered_by_text }}<br>{{ developer_credit }}</div>
+
+      <div class="nav">
+        <div class="menu-section-title">Main</div>
+        <a href="/">Home Page</a>
+        <a href="#" data-section="overview" onclick="showSection('overview');closeSidebar();return false;">Overview</a>
+        <a href="#" data-section="applications" onclick="showSection('applications');closeSidebar();return false;">Applications</a>
+        <a href="#" data-section="timeline" onclick="showSection('timeline');closeSidebar();return false;">Timeline</a>
+        <a href="#" data-section="repayments" onclick="showSection('repayments');closeSidebar();return false;">Repayments</a>
+        <a href="#" data-section="messages" onclick="showSection('messages');closeSidebar();return false;">Messages <span class="notif-badge">{{ customer_messages|length if customer_messages else 0 }}</span></a>
+        <a href="#" data-section="profile" onclick="showSection('profile');closeSidebar();return false;">Edit My Profile</a>
+        <a href="#" data-section="support" onclick="showSection('support');closeSidebar();return false;">Support Center</a>
+
+        <div class="menu-section-title">Documents & Profile</div>
+        <a href="#" data-section="upload-documents" onclick="showSection('upload-documents');closeSidebar();return false;">Upload Documents</a>
+        <a href="#" data-section="profile" onclick="showSection('profile');closeSidebar();return false;">Profile Details</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="mobile-topbar">
+        <div>
+          <strong style="color:var(--primary);font-size:18px;">KATRAMONEY</strong>
+          <div class="footer-credit">Customer Dashboard</div>
+        </div>
+        <button class="menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
+      </div>
+
+      <div class="hero">
+        <div class="hero-top">
+          <div>
+            <h1>Customer Banking Portal</h1>
+            <p>Welcome {{ profile.full_name if profile and profile.full_name else customer_email }}. Track applications, repayments, messages, support, and verification in one live portal.</p>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a class="logout" href="/">Home</a>
+            <a class="logout" href="/apply">Apply New</a>
+            <a class="logout" href="/customer/logout">Logout</a>
+          </div>
+        </div>
+
+        <div class="weather">
+          <div>
+            <strong style="color:#0b3d2e;">{{ dashboard_ad_headline }}</strong>
+            <div class="footer-credit">{{ dashboard_ad_text }}</div>
+          </div>
+          <div id="weatherBox" class="footer-credit">Weather loading...</div>
+        </div>
+      </div>
+
+      <section class="dashboard-section active" id="section-overview">
+        <section class="stats" id="overview">
+          <div class="stat"><small>Application Status</small><strong>{{ current_status }}</strong></div>
+          <div class="stat"><small>Approved Amount</small><strong>N$ {{ "%.0f"|format(approved_amount|float) }}</strong></div>
+          <div class="stat"><small>Paid Amount</small><strong>N$ {{ "%.0f"|format(paid_amount|float) }}</strong></div>
+          <div class="stat"><small>Balance Left</small><strong>N$ {{ "%.0f"|format(balance_amount|float) }}</strong></div>
+        </section>
+
+        <div class="card" id="repayment-progress">
+          <h3>Repayment Progress</h3>
+          <p class="muted">Track how much of your approved loan has already been paid.</p>
+          {% set progress_pct = ((paid_amount|float / approved_amount|float) * 100) if approved_amount|float > 0 else 0 %}
+          <div class="repayment-progress">
+            <strong style="color:var(--primary);">Progress: {{ "%.0f"|format(progress_pct) }}%</strong>
+            <div class="progress-track">
+              <div class="progress-bar" style="width:{{ "%.0f"|format(progress_pct if progress_pct <= 100 else 100) }}%;"></div>
+            </div>
+            <div class="footer-credit" style="margin-top:10px;">
+              Paid: N$ {{ "%.0f"|format(paid_amount|float) }} | Approved: N$ {{ "%.0f"|format(approved_amount|float) }} | Balance: N$ {{ "%.0f"|format(balance_amount|float) }}
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <a href="#" class="quick-action" onclick="showSection('repayments');return false;">View Repayments</a>
+            <a href="#" class="quick-action" onclick="showSection('messages');return false;">Open Messages</a>
+            <a href="#" class="quick-action" onclick="showSection('profile');return false;">Edit My Profile</a>
+            <a href="#" class="quick-action" onclick="showSection('upload-documents');return false;">Upload Documents</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-section" id="section-applications">
+        <div class="card" id="applications">
+          <h3>My Applications</h3>
+          <p class="muted">Each application is linked to your real customer account.</p>
+          {% if applications %}
+            {% for app in applications %}
+            {% set st = (app.status or 'PENDING')|upper %}
+            <div class="row">
+              <div>
+                <strong>{{ app.reference }}</strong>
+                <div class="muted">Loan Amount: N$ {{ app.amount }} | Term: {{ app.term }} month(s)</div>
+                <div class="muted">Purpose: {{ app.loan_purpose }}</div>
+              </div>
+              <div><span class="pill {% if st == 'APPROVED' %}approved{% elif st == 'REJECTED' %}rejected{% else %}pending{% endif %}">{{ st }}</span></div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="item">No application found yet. Use the Apply page to submit your first application.</div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="dashboard-section" id="section-timeline">
+        <div class="card" id="timeline">
+          <h3>Application Status Timeline</h3>
+          {% if status_history %}
+            <div class="timeline">
+              {% for t in status_history %}
+              <div class="item">
+                <strong>{{ t.status }}</strong>
+                <div class="muted">{{ t.note or 'Status update recorded.' }}</div>
+                <div class="footer-credit">{{ t.created_at }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="item">No timeline events yet.</div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="dashboard-section" id="section-repayments">
+        <div class="card" id="repayments">
+          <h3>Repayment Schedule</h3>
+          {% if repayment_schedule %}
+            <table>
+              <thead>
+                <tr><th>#</th><th>Due Date</th><th>Due Amount</th><th>Paid</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                {% for r in repayment_schedule %}
+                <tr>
+                  <td>{{ r.installment_no }}</td>
+                  <td>{{ r.due_date }}</td>
+                  <td>N$ {{ r.due_amount }}</td>
+                  <td>N$ {{ r.paid_amount }}</td>
+                  <td>{{ r.status }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="item">No repayment schedule yet. It will appear once a loan account is created and approved.</div>
+          {% endif %}
+
+          <div class="item" style="margin-top:14px;">
+            <strong>Upload Payment Proof</strong>
+            <form method="POST" action="/customer/payment-proof/upload" enctype="multipart/form-data" style="margin-top:12px;">
+              <div class="mini-grid">
+                <div class="field">
+                  <label>Loan Account ID</label>
+                  <input type="text" name="loan_account_id" value="{{ loan_accounts[0].id if loan_accounts else '' }}">
+                </div>
+                <div class="field">
+                  <label>Payment Amount</label>
+                  <input type="number" name="payment_amount" min="0">
+                </div>
+                <div class="field">
+                  <label>Payment Method</label>
+                  <select name="payment_method">
+                    <option>EFT</option>
+                    <option>Bank Deposit</option>
+                    <option>Cash Deposit</option>
+                    <option>Wallet Transfer</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Proof Upload</label>
+                  <input type="file" name="payment_proof" required>
+                </div>
+                <div class="field full">
+                  <label>Payment Note</label>
+                  <textarea name="payment_note"></textarea>
+                </div>
+              </div>
+              <button class="btn btn-dark" type="submit">Submit Payment Proof</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-section" id="section-messages">
+        <div class="card" id="messages">
+          <h3>Admin-to-Customer Messages & Notifications</h3>
+          {% if customer_messages %}
+            <div class="items">
+              {% for m in customer_messages %}
+              <div class="item">
+                <strong>{{ m.subject or 'Message' }}</strong>
+                <div class="muted">{{ m.message }}</div>
+                <div class="footer-credit">{{ m.created_at }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="item">No messages yet.</div>
+          {% endif %}
+          <div class="message-alert">
+            You will see new admin instructions, approval updates, repayment reminders, and dashboard notices here.
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-section" id="section-profile">
+        <div class="card" id="profile">
+          <h3>Profile Details & Security Settings</h3>
+
+          <div class="profile-summary">
+            <div class="profile-box">
+              <strong>Full Name</strong>
+              <span>{{ profile.full_name if profile else customer_email }}</span>
+            </div>
+            <div class="profile-box">
+              <strong>Email</strong>
+              <span>{{ customer_email }}</span>
+            </div>
+            <div class="profile-box">
+              <strong>Phone</strong>
+              <span>{{ profile.phone if profile else '' }}</span>
+            </div>
+            <div class="profile-box">
+              <strong>Region / Town</strong>
+              <span>{{ profile.region if profile else '' }}{% if profile and profile.town_city %} | {{ profile.town_city }}{% endif %}</span>
+            </div>
+          </div>
+
+          <form method="POST" action="/customer/profile/save" style="margin-top:16px;">
+            <div class="form-grid">
+              <div class="field"><label>Full Name</label><input type="text" name="full_name" value="{{ profile.full_name if profile else '' }}"></div>
+              <div class="field"><label>Phone</label><input type="text" name="phone" value="{{ profile.phone if profile else '' }}"></div>
+              <div class="field full"><label>Physical Address</label><textarea name="physical_address">{{ profile.physical_address if profile else '' }}</textarea></div>
+              <div class="field"><label>Town / City</label><input type="text" name="town_city" value="{{ profile.town_city if profile else '' }}"></div>
+              <div class="field"><label>Region</label><input type="text" name="region" value="{{ profile.region if profile else '' }}"></div>
+            </div>
+            <button class="btn btn-primary" type="submit" style="margin-top:14px;">Save Profile</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="dashboard-section" id="section-upload-documents">
+        <div class="card" id="upload-documents">
+          <h3>Upload Customer Documents</h3>
+          <p class="muted">Upload updated documents for admin review directly from your dashboard.</p>
+          <form method="POST" action="/customer/documents/upload" enctype="multipart/form-data">
+            <div class="form-grid">
+              <div class="field">
+                <label>Document Type</label>
+                <select name="document_type" required>
+                  <option value="">Select</option>
+                  <option value="id_copy">Certified ID Copy</option>
+                  <option value="bank_statement">Bank Statement</option>
+                  <option value="payslip">Payslip</option>
+                  <option value="proof_of_address">Proof of Address</option>
+                  <option value="founding_statement">Founding Statement</option>
+                  <option value="request_letter">Request Letter</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Upload File</label>
+                <input type="file" name="document_file" required>
+              </div>
+              <div class="field full">
+                <label>Document Note</label>
+                <textarea name="document_note" placeholder="Optional note for admin"></textarea>
+              </div>
+            </div>
+            <button class="btn btn-dark" type="submit">Upload Document</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="dashboard-section" id="section-support">
+        <div class="card" id="support">
+          <h3>Support Chat & Ticket Center</h3>
+
+          <div class="chat-box">
+            <div class="muted" style="margin-bottom:12px;">Send a clear message to admin. Your support requests and replies should appear here for easy follow-up.</div>
+            <form method="POST" action="/customer/support/new">
+              <div class="field"><label>Subject</label><input type="text" name="subject" required></div>
+              <div class="field"><label>Message</label><textarea name="message" required></textarea></div>
+              <button class="btn btn-dark" type="submit">Open Support Ticket</button>
+            </form>
+          </div>
+
+          <div class="items" style="margin-top:14px;">
+            {% for t in support_tickets %}
+            <div class="item">
+              <strong>{{ t.subject }}</strong>
+              <div class="muted">{{ t.message }}</div>
+              <div class="footer-credit">Status: {{ t.status }} | {{ t.created_at }}</div>
+            </div>
+            {% else %}
+            <div class="item">No support tickets opened yet.</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Portal Identity</h3>
+          <div class="item">
+            <strong>{{ powered_by_text }}</strong>
+            <div class="muted">{{ developer_credit }}</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar(){
+      const menu = document.getElementById('sidebarMenu');
+      const overlay = document.getElementById('mobileOverlay');
+      if(menu) menu.classList.toggle('open');
+      if(overlay) overlay.classList.toggle('show');
+    }
+
+    function closeSidebar(){
+      const menu = document.getElementById('sidebarMenu');
+      const overlay = document.getElementById('mobileOverlay');
+      if(menu) menu.classList.remove('open');
+      if(overlay) overlay.classList.remove('show');
+    }
+
+    function showSection(name){
+      document.querySelectorAll('.dashboard-section').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('section-' + name);
+      if(target) target.classList.add('active');
+
+      document.querySelectorAll('.nav a[data-section]').forEach(a => a.classList.remove('active-link'));
+      const activeLink = document.querySelector('.nav a[data-section="' + name + '"]');
+      if(activeLink) activeLink.classList.add('active-link');
+    }
+
+    async function loadWeather() {
+      const box = document.getElementById('weatherBox');
+      if (!navigator.geolocation) {
+        box.textContent = 'Weather unavailable on this browser.';
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        try {
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m`);
+          const data = await res.json();
+          const cur = data.current || {};
+          box.textContent = `Live weather: ${cur.temperature_2m ?? '--'}°C | Wind ${cur.wind_speed_10m ?? '--'} km/h`;
+        } catch {
+          box.textContent = 'Weather unavailable right now.';
+        }
+      }, () => {
+        box.textContent = 'Allow location to see local weather.';
+      });
+    }
+
+    loadWeather();
+    showSection('overview');
+  </script>
+</body>
+</html>

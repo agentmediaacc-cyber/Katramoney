@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Katramoney Loan Agreement</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.4; color: #000; }
+        .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; }
+        .section { margin-top: 20px; }
+        .bold { font-weight: bold; }
+        .signature-box { margin-top: 50px; display: flex; justify-content: space-between; }
+        .sig-line { border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>KATRAMONEY (PTY) LTD</h1>
+        <p>Registered Microlender | NAMFISA Reg: 25/11/2312</p>
+    </div>
+
+    <div class="section">
+        <p>This <strong>LOAN AGREEMENT</strong> is made on this day, between <span class="bold">Katramoney (Pty) Ltd</span> (The Lender) and:</p>
+        <p><span class="bold">BORROWER NAME:</span> {{ l.name }}</p>
+        <p><span class="bold">ID NUMBER:</span> {{ l.id_number }}</p>
+        <p><span class="bold">PHONE:</span> {{ l.phone }}</p>
+    </div>
+
+    <div class="section">
+        <h3>1. LOAN TERMS</h3>
+        <p>Principal Amount: <span class="bold">NAD {{ l.amount }}</span></p>
+        <p>Interest Charge: <span class="bold">NAD {{ interest }}</span></p>
+        <p>Total Repayment Amount: <span class="bold">NAD {{ total }}</span></p>
+        <p>Repayment Date: <span class="bold">{{ l.repay_date }}</span></p>
+    </div>
+
+    <div class="section">
+        <h3>2. DEFAULT & PENALTIES</h3>
+        <p>In accordance with the <strong>Microlending Act of 2018 (Namibia)</strong>, a failure to repay on the date specified above will incur a 5% late penalty per week. Katramoney reserves the right to list the Borrower with the ITC Credit Bureau in the event of non-payment.</p>
+    </div>
+
+    <div class="signature-box">
+        <div>
+            <div class="sig-line">Borrower Signature</div>
+            <p style="font-size:10px;">(I agree to all terms above)</p>
+        </div>
+        <div>
+            <div class="sig-line">Lender Signature</div>
+            <p style="font-size:10px;">(For Katramoney Pty Ltd)</p>
+        </div>
+    </div>
+
+    <button class="no-print" onclick="window.print()" style="margin-top:30px; padding:10px 20px; background:#003366; color:white; border:none; cursor:pointer;">Print Contract</button>
+</body>
+</html>

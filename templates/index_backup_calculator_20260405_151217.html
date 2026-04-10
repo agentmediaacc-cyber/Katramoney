@@ -1,0 +1,1777 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KATRAMONEY | Fast Loans in Namibia</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary:#0b3d2e;
+      --primary-2:#145c46;
+      --accent:#ffd447;
+      --accent-2:#ffb703;
+      --dark:#071b15;
+      --bg:#f7fafc;
+      --card:#ffffff;
+      --text:#243746;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --success:#16a34a;
+      --danger:#dc2626;
+      --shadow:0 20px 50px rgba(2, 12, 27, .10);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:'Inter',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    a{text-decoration:none;color:inherit}
+    button,input,select,textarea{font:inherit}
+
+    .container{
+      width:min(1200px, 92%);
+      margin:0 auto;
+    }
+
+    .topbar{
+      background:linear-gradient(90deg,var(--primary),var(--primary-2));
+      color:#fff;
+      padding:10px 0;
+      font-size:14px;
+    }
+
+    .topbar-inner{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .topbar-badges{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .top-pill{
+      background:rgba(255,255,255,.12);
+      padding:8px 12px;
+      border-radius:999px;
+    }
+
+    nav{
+      position:sticky;
+      top:0;
+      z-index:100;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid rgba(0,0,0,.04);
+    }
+
+    .nav-inner{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:20px;
+      padding:18px 0;
+    }
+
+    .logo{
+      font-size:28px;
+      font-weight:900;
+      color:var(--primary);
+      letter-spacing:-1px;
+    }
+
+    .nav-links{
+      display:flex;
+      align-items:center;
+      gap:22px;
+    }
+
+    .nav-links a{
+      font-weight:600;
+      color:var(--text);
+    }
+
+    .nav-links a:hover{
+      color:var(--primary);
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      border:none;
+      border-radius:16px;
+      padding:14px 22px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.25s ease;
+    }
+
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:#1c2b18;
+      box-shadow:0 14px 30px rgba(255,180,0,.20);
+    }
+
+    .btn-dark{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    .btn-light{
+      background:#fff;
+      color:var(--primary);
+      border:1px solid var(--line);
+    }
+
+    .menu-btn{
+      display:none;
+      background:none;
+      border:none;
+      font-size:28px;
+      cursor:pointer;
+      color:var(--primary);
+    }
+
+    .mobile-drawer{
+      display:none;
+      background:#fff;
+      border-top:1px solid var(--line);
+      padding:12px 4% 18px;
+    }
+
+    .mobile-drawer a{
+      display:block;
+      padding:12px 6px;
+      font-weight:600;
+      color:var(--text);
+    }
+
+    .hero{
+      position:relative;
+      min-height:88vh;
+      display:flex;
+      align-items:center;
+      overflow:hidden;
+      background:
+        linear-gradient(110deg, rgba(7,27,21,.88), rgba(11,61,46,.72)),
+        url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1800&q=80') center/cover no-repeat;
+      color:#fff;
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at 85% 15%, rgba(255,212,71,.18), transparent 20%);
+      pointer-events:none;
+    }
+
+    
+    .hero::before{
+      content:"KATRAMONEY WATERMARK";
+      position:absolute;
+      inset:auto 3% 6% auto;
+      font-size:clamp(2.2rem,6vw,6rem);
+      font-weight:900;
+      color:rgba(255,255,255,.06);
+      letter-spacing:.18em;
+      pointer-events:none;
+      z-index:0;
+      white-space:nowrap;
+    }
+.hero-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:36px;
+      align-items:center;
+      padding:60px 0 70px;
+    }
+
+    .hero-copy h1{
+      font-size:clamp(2.5rem, 5vw, 5rem);
+      line-height:1.03;
+      margin:0 0 18px;
+      font-weight:900;
+      letter-spacing:-2px;
+    }
+
+    .hero-copy p{
+      font-size:clamp(1rem, 2vw, 1.2rem);
+      color:rgba(255,255,255,.88);
+      max-width:720px;
+      margin:0 0 28px;
+      line-height:1.65;
+    }
+
+    .hero-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin:18px 0 26px;
+    }
+
+    .hero-badge{
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.12);
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .hero-card{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter:blur(18px);
+      border-radius:28px;
+      padding:24px;
+      box-shadow:var(--shadow);
+    }
+
+    .ad-strip{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .ad-box{
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      padding:18px;
+    }
+
+    .ad-box small{
+      display:block;
+      color:rgba(255,255,255,.75);
+      margin-bottom:8px;
+      text-transform:uppercase;
+      font-weight:700;
+      letter-spacing:.08em;
+    }
+
+    .ad-box strong{
+      display:block;
+      font-size:22px;
+      margin-bottom:6px;
+    }
+
+    .ad-box span{
+      color:rgba(255,255,255,.82);
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    .quick-trust{
+      margin-top:-40px;
+      position:relative;
+      z-index:2;
+    }
+
+    .quick-trust-inner{
+      background:#fff;
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      padding:20px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
+    }
+
+    .trust-card{
+      background:#f8fafc;
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px;
+    }
+
+    .trust-card strong{
+      display:block;
+      color:var(--primary);
+      font-size:18px;
+      margin-bottom:6px;
+    }
+
+    .trust-card span{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    .section{
+      padding:80px 0;
+    }
+
+    .section-head{
+      text-align:center;
+      margin-bottom:38px;
+    }
+
+    .section-head h2{
+      margin:0 0 12px;
+      font-size:clamp(2rem, 4vw, 3rem);
+      color:var(--primary);
+      letter-spacing:-1px;
+    }
+
+    .section-head p{
+      margin:0 auto;
+      max-width:760px;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:16px;
+    }
+
+    .calculator-wrap{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:26px;
+      align-items:start;
+    }
+
+    .card{
+      background:#fff;
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      padding:28px;
+      border:1px solid #eef2f7;
+    }
+
+    .card h3{
+      margin:0 0 8px;
+      color:var(--primary);
+      font-size:28px;
+    }
+
+    .card-sub{
+      color:var(--muted);
+      margin-bottom:24px;
+      line-height:1.65;
+    }
+
+    .grid-2, .grid-3{
+      display:grid;
+      gap:16px;
+    }
+
+    .grid-2{grid-template-columns:repeat(2,1fr)}
+    .grid-3{grid-template-columns:repeat(3,1fr)}
+
+    .field label{
+      display:block;
+      font-size:13px;
+      font-weight:800;
+      color:var(--muted);
+      margin-bottom:8px;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+
+    input, select, textarea{
+      width:100%;
+      padding:15px 16px;
+      border:1.5px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+      transition:.2s ease;
+    }
+
+    input:focus, select:focus, textarea:focus{
+      border-color:#94d2bd;
+      box-shadow:0 0 0 4px rgba(20,92,70,.08);
+    }
+
+    .calc-result{
+      margin-top:20px;
+      background:linear-gradient(135deg,#ecfdf5,#f0fdf4);
+      border:1px solid #bbf7d0;
+      border-radius:22px;
+      padding:22px;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+    }
+
+    .result-box{
+      background:rgba(255,255,255,.7);
+      border-radius:18px;
+      padding:16px;
+    }
+
+    .result-box span{
+      display:block;
+      color:#166534;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+
+    .result-box strong{
+      font-size:26px;
+      color:var(--primary);
+      line-height:1.2;
+    }
+
+    .promo-list{
+      display:grid;
+      gap:14px;
+    }
+
+    .promo-item{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      padding:16px;
+      border-radius:20px;
+      background:#f8fafc;
+      border:1px solid var(--line);
+    }
+
+    .promo-icon{
+      width:48px;
+      height:48px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--primary),var(--primary-2));
+      color:#fff;
+      font-size:22px;
+      flex:0 0 auto;
+    }
+
+    .promo-item h4{
+      margin:0 0 6px;
+      color:var(--primary);
+      font-size:17px;
+    }
+
+    .promo-item p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .product-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:22px;
+    }
+
+    .product-card{
+      background:#fff;
+      border-radius:24px;
+      padding:28px;
+      box-shadow:var(--shadow);
+      border:1px solid #eef2f7;
+      transition:.25s ease;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .product-card:hover{
+      transform:translateY(-8px);
+    }
+
+    .product-badge{
+      display:inline-flex;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#fef3c7;
+      color:#92400e;
+      font-weight:800;
+      font-size:12px;
+      margin-bottom:14px;
+    }
+
+    .product-card h3{
+      margin:0 0 8px;
+      color:var(--primary);
+      font-size:24px;
+    }
+
+    .product-card p{
+      color:var(--muted);
+      line-height:1.7;
+      font-size:15px;
+      min-height:80px;
+    }
+
+    .product-meta{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      margin-top:16px;
+      flex-wrap:wrap;
+    }
+
+    .meta-chip{
+      background:#eff6ff;
+      color:#1d4ed8;
+      padding:10px 12px;
+      border-radius:14px;
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .why-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:18px;
+    }
+
+    .why-card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:var(--shadow);
+    }
+
+    .why-card .icon{
+      font-size:34px;
+      margin-bottom:14px;
+    }
+
+    .why-card h4{
+      margin:0 0 10px;
+      color:var(--primary);
+      font-size:20px;
+    }
+
+    .why-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:14px;
+    }
+
+    .steps-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:18px;
+    }
+
+    .step{
+      background:linear-gradient(180deg,#fff,#f8fafc);
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:24px;
+      box-shadow:var(--shadow);
+    }
+
+    .step-no{
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:var(--primary);
+      color:#fff;
+      font-weight:900;
+      margin-bottom:16px;
+    }
+
+    .step h4{
+      margin:0 0 10px;
+      color:var(--primary);
+      font-size:20px;
+    }
+
+    .step p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .testimonial-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:20px;
+    }
+
+    .testimonial{
+      background:#fff;
+      border-radius:24px;
+      padding:24px;
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+    }
+
+    .stars{
+      color:#f59e0b;
+      font-size:18px;
+      margin-bottom:12px;
+    }
+
+    .testimonial p{
+      color:var(--muted);
+      line-height:1.7;
+      margin:0 0 16px;
+    }
+
+    .testimonial strong{
+      color:var(--primary);
+    }
+
+    .cta{
+      padding:90px 0;
+      background:linear-gradient(135deg,var(--primary),#0f513f);
+      color:#fff;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .cta::before{
+      content:"";
+      position:absolute;
+      width:320px;
+      height:320px;
+      border-radius:50%;
+      background:rgba(255,255,255,.05);
+      top:-140px;
+      right:-100px;
+    }
+
+    .cta-inner{
+      position:relative;
+      z-index:1;
+      text-align:center;
+    }
+
+    .cta h2{
+      font-size:clamp(2rem,4vw,3.3rem);
+      margin:0 0 14px;
+      letter-spacing:-1px;
+    }
+
+    .cta p{
+      max-width:760px;
+      margin:0 auto 24px;
+      color:rgba(255,255,255,.86);
+      line-height:1.7;
+    }
+
+    .cta-actions{
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    footer{
+      background:#061610;
+      color:#fff;
+      padding:60px 0 20px;
+    }
+
+    .footer-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr .8fr .8fr;
+      gap:26px;
+      margin-bottom:28px;
+    }
+
+    .footer-title{
+      font-size:24px;
+      font-weight:900;
+      margin-bottom:10px;
+      color:#fff;
+    }
+
+    .footer-col p, .footer-col a{
+      color:rgba(255,255,255,.72);
+      line-height:1.8;
+      font-size:14px;
+    }
+
+    .footer-col a{
+      display:block;
+      margin-bottom:8px;
+    }
+
+    .footer-bottom{
+      border-top:1px solid rgba(255,255,255,.08);
+      padding-top:18px;
+      color:rgba(255,255,255,.58);
+      font-size:13px;
+      text-align:center;
+    }
+
+    .chat-launcher{
+      position:fixed;
+      right:24px;
+      bottom:24px;
+      z-index:500;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .chat-launcher-label{
+      background:#fff;
+      color:var(--primary);
+      padding:10px 14px;
+      border-radius:999px;
+      box-shadow:var(--shadow);
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .chat-fab{
+      width:66px;
+      height:66px;
+      border:none;
+      border-radius:50%;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:#1a2d1e;
+      font-size:28px;
+      cursor:pointer;
+      box-shadow:0 20px 40px rgba(255,180,0,.30);
+    }
+
+    .chat-panel{
+      position:fixed;
+      right:24px;
+      bottom:102px;
+      width:370px;
+      max-width:calc(100vw - 24px);
+      background:#fff;
+      border-radius:24px;
+      overflow:hidden;
+      box-shadow:0 30px 70px rgba(2,12,27,.20);
+      z-index:510;
+      border:1px solid #eef2f7;
+      display:none;
+    }
+
+    .chat-head{
+      background:linear-gradient(135deg,var(--primary),var(--primary-2));
+      color:#fff;
+      padding:18px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+
+    .chat-head h4{
+      margin:0 0 4px;
+      font-size:18px;
+    }
+
+    .chat-head p{
+      margin:0;
+      font-size:13px;
+      color:rgba(255,255,255,.85);
+      line-height:1.5;
+    }
+
+    .chat-close{
+      background:rgba(255,255,255,.14);
+      color:#fff;
+      border:none;
+      width:34px;
+      height:34px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:18px;
+    }
+
+    .chat-body{
+      background:#f8fafc;
+      padding:16px;
+      max-height:440px;
+      overflow:auto;
+    }
+
+    .msg{
+      max-width:85%;
+      padding:12px 14px;
+      border-radius:18px;
+      margin-bottom:12px;
+      line-height:1.55;
+      font-size:14px;
+      word-wrap:break-word;
+      white-space:pre-wrap;
+    }
+
+    .msg.bot{
+      background:#fff;
+      border:1px solid var(--line);
+      color:var(--text);
+      border-top-left-radius:8px;
+    }
+
+    .msg.user{
+      margin-left:auto;
+      background:var(--primary);
+      color:#fff;
+      border-top-right-radius:8px;
+    }
+
+    .chat-quick{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:6px;
+      margin-bottom:8px;
+    }
+
+    .quick-btn{
+      background:#fff;
+      border:1px solid var(--line);
+      color:var(--primary);
+      padding:9px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .chat-actions{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .chat-action-btn{
+      border:none;
+      border-radius:14px;
+      padding:11px 10px;
+      font-size:12px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .chat-action-btn.whatsapp{
+      background:#dcfce7;
+      color:#166534;
+    }
+
+    .chat-action-btn.call{
+      background:#dbeafe;
+      color:#1d4ed8;
+    }
+
+    .chat-action-btn.apply{
+      background:#fef3c7;
+      color:#92400e;
+    }
+
+    .chat-foot{
+      padding:14px;
+      border-top:1px solid var(--line);
+      background:#fff;
+    }
+
+    .chat-input-row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .chat-input{
+      flex:1;
+      min-width:0;
+    }
+
+    .send-btn{
+      border:none;
+      background:var(--primary);
+      color:#fff;
+      border-radius:14px;
+      padding:14px 16px;
+      cursor:pointer;
+      font-weight:800;
+    }
+
+    @media (max-width: 1100px){
+      .hero-grid,
+      .calculator-wrap,
+      .product-grid,
+      .footer-grid,
+      .why-grid,
+      .steps-grid,
+      .testimonial-grid{
+        grid-template-columns:1fr 1fr;
+      }
+      .quick-trust-inner{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width: 860px){
+      .nav-links{display:none}
+      .menu-btn{display:block}
+      .hero-grid,
+      .calculator-wrap,
+      .product-grid,
+      .why-grid,
+      .steps-grid,
+      .testimonial-grid,
+      .footer-grid,
+      .quick-trust-inner,
+      .grid-2,
+      .grid-3,
+      .calc-result{
+        grid-template-columns:1fr;
+      }
+      .hero{
+        min-height:auto;
+      }
+      .hero-grid{
+        padding:40px 0 60px;
+      }
+      .ad-strip{
+        grid-template-columns:1fr;
+      }
+      .chat-panel{
+        right:12px;
+        left:12px;
+        width:auto;
+        max-width:none;
+        bottom:92px;
+      }
+      .chat-launcher{
+        right:12px;
+        bottom:12px;
+      }
+      .chat-launcher-label{
+        display:none;
+      }
+      .cta-actions,
+      .hero-actions{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      .btn{
+        width:100%;
+      }
+    }
+  </style>
+    <script>
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const loader = document.getElementById('loading-screen');
+          if (loader && loader.style.display !== 'none') {
+            console.error("Localhost Load Timeout: Checking for missing files...");
+            loader.innerHTML = '<div style="color:white;text-align:center;"><h3>Still Loading...</h3><p>Check F12 Console for "404 Not Found" errors.</p><button onclick="document.getElementById(\'loading-screen\').style.display=\'none\'">Force View Site</button></div>';
+          }
+        }, 4000);
+      });
+    </script>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <div class="topbar-badges">
+        <span class="top-pill" id="top-promo-text">Fast approvals</span>
+        <span class="top-pill" id="top-trust-text">Trusted loan support</span>
+      </div>
+      <div id="top-contact-text">Need help? Call us today.</div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="container nav-inner">
+      <div class="logo" id="live-site-name">KATRAMONEY</div>
+      <button class="menu-btn" onclick="toggleMobileMenu()">☰</button>
+      <div class="nav-links">
+        <a href="/admin/login" class="btn btn-dark" style="padding:12px 18px;">Admin Login</a>
+        <a href="#home">Home</a>
+        <a href="#calculator">Calculator</a>
+        <a href="#products">Products</a>
+        <a href="#why-us">Why Us</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#contact">Contact</a>
+        <a href="/apply" class="btn btn-dark" style="padding:12px 18px;">Apply Now</a>
+      </div>
+    </div>
+    <div class="mobile-drawer" id="mobileDrawer">
+      <a href="/admin/login" onclick="toggleMobileMenu()">Admin Login</a>
+      <a href="#home" onclick="toggleMobileMenu()">Home</a>
+      <a href="#calculator" onclick="toggleMobileMenu()">Calculator</a>
+      <a href="#products" onclick="toggleMobileMenu()">Products</a>
+      <a href="#why-us" onclick="toggleMobileMenu()">Why Us</a>
+      <a href="#how-it-works" onclick="toggleMobileMenu()">How It Works</a>
+      <a href="#contact" onclick="toggleMobileMenu()">Contact</a>
+      <a href="/apply" onclick="toggleMobileMenu()">Apply Now</a>
+    </div>
+  </nav>
+
+  <section class="hero" id="home">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <div class="hero-badges">
+          <span class="hero-badge" id="hero-chip-1">Fast</span>
+          <span class="hero-badge" id="hero-chip-2">Secure</span>
+          <span class="hero-badge" id="hero-chip-3">Flexible</span>
+        </div>
+        <h1 id="live-hero-title">Fast Financial Help When You Need It Most</h1>
+        <p id="live-hero-subtitle">Simple loan solutions designed for real people, working professionals, and growing businesses in Namibia.</p>
+        <div class="hero-actions">
+          <a href="/apply" class="btn btn-primary">Apply For Loan</a>
+          <a href="#calculator" class="btn btn-light">Estimate Repayment</a>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <h3 style="margin:0 0 8px; font-size:28px;">Today's Financial Ad</h3>
+        <p style="margin:0 0 18px; color:rgba(255,255,255,.86); line-height:1.7;" id="live-calculator-note">
+          Quick approvals, clear terms, and support that responds fast when you need answers.
+        </p>
+
+        <div class="ad-strip">
+          <div class="ad-box">
+            <small>Approval Window</small>
+            <strong id="live-approval-window">24 - 48 Hours</strong>
+            <span>Submit your application with the right documents for faster review.</span>
+          </div>
+          <div class="ad-box">
+            <small>Loan Range</small>
+            <strong><span id="live-min-loan">N$ 500</span> - <span id="live-max-loan">N$ 50 000</span></strong>
+            <span>Flexible amounts designed for urgent needs and short-term growth.</span>
+          </div>
+        </div>
+      
+<a href="/customer/progress-login" style="display:inline-flex;align-items:center;justify-content:center;padding:14px 18px;border-radius:14px;text-decoration:none;font-weight:800;background:#0b3d2e;color:#fff;margin-left:10px;">View My Progress</a>
+</div>
+    </div>
+  </section>
+
+  <section class="quick-trust">
+    <div class="container quick-trust-inner">
+      <div class="trust-card">
+        <strong>Transparent Terms</strong>
+        <span>Clear repayment estimates and product details before you apply.</span>
+      </div>
+      <div class="trust-card">
+        <strong>Live Product Feed</strong>
+        <span>Products and website settings update directly from admin controls.</span>
+      </div>
+      <div class="trust-card">
+        <strong>Quick Help</strong>
+        <span>Use the support chat, WhatsApp, or direct call for fast assistance.</span>
+      </div>
+      <div class="trust-card">
+        <strong>Mobile Friendly</strong>
+        <span>Built for phone users, tablets, and desktop browsing.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="calculator">
+    <div class="container">
+      <div class="section-head">
+        <h2>Smart Loan Calculator</h2>
+        <p>Estimate your repayment in seconds. Select a product, choose your amount, and view the estimated monthly payment and full repayment amount.</p>
+      </div>
+
+      <div class="calculator-wrap">
+        <div class="card">
+          <h3>Loan Estimator</h3>
+          <div class="card-sub">Use the calculator below to preview the selected loan product based on live product data from your admin dashboard.</div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label>Loan Product</label>
+              <select id="loan-type" onchange="calculate()"></select>
+            </div>
+            <div class="field">
+              <label>Loan Term (Months)</label>
+              <select id="term" onchange="calculate()"></select>
+            </div>
+            <div class="field">
+              <label>Amount (N$)</label>
+              <input type="number" id="amount" value="5000" oninput="calculate()">
+            </div>
+            <div class="field">
+              <label>Service Fee</label>
+              <input type="text" id="service-fee-view" value="N$ 0.00" readonly>
+            </div>
+          </div>
+
+          <div class="calc-result">
+            <div class="result-box">
+              <span>Interest Rate</span>
+              <strong id="res-rate">0%</strong>
+            </div>
+            <div class="result-box">
+              <span>Estimated Monthly</span>
+              <strong id="res-monthly">N$ 0.00</strong>
+            </div>
+            <div class="result-box">
+              <span>Total Repayment</span>
+              <strong id="res-total">N$ 0.00</strong>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:20px;">
+            <a href="/apply" class="btn btn-primary">Proceed to Application</a>
+            <button class="btn btn-light" onclick="openChatAndSay('I want help with choosing the right loan product.')">Ask Support</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Why people choose KATRAMONEY</h3>
+          <div class="card-sub">Strong website presentation helps your ads look more professional and trustworthy.</div>
+
+          <div class="promo-list">
+            <div class="promo-item">
+              <div class="promo-icon">⚡</div>
+              <div>
+                <h4>Fast Response</h4>
+                <p>Users can estimate, apply, and request help quickly from one page without confusion.</p>
+              </div>
+            </div>
+
+            <div class="promo-item">
+              <div class="promo-icon">💬</div>
+              <div>
+                <h4>Quick Support Chat</h4>
+                <p>The support button lets visitors get instant answers, call your line, or continue to WhatsApp agent help.</p>
+              </div>
+            </div>
+
+            <div class="promo-item">
+              <div class="promo-icon">🛡️</div>
+              <div>
+                <h4>Professional Trust</h4>
+                <p>A clean, premium loan website helps people feel safer when sending applications and documents.</p>
+              </div>
+            </div>
+
+            <div class="promo-item">
+              <div class="promo-icon">📈</div>
+              <div>
+                <h4>Built to Convert Ads</h4>
+                <p>Perfect for Facebook ads, WhatsApp promotion, and online campaigns that need a strong landing page.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="products" style="background:#f8fbfd;">
+    <div class="container">
+      <div class="section-head">
+        <h2>Loan Products</h2>
+        <p>Browse active loan products from your admin dashboard. Featured items can be highlighted automatically on this section.</p>
+      </div>
+      <div class="product-grid" id="product-list">
+        <div class="product-card">
+          <div class="product-badge">Loading</div>
+          <h3>Please wait</h3>
+          <p>Fetching loan products from Supabase...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="why-us">
+    <div class="container">
+      <div class="section-head">
+        <h2>Why Choose Us</h2>
+        <p>Modern support, better clarity, and a smoother experience from first click to completed application.</p>
+      </div>
+
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="icon">🏦</div>
+          <h4>Trusted Loan Experience</h4>
+          <p>Professional presentation with clear loan information and better support access for every visitor.</p>
+        </div>
+        <div class="why-card">
+          <div class="icon">📱</div>
+          <h4>Phone First Design</h4>
+          <p>Made for mobile visitors so people coming from ads can read, estimate, and apply without struggle.</p>
+        </div>
+        <div class="why-card">
+          <div class="icon">⏱️</div>
+          <h4>Faster Decision Journey</h4>
+          <p>Visitors can understand the process instantly and act faster because the page is clearer and easier to trust.</p>
+        </div>
+        <div class="why-card">
+          <div class="icon">🤝</div>
+          <h4>Direct Human Help</h4>
+          <p>Users can talk to your team through chatbot quick replies, phone, or WhatsApp handoff from one place.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how-it-works" style="background:#f8fbfd;">
+    <div class="container">
+      <div class="section-head">
+        <h2>How It Works</h2>
+        <p>Make the journey easy to understand so more visitors finish the loan process.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-no">1</div>
+          <h4>Choose a Product</h4>
+          <p>Select a loan product that fits your needs and review the estimated repayment.</p>
+        </div>
+        <div class="step">
+          <div class="step-no">2</div>
+          <h4>Check Your Estimate</h4>
+          <p>Use the calculator to see the monthly amount, total repayment, and service fee.</p>
+        </div>
+        <div class="step">
+          <div class="step-no">3</div>
+          <h4>Submit Your Application</h4>
+          <p>Log in and send your details and required documents for admin review.</p>
+        </div>
+        <div class="step">
+          <div class="step-no">4</div>
+          <h4>Get Help Fast</h4>
+          <p>Use support chat, phone, or WhatsApp if you need guidance before or after applying.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>What Clients Want to Hear</h2>
+        <p>You can later replace these with real reviews from your clients or approved testimonials.</p>
+      </div>
+
+      <div class="testimonial-grid">
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p>The process was simple, and the support team responded quickly when I needed help understanding the terms.</p>
+          <strong>Client Review Example</strong>
+        </div>
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p>I liked that I could estimate the repayment first and then speak to support before completing my application.</p>
+          <strong>Borrower Feedback Example</strong>
+        </div>
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p>Very clean website, easy on my phone, and much more professional than many small loan websites.</p>
+          <strong>Mobile User Example</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="container cta-inner">
+      <h2>Need money support with a fast and clear process?</h2>
+      <p>Use our calculator, review our products, and contact support instantly if you need help before applying.</p>
+      <div class="cta-actions">
+        <a href="/apply" class="btn btn-primary">Start Application</a>
+        <button class="btn btn-light" onclick="openChatAndSay('I need help to apply for a loan.')">Talk to Support</button>
+      </div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="footer-title" id="footer-site-name">KATRAMONEY</div>
+          <p id="live-footer-text">Reliable financial support with a simple digital process and customer-focused assistance.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <a href="#" id="footer-phone-link">Phone: <span id="live-phone">+264 81 000 0000</span></a>
+          <a href="#" id="footer-email-link">Email: <span id="live-email">support@example.com</span></a>
+          <p id="live-address">Windhoek, Namibia</p>
+        </div>
+        <div class="footer-col">
+          <h4>Office</h4>
+          <p id="live-office-hours">Mon - Fri, 08:00 - 17:00</p>
+          <p id="live-contact-intro">Contact our team for loan guidance and application support.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <a href="#calculator">Loan Calculator</a>
+          <a href="#products">Loan Products</a>
+          <a href="/apply">Apply Now</a>
+          <a href="javascript:void(0)" onclick="toggleChat()">Support Chat</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span id="live-compliance-text">© 2026 KATRAMONEY. All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="chat-launcher">
+    <div class="chat-launcher-label">Need help? Chat with us</div>
+    <button class="chat-fab" onclick="toggleChat()">💬</button>
+  </div>
+
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-head">
+      <div>
+        <h4>KATRAMONEY Support</h4>
+        <p>Quick answers, loan guidance, and fast connection to a real agent.</p>
+      </div>
+      <button class="chat-close" onclick="toggleChat()">×</button>
+    </div>
+
+    <div class="chat-body" id="chatBody">
+      <div class="msg bot">👋 Hello and welcome to KATRAMONEY. I can help with loan products, requirements, repayment estimates, and connecting you to an agent.</div>
+      <div class="chat-quick">
+        <button class="quick-btn" onclick="sendQuick('How do I apply?')">How do I apply?</button>
+        <button class="quick-btn" onclick="sendQuick('What documents do I need?')">Documents needed</button>
+        <button class="quick-btn" onclick="sendQuick('I want to speak to an agent')">Speak to agent</button>
+        <button class="quick-btn" onclick="sendQuick('What loan products do you have?')">Loan products</button>
+      </div>
+
+      <div class="chat-actions">
+        <button class="chat-action-btn whatsapp" onclick="openWhatsApp()">WhatsApp Agent</button>
+        <button class="chat-action-btn call" onclick="callAgent()">Call Support</button>
+        <button class="chat-action-btn apply" onclick="goApply()">Apply Now</button>
+      </div>
+    </div>
+
+    <div class="chat-foot">
+      <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" type="text" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){sendChat()}">
+        <button class="send-btn" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://dyjhkjebrcjirenyoolb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5amhramVicmNqaXJlbnlvb2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2ODM1ODIsImV4cCI6MjA5MDI1OTU4Mn0.q-9q55avXlV6Lu0kxKaj3Bk7ILq_wAJE2qhlNUnD1zY';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let liveProducts = [];
+    let liveSettings = {};
+    let supportPhoneRaw = '+264810000000';
+    let supportWhatsAppRaw = '+264810000000';
+
+    function formatMoney(val){
+      return 'N$ ' + Number(val || 0).toLocaleString('en-NA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function cleanPhone(v){
+      return String(v || '').replace(/[^d+]/g,'').trim();
+    }
+
+    function toggleMobileMenu(){
+      const drawer = document.getElementById('mobileDrawer');
+      drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function toggleChat(){
+      const panel = document.getElementById('chatPanel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function appendMessage(text, who='bot'){
+      const body = document.getElementById('chatBody');
+      const msg = document.createElement('div');
+      msg.className = 'msg ' + who;
+      msg.textContent = text;
+      body.appendChild(msg);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function sendQuick(text){
+      document.getElementById('chatInput').value = text;
+      sendChat();
+    }
+
+    function openChatAndSay(text){
+      const panel = document.getElementById('chatPanel');
+      panel.style.display = 'block';
+      document.getElementById('chatInput').value = text;
+      sendChat();
+    }
+
+    function getTermsArray(product){
+      if (!product) return [1,3,6,12];
+      if (Array.isArray(product.terms) && product.terms.length) return product.terms.map(Number).filter(Boolean);
+      if (typeof product.terms === 'string'){
+        return product.terms.split(',').map(x => Number(x.trim())).filter(Boolean);
+      }
+      return [1,3,6,12];
+    }
+
+    function refreshTermOptions(product){
+      const termSelect = document.getElementById('term');
+      const terms = getTermsArray(product);
+      termSelect.innerHTML = '';
+      terms.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t + ' month' + (t > 1 ? 's' : '');
+        termSelect.appendChild(opt);
+      });
+    }
+
+    function calculate(){
+      const idx = Number(document.getElementById('loan-type').value || 0);
+      const product = liveProducts[idx];
+      if(!product) return;
+
+      const amountInput = document.getElementById('amount');
+      const amount = Number(amountInput.value || 0);
+      const term = Number(document.getElementById('term').value || 1);
+      const rate = Number(product.interest_rate || 0);
+      const serviceFee = Number(product.service_fee || 0);
+      const minAmount = Number(product.min_amount || 0);
+      const maxAmount = Number(product.max_amount || 0);
+
+      if(minAmount && amount < minAmount){
+        amountInput.value = minAmount;
+      }
+      if(maxAmount && amount > maxAmount){
+        amountInput.value = maxAmount;
+      }
+
+      const finalAmount = Number(amountInput.value || 0);
+      const interestAmount = finalAmount * (rate / 100) * (term / 12);
+      const totalRepayment = finalAmount + interestAmount + serviceFee;
+      const monthly = totalRepayment / term;
+
+      document.getElementById('res-rate').textContent = rate.toFixed(2) + '%';
+      document.getElementById('res-monthly').textContent = formatMoney(monthly);
+      document.getElementById('res-total').textContent = formatMoney(totalRepayment);
+      document.getElementById('service-fee-view').value = formatMoney(serviceFee);
+    }
+
+    function onProductChange(){
+      const idx = Number(document.getElementById('loan-type').value || 0);
+      const product = liveProducts[idx];
+      refreshTermOptions(product);
+      const minAmount = Number(product?.min_amount || 1000);
+      document.getElementById('amount').value = minAmount;
+      calculate();
+    }
+
+    function renderProducts(products){
+      const list = document.getElementById('product-list');
+      const select = document.getElementById('loan-type');
+
+      if(!products || !products.length){
+        list.innerHTML = `
+          <div class="product-card">
+            <div class="product-badge">No products</div>
+            <h3>No active products yet</h3>
+            <p>Please add and activate loan products in admin so they show here.</p>
+          </div>
+        `;
+        select.innerHTML = '<option value="0">No products</option>';
+        return;
+      }
+
+      list.innerHTML = '';
+      select.innerHTML = '';
+
+      products.forEach((p, index) => {
+        const featured = p.featured ? '<div class="product-badge">Featured Product</div>' : '<div class="product-badge">Loan Product</div>';
+        const terms = getTermsArray(p).join(', ');
+        const card = `
+          <div class="product-card">
+            ${featured}
+            <h3>${p.name || 'Loan Product'}</h3>
+            <p>${p.description || 'Flexible financial support tailored for your needs.'}</p>
+            <div class="product-meta">
+              <span class="meta-chip">${Number(p.interest_rate || 0).toFixed(2)}% Interest</span>
+              <span class="meta-chip">Terms: ${terms}</span>
+              <span class="meta-chip">From ${formatMoney(p.min_amount || 0)}</span>
+            </div>
+          </div>
+        `;
+        list.insertAdjacentHTML('beforeend', card);
+
+        const opt = document.createElement('option');
+        opt.value = index;
+        opt.textContent = `${p.name || 'Loan Product'} - ${Number(p.interest_rate || 0).toFixed(2)}%`;
+        select.appendChild(opt);
+      });
+
+      refreshTermOptions(products[0]);
+      calculate();
+    }
+
+    function applySettings(settings){
+      liveSettings = settings || {};
+
+      const siteName = settings.site_name || 'KATRAMONEY';
+      const phone = settings.phone || settings.contact_phone || '+264 81 000 0000';
+      const email = settings.email || 'support@example.com';
+      const officeHours = settings.office_hours || 'Mon - Fri, 08:00 - 17:00';
+      const address = settings.address || 'Windhoek, Namibia';
+      const heroTitle = settings.hero_title || 'Fast Financial Help When You Need It Most';
+      const heroSubtitle = settings.hero_subtitle || 'Simple loan solutions designed for real people, working professionals, and growing businesses in Namibia.';
+      const heroTrust = settings.hero_trust || 'Trusted loan support';
+      const promoText = settings.promo_text || 'Fast approvals';
+      const chip1 = settings.hero_chip_1 || 'Fast';
+      const chip2 = settings.hero_chip_2 || 'Secure';
+      const chip3 = settings.hero_chip_3 || 'Flexible';
+      const approvalWindow = settings.approval_window || '24 - 48 Hours';
+      const minLoan = settings.min_loan_global || 500;
+      const maxLoan = settings.max_loan_global || 50000;
+      const calculatorNote = settings.calculator_note || 'Quick approvals, clear terms, and support that responds fast when you need answers.';
+      const footerText = settings.footer_text || 'Reliable financial support with a simple digital process and customer-focused assistance.';
+      const contactIntro = settings.contact_intro || 'Contact our team for loan guidance and application support.';
+      const complianceText = settings.compliance_text || '© 2026 KATRAMONEY. All rights reserved.';
+
+      supportPhoneRaw = cleanPhone(phone) || '+264810000000';
+      supportWhatsAppRaw = cleanPhone(phone) || '+264810000000';
+
+      document.getElementById('live-site-name').textContent = siteName;
+      document.getElementById('footer-site-name').textContent = siteName;
+      document.getElementById('live-hero-title').textContent = heroTitle;
+      document.getElementById('live-hero-subtitle').textContent = heroSubtitle;
+      document.getElementById('top-promo-text').textContent = promoText;
+      document.getElementById('top-trust-text').textContent = heroTrust;
+      document.getElementById('top-contact-text').textContent = 'Need help? ' + phone;
+      document.getElementById('hero-chip-1').textContent = chip1;
+      document.getElementById('hero-chip-2').textContent = chip2;
+      document.getElementById('hero-chip-3').textContent = chip3;
+      document.getElementById('live-approval-window').textContent = approvalWindow;
+      document.getElementById('live-min-loan').textContent = 'N$ ' + Number(minLoan).toLocaleString('en-NA');
+      document.getElementById('live-max-loan').textContent = 'N$ ' + Number(maxLoan).toLocaleString('en-NA');
+      document.getElementById('live-calculator-note').textContent = calculatorNote;
+      document.getElementById('live-phone').textContent = phone;
+      document.getElementById('live-email').textContent = email;
+      document.getElementById('live-address').textContent = address;
+      document.getElementById('live-office-hours').textContent = officeHours;
+      document.getElementById('live-contact-intro').textContent = contactIntro;
+      document.getElementById('live-footer-text').textContent = footerText;
+      document.getElementById('live-compliance-text').textContent = complianceText;
+
+      document.getElementById('footer-phone-link').href = 'tel:' + supportPhoneRaw.replace(/s+/g, '');
+      document.getElementById('footer-email-link').href = 'mailto:' + email;
+    }
+
+    async function loadLiveData(){
+      try{
+        let settings = null;
+
+        // Try site_config first because your admin dashboard uses site_config fields
+        const siteConfigRes = await _supabase.from('site_config').select('*').limit(1);
+        if(siteConfigRes.data && siteConfigRes.data.length){
+          settings = siteConfigRes.data[0];
+        } else {
+          const siteSettingsRes = await _supabase.from('site_settings').select('*').eq('id', 'global_config').single();
+          settings = siteSettingsRes.data || null;
+        }
+
+        if(settings){
+          applySettings(settings);
+        }
+
+        // Fetch products
+        const productRes = await _supabase
+          .from('loan_products')
+          .select('*')
+          .order('featured', { ascending: false })
+          .order('id', { ascending: true });
+
+        let products = productRes.data || [];
+        products = products.filter(p => p.active !== false);
+
+        liveProducts = products;
+        renderProducts(liveProducts);
+
+        document.getElementById('loan-type').addEventListener('change', onProductChange);
+        onProductChange();
+      } catch(err){
+        console.error('Failed loading live data:', err);
+      }
+    }
+
+    function openWhatsApp(){
+      const txt = encodeURIComponent('Hello KATRAMONEY, I need help with your loan services.');
+      window.open(`https://wa.me/${supportWhatsAppRaw.replace('+','')}?text=${txt}`, '_blank');
+    }
+
+    function callAgent(){
+      window.location.href = 'tel:' + supportPhoneRaw.replace(/s+/g, '');
+    }
+
+    function goApply(){
+      window.location.href='/apply';
+    }
+
+    function botReply(message){
+      const msg = String(message || '').toLowerCase();
+
+      if(msg.includes('apply') || msg.includes('application')){
+        return 'To apply, choose a loan product, check the estimate, then click "Apply Now". You will continue to the secure application area.';
+      }
+
+      if(msg.includes('document') || msg.includes('requirements') || msg.includes('need')){
+        const docs = Array.isArray(liveSettings.document_items) && liveSettings.document_items.length
+          ? liveSettings.document_items.join(', ')
+          : 'Valid ID, latest payslip, and bank statements';
+        return 'For most applications, you should have these ready: ' + docs + '.';
+      }
+
+      if(msg.includes('product') || msg.includes('loan')){
+        if(liveProducts.length){
+          const names = liveProducts.map(p => p.name).slice(0, 5).join(', ');
+          return 'Current available loan products include: ' + names + '. You can also scroll to the products section for full details.';
+        }
+        return 'Loan products are listed on this page. If you do not see them yet, the admin may still need to activate them.';
+      }
+
+      if(msg.includes('agent') || msg.includes('human') || msg.includes('speak')){
+        return 'You can speak to a real agent right now. Use the WhatsApp Agent or Call Support buttons inside this chat window.';
+      }
+
+      if(msg.includes('hello') || msg.includes('hi')){
+        return 'Hello 👋 How can I help you today? You can ask about products, requirements, repayment, or speaking to an agent.';
+      }
+
+      if(msg.includes('interest') || msg.includes('repayment') || msg.includes('monthly') || msg.includes('calculator')){
+        return 'Use the calculator section to estimate repayment. The values update from the selected loan product and term.';
+      }
+
+      return 'I can help with applying, required documents, loan products, repayment estimates, or connecting you to a real agent. Try asking one of those.';
+    }
+
+    function sendChat(){
+      const input = document.getElementById('chatInput');
+      const value = input.value.trim();
+      if(!value) return;
+
+      appendMessage(value, 'user');
+      input.value = '';
+
+      setTimeout(() => {
+        appendMessage(botReply(value), 'bot');
+      }, 350);
+    }
+
+    window.onload = loadLiveData;
+  </script>
+
+<script>
+  function money(v) {
+    const n = Number(v || 0);
+    return 'N$ ' + n.toLocaleString();
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el && value !== undefined && value !== null) {
+      el.textContent = value;
+    }
+  }
+
+  function setHTML(id, value) {
+    const el = document.getElementById(id);
+    if (el && value !== undefined && value !== null) {
+      el.innerHTML = value;
+    }
+  }
+
+  function renderProducts(products) {
+    const grid = document.getElementById('live-products-grid');
+    if (!grid) return;
+    if (!Array.isArray(products) || products.length === 0) return;
+
+    grid.innerHTML = products.map(p => {
+      const badge = p.featured ? '<span class="product-badge">Featured</span>' : '<span class="product-badge">Available</span>';
+      return `
+        <div class="product-card">
+          ${badge}
+          <div style="font-size:36px; margin-bottom:10px;">${p.icon || '💳'}</div>
+          <h3>${p.name || 'Loan Product'}</h3>
+          <p>${p.description || 'Flexible finance solution for your needs.'}</p>
+          <div class="product-meta">
+            <span class="meta-chip">${p.interest_rate || 0}% Rate</span>
+            <span class="meta-chip">${money(p.min_amount)} - ${money(p.max_amount)}</span>
+            <span class="meta-chip">Fee ${money(p.service_fee)}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadPublicSiteData() {
+    try {
+      const res = await fetch('/api/public-site-data');
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to load public site data.');
+      }
+
+      const c = data.site_config || {};
+      const products = data.loan_products || [];
+
+      setText('live-site-name', c.site_name || 'KATRAMONEY');
+      setText('top-promo-text', c.promo_text || 'Fast approvals');
+      setText('top-trust-text', c.hero_trust_text || 'Trusted loan support');
+      setText('top-contact-text', c.support_phone ? ('Need help? Call ' + c.support_phone) : 'Need help? Call us today.');
+
+      setText('hero-chip-1', c.hero_chip_1 || 'Fast');
+      setText('hero-chip-2', c.hero_chip_2 || 'Secure');
+      setText('hero-chip-3', c.hero_chip_3 || 'Flexible');
+
+      setText('live-hero-title', c.hero_title || 'Fast Financial Help When You Need It Most');
+      setText('live-hero-subtitle', c.hero_subtitle || 'Simple loan solutions designed for real people, working professionals, and growing businesses in Namibia.');
+      setText('live-calculator-note', c.calc_note || 'Quick approvals, clear terms, and support that responds fast when you need answers.');
+      setText('live-approval-window', c.approval_window || '24 - 48 Hours');
+
+      setText('live-min-loan', money(c.min_loan || 500));
+      setText('live-max-loan', money(c.max_loan || 50000));
+
+      renderProducts(products);
+    } catch (err) {
+      console.error('Public site load error:', err);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadPublicSiteData);
+</script>
+</body>
+</html>
+
+
+
+
+
+
+

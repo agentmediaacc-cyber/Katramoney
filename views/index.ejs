@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Katramoney | NAMFISA Registered</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <h1>KATRAMONEY</h1>
+        <span>Reg No: [Enter Certificate #]</span>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Loan Application & Calculator</h2>
+            <p>Select your amount and term to see your total repayment.</p>
+            
+            <form action="/apply" method="POST">
+                <label>Full Name</label>
+                <input type="text" name="name" placeholder="John Doe" required>
+
+                <label>Loan Amount (NAD)</label>
+                <input type="number" id="loanAmount" name="amount" placeholder="e.g. 1000" required oninput="calculate()">
+
+                <label>Repayment Period</label>
+                <select id="loanTerm" name="months" onchange="calculate()">
+                    <option value="0.5">Short Term (Under 1 Month) - 30%</option>
+                    <option value="2">1 to 2 Months - 35%</option>
+                    <option value="5">Up to 5 Months - 40%</option>
+                </select>
+
+                <div class="result-box">
+                    <p>Interest Rate: <span id="rateDisplay">30%</span></p>
+                    <h3>Total to Repay: <span id="totalDisplay">NAD 0.00</span></h3>
+                </div>
+
+                <button type="submit" class="btn-apply">Apply Now</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            const amount = parseFloat(document.getElementById('loanAmount').value) || 0;
+            const term = parseFloat(document.getElementById('loanTerm').value);
+            let rate = 0.30;
+            
+            if (term === 2) rate = 0.35;
+            if (term === 5) rate = 0.40;
+
+            document.getElementById('rateDisplay').innerText = (rate * 100) + "%";
+            const total = amount + (amount * rate);
+            document.getElementById('totalDisplay').innerText = "NAD " + total.toFixed(2);
+        }
+    </script>
+</body>
+</html>

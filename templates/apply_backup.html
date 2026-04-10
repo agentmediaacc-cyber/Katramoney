@@ -1,0 +1,1088 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KATRAMONEY | Secure Loan Application</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary:#0b3d2e;
+      --primary-2:#145c46;
+      --accent:#ffd447;
+      --accent-2:#ffb703;
+      --bg:#f5f8f7;
+      --card:#ffffff;
+      --text:#243746;
+      --muted:#64748b;
+      --line:#dbe4ea;
+      --danger:#dc2626;
+      --success:#16a34a;
+      --warning:#d97706;
+      --shadow:0 24px 60px rgba(2,12,27,.10);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:'Inter',sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(255,212,71,.16), transparent 18%),
+        linear-gradient(135deg,#edf6f1 0%, #f8fbfa 100%);
+      color:var(--text);
+    }
+
+    .shell{
+      width:min(1180px,94%);
+      margin:26px auto 60px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+
+    .topbar a{
+      text-decoration:none;
+      color:var(--primary);
+      font-weight:800;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,var(--primary),var(--primary-2));
+      color:#fff;
+      border-radius:32px;
+      padding:28px;
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      width:260px;
+      height:260px;
+      border-radius:50%;
+      background:rgba(255,255,255,.06);
+      top:-90px;
+      right:-70px;
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      font-size:clamp(2rem,4vw,3.2rem);
+      letter-spacing:-1px;
+      position:relative;
+      z-index:1;
+    }
+
+    .hero p{
+      margin:0;
+      max-width:900px;
+      color:rgba(255,255,255,.88);
+      line-height:1.7;
+      position:relative;
+      z-index:1;
+    }
+
+    .badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+      position:relative;
+      z-index:1;
+    }
+
+    .badge{
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.12);
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:320px 1fr;
+      gap:20px;
+      align-items:start;
+    }
+
+    .sidebar{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:22px;
+      box-shadow:var(--shadow);
+      position:sticky;
+      top:20px;
+    }
+
+    .sidebar h3{
+      margin:0 0 14px;
+      color:var(--primary);
+      font-size:20px;
+    }
+
+    .step-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .step-item{
+      border:1px solid var(--line);
+      background:#f8fafc;
+      border-radius:18px;
+      padding:14px 14px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      transition:.2s ease;
+    }
+
+    .step-item.active{
+      border-color:#9fd7bf;
+      background:#edf9f2;
+    }
+
+    .step-no{
+      width:34px;
+      height:34px;
+      border-radius:50%;
+      background:var(--primary);
+      color:#fff;
+      display:grid;
+      place-items:center;
+      font-size:13px;
+      font-weight:900;
+      flex:0 0 auto;
+      margin-top:2px;
+    }
+
+    .step-item strong{
+      display:block;
+      margin-bottom:4px;
+      color:var(--primary);
+      font-size:14px;
+    }
+
+    .step-item span{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .security-box{
+      margin-top:18px;
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:16px;
+      background:#fffdf6;
+    }
+
+    .security-box h4{
+      margin:0 0 8px;
+      color:#8a5a00;
+      font-size:15px;
+    }
+
+    .security-box p{
+      margin:0;
+      color:#7c6b40;
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .main-card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:28px;
+      box-shadow:var(--shadow);
+    }
+
+    .progress-wrap{
+      margin-bottom:22px;
+    }
+
+    .progress-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+
+    .progress-top strong{
+      color:var(--primary);
+      font-size:15px;
+    }
+
+    .progress-bar{
+      width:100%;
+      height:12px;
+      border-radius:999px;
+      background:#edf2f7;
+      overflow:hidden;
+    }
+
+    .progress-fill{
+      height:100%;
+      width:16.66%;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      transition:width .25s ease;
+    }
+
+    .section{
+      display:none;
+      animation:fadeIn .25s ease;
+    }
+
+    .section.active{
+      display:block;
+    }
+
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(10px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    .section h2{
+      margin:0 0 10px;
+      color:var(--primary);
+      font-size:28px;
+      letter-spacing:-.5px;
+    }
+
+    .section p.lead{
+      margin:0 0 20px;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+    }
+
+    .field label{
+      display:block;
+      margin-bottom:8px;
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+
+    input,select,textarea{
+      width:100%;
+      padding:14px 16px;
+      border:1.5px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+      color:var(--text);
+      font:inherit;
+      outline:none;
+      transition:.2s ease;
+    }
+
+    input:focus,select:focus,textarea:focus{
+      border-color:#9fd7bf;
+      box-shadow:0 0 0 4px rgba(20,92,70,.08);
+    }
+
+    textarea{
+      min-height:110px;
+      resize:vertical;
+    }
+
+    .full{grid-column:1 / -1}
+
+    .hint{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .upload-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+    }
+
+    .upload-box{
+      border:1.5px dashed #a8b7c7;
+      background:#f8fafc;
+      border-radius:20px;
+      padding:16px;
+    }
+
+    .upload-box h4{
+      margin:0 0 8px;
+      color:var(--primary);
+      font-size:15px;
+    }
+
+    .upload-box p{
+      margin:0 0 12px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .camera-wrap{
+      display:grid;
+      grid-template-columns:1fr 300px;
+      gap:20px;
+      align-items:start;
+    }
+
+    .camera-box{
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:16px;
+      background:#f8fafc;
+    }
+
+    .camera-box video,
+    .camera-box canvas,
+    .camera-box img{
+      width:100%;
+      border-radius:16px;
+      background:#000;
+      display:block;
+    }
+
+    .camera-preview-note{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .meta-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .meta-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background:#f8fafc;
+    }
+
+    .meta-card strong{
+      display:block;
+      margin-bottom:6px;
+      color:var(--primary);
+      font-size:13px;
+      text-transform:uppercase;
+    }
+
+    .meta-card span{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+      word-break:break-word;
+    }
+
+    .terms-box{
+      border:1px solid var(--line);
+      background:#f8fafc;
+      border-radius:22px;
+      padding:18px;
+      line-height:1.75;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .checkbox-line{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .checkbox-line input{
+      width:auto;
+      margin-top:3px;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      margin-top:26px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border:none;
+      border-radius:16px;
+      padding:15px 22px;
+      font-weight:900;
+      cursor:pointer;
+      font-size:15px;
+      min-width:150px;
+    }
+
+    .btn-secondary{
+      background:#fff;
+      color:var(--primary);
+      border:1px solid var(--line);
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:#1f2937;
+      box-shadow:0 14px 30px rgba(255,180,0,.18);
+    }
+
+    .btn-dark{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    .status-banner{
+      display:none;
+      margin-bottom:18px;
+      padding:14px 16px;
+      border-radius:16px;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .status-banner.show{display:block}
+    .status-banner.success{background:#ecfdf5;color:#166534;border:1px solid #bbf7d0}
+    .status-banner.error{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+    .status-banner.warn{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+
+    .mini-note{
+      margin-top:12px;
+      color:var(--danger);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{position:static}
+      .camera-wrap{grid-template-columns:1fr}
+    }
+
+    @media (max-width: 760px){
+      .grid,.upload-grid,.meta-grid{grid-template-columns:1fr}
+      .actions{flex-direction:column}
+      .btn{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <a href="/">← Back to Home</a>
+      <a href="/admin/login">Admin Login</a>
+    </div>
+
+    <div class="hero">
+      <h1>Secure Loan Application & Identity Verification</h1>
+      <p>
+        This form is designed to collect the full applicant profile for confidential finance review. Your submitted records, location permission, device details, uploaded documents, and face capture help the KATRAMONEY team verify that the application is genuine before approval.
+      </p>
+      <div class="badges">
+        <span class="badge">Identity Check</span>
+        <span class="badge">Face Capture</span>
+        <span class="badge">Location Permission</span>
+        <span class="badge">Bank Statement Review</span>
+        <span class="badge">Admin Approval Required</span>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <h3>Application Flow</h3>
+        <div class="step-list">
+          <div class="step-item active" data-step="1">
+            <div class="step-no">1</div>
+            <div>
+              <strong>Identity</strong>
+              <span>Applicant name, ID, address, and contact details.</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="2">
+            <div class="step-no">2</div>
+            <div>
+              <strong>Employment</strong>
+              <span>Income, work, loan request, and purpose.</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="3">
+            <div class="step-no">3</div>
+            <div>
+              <strong>Next of Kin</strong>
+              <span>Emergency and relationship details.</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="4">
+            <div class="step-no">4</div>
+            <div>
+              <strong>Documents</strong>
+              <span>ID, address proof, and 3-month bank statement.</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="5">
+            <div class="step-no">5</div>
+            <div>
+              <strong>Face & Location</strong>
+              <span>Camera capture and permission-based geolocation.</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="6">
+            <div class="step-no">6</div>
+            <div>
+              <strong>Terms & Submit</strong>
+              <span>Consent, declaration, and final secure submission.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="security-box">
+          <h4>Important</h4>
+          <p>
+            This page can request your location and camera access. These permissions help your application review, but your browser will always ask for consent first.
+          </p>
+        </div>
+      </aside>
+
+      <main class="main-card">
+        <div id="statusBanner" class="status-banner"></div>
+
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <strong id="progressLabel">Step 1 of 6</strong>
+            <span style="color:var(--muted);font-size:13px;">Confidential application workflow</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <form id="loanApplicationForm" method="POST" action="/customer/secure-apply" enctype="multipart/form-data">
+          <input type="hidden" name="geo_lat" id="geo_lat">
+          <input type="hidden" name="geo_lng" id="geo_lng">
+          <input type="hidden" name="geo_accuracy" id="geo_accuracy">
+          <input type="hidden" name="geo_timestamp" id="geo_timestamp">
+          <input type="hidden" name="device_type" id="device_type">
+          <input type="hidden" name="user_agent" id="user_agent">
+          <input type="hidden" name="platform_info" id="platform_info">
+          <input type="hidden" name="screen_info" id="screen_info">
+          <input type="hidden" name="timezone_info" id="timezone_info">
+          <input type="hidden" name="language_info" id="language_info">
+          <input type="hidden" name="face_capture_data" id="face_capture_data">
+
+          <section class="section active" data-section="1">
+            <h2>Applicant Identity & Contact</h2>
+            <p class="lead">Provide the main personal details exactly as they appear on your identification records.</p>
+
+            <div class="grid">
+              <div class="field">
+                <label>Full Name *</label>
+                <input type="text" name="full_name" required>
+              </div>
+              <div class="field">
+                <label>Cellphone Number *</label>
+                <input type="text" name="phone" required>
+              </div>
+              <div class="field">
+                <label>Email Address</label>
+                <input type="email" name="email">
+              </div>
+              <div class="field">
+                <label>ID Number *</label>
+                <input type="text" name="id_number" required>
+              </div>
+              <div class="field">
+                <label>Date of Birth</label>
+                <input type="date" name="date_of_birth">
+              </div>
+              <div class="field">
+                <label>Gender</label>
+                <select name="gender">
+                  <option value="">Select</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Prefer not to say</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label>Residential / Physical Address *</label>
+                <textarea name="physical_address" required></textarea>
+              </div>
+              <div class="field">
+                <label>Town / City *</label>
+                <input type="text" name="town_city" required>
+              </div>
+              <div class="field">
+                <label>Region *</label>
+                <input type="text" name="region" required>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" data-section="2">
+            <h2>Employment, Income & Loan Request</h2>
+            <p class="lead">Tell us how you earn and what kind of financing you are requesting.</p>
+
+            <div class="grid">
+              <div class="field">
+                <label>Employment Status *</label>
+                <select name="employment_status" required>
+                  <option value="">Select</option>
+                  <option>Employed</option>
+                  <option>Self-Employed</option>
+                  <option>Business Owner</option>
+                  <option>Student</option>
+                  <option>Unemployed</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Employer / Business Name</label>
+                <input type="text" name="employer_name">
+              </div>
+              <div class="field">
+                <label>Monthly Income (N$) *</label>
+                <input type="number" name="monthly_income" min="0" required>
+              </div>
+              <div class="field">
+                <label>Other Income (N$)</label>
+                <input type="number" name="other_income" min="0">
+              </div>
+              <div class="field">
+                <label>Requested Loan Amount (N$) *</label>
+                <input type="number" name="loan_amount" min="1" required>
+              </div>
+              <div class="field">
+                <label>Repayment Term *</label>
+                <select name="loan_term" required>
+                  <option value="1">1 Month</option>
+                  <option value="2">2 Months</option>
+                  <option value="3">3 Months</option>
+                  <option value="6">6 Months</option>
+                  <option value="12">12 Months</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label>Loan Purpose *</label>
+                <textarea name="loan_purpose" required placeholder="Explain clearly what this loan will be used for"></textarea>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" data-section="3">
+            <h2>Next of Kin Details</h2>
+            <p class="lead">Provide the contact information of a real next of kin who knows you personally.</p>
+
+            <div class="grid">
+              <div class="field">
+                <label>Next of Kin Full Name *</label>
+                <input type="text" name="next_of_kin_name" required>
+              </div>
+              <div class="field">
+                <label>Next of Kin Phone *</label>
+                <input type="text" name="next_of_kin_phone" required>
+              </div>
+              <div class="field">
+                <label>Relationship *</label>
+                <input type="text" name="next_of_kin_relationship" required>
+              </div>
+              <div class="field">
+                <label>Next of Kin Address</label>
+                <input type="text" name="next_of_kin_address">
+              </div>
+            </div>
+          </section>
+
+          <section class="section" data-section="4">
+            <h2>Upload Required Documents</h2>
+            <p class="lead">Upload clear, original, readable documents. These will be checked by admin during review.</p>
+
+            <div class="upload-grid">
+              <div class="upload-box">
+                <h4>ID / Passport Front *</h4>
+                <p>Upload a clear front copy of your national ID, passport, or valid identification.</p>
+                <input type="file" name="id_front" accept=".jpg,.jpeg,.png,.pdf" required>
+              </div>
+
+              <div class="upload-box">
+                <h4>ID / Passport Back *</h4>
+                <p>Upload the reverse side if your ID has information on both sides.</p>
+                <input type="file" name="id_back" accept=".jpg,.jpeg,.png,.pdf" required>
+              </div>
+
+              <div class="upload-box">
+                <h4>3-Month Bank Statement *</h4>
+                <p>Upload your latest original bank statement covering the most recent 3 months.</p>
+                <input type="file" name="bank_statement" accept=".jpg,.jpeg,.png,.pdf" required>
+              </div>
+
+              <div class="upload-box">
+                <h4>Proof of Income *</h4>
+                <p>Salary slip, payslip, or another document proving your income source.</p>
+                <input type="file" name="proof_of_income" accept=".jpg,.jpeg,.png,.pdf" required>
+              </div>
+
+              <div class="upload-box">
+                <h4>Proof of Residential Address *</h4>
+                <p>Municipal bill, utility bill, tenancy document, or other acceptable proof of address.</p>
+                <input type="file" name="proof_of_address" accept=".jpg,.jpeg,.png,.pdf" required>
+              </div>
+
+              <div class="upload-box">
+                <h4>Extra Supporting Document</h4>
+                <p>Any additional document that may support your application.</p>
+                <input type="file" name="supporting_doc" accept=".jpg,.jpeg,.png,.pdf">
+              </div>
+            </div>
+          </section>
+
+          <section class="section" data-section="5">
+            <h2>Face Capture, Device & Location Check</h2>
+            <p class="lead">Capture a live face photo and allow location access so the admin team can compare the application with the uploaded identification.</p>
+
+            <div class="camera-wrap">
+              <div class="camera-box">
+                <video id="camera" autoplay playsinline style="display:none;"></video>
+                <canvas id="photoCanvas" style="display:none;"></canvas>
+                <img id="photoPreview" alt="Face capture preview" style="display:none;">
+                <div class="camera-preview-note">
+                  Use the camera capture below to take a clear face photo. This image is stored with your application for manual admin approval.
+                </div>
+
+                <div class="actions" style="margin-top:16px;">
+                  <button type="button" class="btn btn-dark" id="startCameraBtn">Open Camera</button>
+                  <button type="button" class="btn btn-secondary" id="capturePhotoBtn">Capture Photo</button>
+                  <button type="button" class="btn btn-secondary" id="retakePhotoBtn">Retake</button>
+                </div>
+                <div class="mini-note">Use this on a secure device. Browser permission is required for camera access.</div>
+              </div>
+
+              <div>
+                <div class="camera-box">
+                  <h3 style="margin-top:0;color:var(--primary);">Location & Device Snapshot</h3>
+                  <p style="margin-top:0;color:var(--muted);line-height:1.6;">
+                    This section captures permission-based location and browser/device details to support your application review.
+                  </p>
+                  <div class="actions">
+                    <button type="button" class="btn btn-dark" id="captureLocationBtn">Capture Location</button>
+                  </div>
+                </div>
+
+                <div class="meta-grid">
+                  <div class="meta-card">
+                    <strong>Coordinates</strong>
+                    <span id="geoDisplay">Not captured yet</span>
+                  </div>
+                  <div class="meta-card">
+                    <strong>Accuracy</strong>
+                    <span id="accuracyDisplay">Not captured yet</span>
+                  </div>
+                  <div class="meta-card">
+                    <strong>Device</strong>
+                    <span id="deviceDisplay">Will detect automatically</span>
+                  </div>
+                  <div class="meta-card">
+                    <strong>Timezone</strong>
+                    <span id="timezoneDisplay">Will detect automatically</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" data-section="6">
+            <h2>Declaration, Terms & Final Submit</h2>
+            <p class="lead">Review and confirm that your information is true before you submit the application.</p>
+
+            <div class="terms-box">
+              By submitting this application, you confirm that the information and files provided are true, accurate, and belong to you. You understand that admin may manually review your face capture, uploaded documents, location permission details, and application information before approval. Incomplete, false, or misleading submissions may be rejected.
+            </div>
+
+            <div class="checkbox-line">
+              <input type="checkbox" name="agree_terms" id="agree_terms" value="yes" required>
+              <label for="agree_terms" style="margin:0;font-size:14px;color:var(--text);font-weight:600;text-transform:none;">
+                I confirm that the details I entered are correct and I accept the KATRAMONEY review process and terms.
+              </label>
+            </div>
+
+            <div class="checkbox-line">
+              <input type="checkbox" name="confirm_identity" id="confirm_identity" value="yes" required>
+              <label for="confirm_identity" style="margin:0;font-size:14px;color:var(--text);font-weight:600;text-transform:none;">
+                I confirm that the face photo, identity documents, and bank statements I submitted belong to me.
+              </label>
+            </div>
+
+            <div class="mini-note">
+              This page improves verification and data collection, but no browser form can guarantee total protection against fraud by itself. Strong protection also depends on backend checks, admin review, rate limits, secure storage, and audit logs.
+            </div>
+          </section>
+
+          <div class="actions">
+            <button type="button" class="btn btn-secondary" id="prevBtn">Previous</button>
+            <button type="button" class="btn btn-primary" id="nextBtn">Next Step</button>
+            <button type="submit" class="btn btn-dark" id="submitBtn" style="display:none;">Submit Secure Application</button>
+          </div>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    const totalSteps = 6;
+    let stream = null;
+    let faceCaptured = false;
+
+    const sections = document.querySelectorAll('.section');
+    const stepItems = document.querySelectorAll('.step-item');
+    const progressFill = document.getElementById('progressFill');
+    const progressLabel = document.getElementById('progressLabel');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('loanApplicationForm');
+
+    const statusBanner = document.getElementById('statusBanner');
+    const camera = document.getElementById('camera');
+    const canvas = document.getElementById('photoCanvas');
+    const photoPreview = document.getElementById('photoPreview');
+    const faceCaptureData = document.getElementById('face_capture_data');
+
+    function showBanner(message, type='warn') {
+      statusBanner.className = 'status-banner show ' + type;
+      statusBanner.textContent = message;
+    }
+
+    function clearBanner() {
+      statusBanner.className = 'status-banner';
+      statusBanner.textContent = '';
+    }
+
+    function updateStepUI() {
+      sections.forEach(section => {
+        section.classList.toggle('active', Number(section.dataset.section) === currentStep);
+      });
+
+      stepItems.forEach(item => {
+        item.classList.toggle('active', Number(item.dataset.step) === currentStep);
+      });
+
+      const pct = (currentStep / totalSteps) * 100;
+      progressFill.style.width = pct + '%';
+      progressLabel.textContent = 'Step ' + currentStep + ' of ' + totalSteps;
+
+      prevBtn.style.display = currentStep === 1 ? 'none' : 'inline-flex';
+      nextBtn.style.display = currentStep === totalSteps ? 'none' : 'inline-flex';
+      submitBtn.style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
+      clearBanner();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function validateCurrentStep() {
+      const activeSection = document.querySelector('.section.active');
+      if (!activeSection) return true;
+
+      const requiredFields = activeSection.querySelectorAll('[required]');
+      for (const field of requiredFields) {
+        if (field.type === 'checkbox' && !field.checked) {
+          field.focus();
+          showBanner('Please complete all required fields before continuing.', 'error');
+          return false;
+        }
+        if (field.type !== 'checkbox' && !field.value) {
+          field.focus();
+          showBanner('Please complete all required fields before continuing.', 'error');
+          return false;
+        }
+      }
+
+      if (currentStep === 5 && !faceCaptured) {
+        showBanner('Please capture a face photo before continuing.', 'error');
+        return false;
+      }
+
+      return true;
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (!validateCurrentStep()) return;
+      if (currentStep < totalSteps) {
+        currentStep++;
+        updateStepUI();
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentStep > 1) {
+        currentStep--;
+        updateStepUI();
+      }
+    });
+
+    function detectDevice() {
+      const ua = navigator.userAgent || '';
+      let type = 'Desktop';
+      if (/android/i.test(ua)) type = 'Android Device';
+      if (/iPhone|iPad|iPod/i.test(ua)) type = 'iPhone / iPad';
+      if (/Mobile/i.test(ua)) type = 'Mobile Device';
+
+      document.getElementById('device_type').value = type;
+      document.getElementById('user_agent').value = ua;
+      document.getElementById('platform_info').value = navigator.platform || '';
+      document.getElementById('screen_info').value = window.screen.width + 'x' + window.screen.height;
+      document.getElementById('timezone_info').value = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      document.getElementById('language_info').value = navigator.language || '';
+
+      document.getElementById('deviceDisplay').textContent = type + ' | ' + (navigator.platform || 'Unknown platform');
+      document.getElementById('timezoneDisplay').textContent = (Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown') + ' | ' + (navigator.language || 'Unknown');
+    }
+
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        camera.srcObject = stream;
+        camera.style.display = 'block';
+        canvas.style.display = 'none';
+        photoPreview.style.display = 'none';
+        showBanner('Camera opened successfully. Position your face and capture.', 'success');
+      } catch (err) {
+        showBanner('Unable to access camera. Please allow camera permission in your browser.', 'error');
+      }
+    }
+
+    function capturePhoto() {
+      if (!stream) {
+        showBanner('Open the camera first.', 'error');
+        return;
+      }
+
+      const width = camera.videoWidth || 640;
+      const height = camera.videoHeight || 480;
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(camera, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      faceCaptureData.value = dataUrl;
+      photoPreview.src = dataUrl;
+      photoPreview.style.display = 'block';
+      camera.style.display = 'none';
+      canvas.style.display = 'none';
+      faceCaptured = true;
+
+      showBanner('Face photo captured successfully.', 'success');
+    }
+
+    function retakePhoto() {
+      faceCaptured = false;
+      faceCaptureData.value = '';
+      photoPreview.src = '';
+      photoPreview.style.display = 'none';
+      if (stream) {
+        camera.style.display = 'block';
+      }
+      showBanner('You can capture a new face photo now.', 'warn');
+    }
+
+    function captureLocation() {
+      if (!navigator.geolocation) {
+        showBanner('Geolocation is not supported by this browser.', 'error');
+        return;
+      }
+
+      showBanner('Requesting your current location permission...', 'warn');
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const accuracy = position.coords.accuracy;
+
+          document.getElementById('geo_lat').value = lat;
+          document.getElementById('geo_lng').value = lng;
+          document.getElementById('geo_accuracy').value = accuracy;
+          document.getElementById('geo_timestamp').value = new Date().toISOString();
+
+          document.getElementById('geoDisplay').textContent = lat + ', ' + lng;
+          document.getElementById('accuracyDisplay').textContent = '± ' + Math.round(accuracy) + ' meters';
+
+          showBanner('Location captured successfully.', 'success');
+        },
+        (error) => {
+          let msg = 'Location permission failed.';
+          if (error.code === 1) msg = 'Location access was denied by the user.';
+          if (error.code === 2) msg = 'Location information is unavailable.';
+          if (error.code === 3) msg = 'Location request timed out.';
+          showBanner(msg, 'error');
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    }
+
+    document.getElementById('startCameraBtn').addEventListener('click', startCamera);
+    document.getElementById('capturePhotoBtn').addEventListener('click', capturePhoto);
+    document.getElementById('retakePhotoBtn').addEventListener('click', retakePhoto);
+    document.getElementById('captureLocationBtn').addEventListener('click', captureLocation);
+
+    form.addEventListener('submit', function(e) {
+      if (!validateCurrentStep()) {
+        e.preventDefault();
+        return;
+      }
+
+      if (!document.getElementById('geo_lat').value || !document.getElementById('geo_lng').value) {
+        const proceed = confirm('Location has not been captured yet. Continue anyway?');
+        if (!proceed) {
+          e.preventDefault();
+          return;
+        }
+      }
+
+      if (!faceCaptureData.value) {
+        e.preventDefault();
+        showBanner('Please capture a face photo before submission.', 'error');
+        currentStep = 5;
+        updateStepUI();
+        return;
+      }
+
+      showBanner('Submitting your secure application...', 'warn');
+    });
+
+    detectDevice();
+    updateStepUI();
+  </script>
+</body>
+</html>
+

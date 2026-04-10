@@ -1,0 +1,10 @@
+﻿body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; }
+.navbar { background: #003366; color: white; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; }
+.container { display: flex; justify-content: center; padding: 40px; }
+.card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+label { display: block; margin-top: 15px; font-weight: bold; color: #333; }
+input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+.result-box { background: #e7f3ff; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; border: 1px dashed #003366; }
+.result-box h3 { margin: 5px 0; color: #003366; }
+.btn-apply { width: 100%; background: #28a745; color: white; border: none; padding: 15px; margin-top: 20px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+.btn-apply:hover { background: #218838; }

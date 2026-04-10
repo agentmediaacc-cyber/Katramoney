@@ -1,0 +1,881 @@
+﻿import os
+from functools import wraps
+
+import requests
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify, flash
+from supabase import create_client, Client
+
+# --------------------------------------------------
+# ENV
+# --------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"), override=True)
+
+app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "katramoney_admin_2026")
+
+SUPABASE_PROJECT_URL = (os.getenv("SUPABASE_URL") or "").rstrip("/")
+SUPABASE_ANON = os.getenv("SUPABASE_ANON_KEY", "")
+SUPABASE_SERVICE = (
+    os.getenv("SUPABASE_SERVICE_KEY", "")
+    or os.getenv("SUPABASE_SERVICE_ROLE", "")
+    or os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+)
+SUPABASE_AUTH_URL = f"{SUPABASE_PROJECT_URL}/auth/v1/token?grant_type=password" if SUPABASE_PROJECT_URL else ""
+
+if not SUPABASE_PROJECT_URL:
+    raise RuntimeError("SUPABASE_URL is missing from .env")
+if not SUPABASE_ANON:
+    raise RuntimeError("SUPABASE_ANON_KEY is missing from .env")
+if not SUPABASE_SERVICE:
+    raise RuntimeError("SUPABASE_SERVICE_KEY (or service role key) is missing from .env")
+
+supabase: Client = create_client(SUPABASE_PROJECT_URL, SUPABASE_ANON)
+supabase_admin: Client = create_client(SUPABASE_PROJECT_URL, SUPABASE_SERVICE)
+
+# Optional external route modules
+try:
+    from customer_portal_routes import register_customer_portal_routes
+    register_customer_portal_routes(app, supabase_admin)
+except Exception as e:
+    print("customer_portal_routes skipped:", e)
+
+try:
+    from admin_bridge_routes import register_admin_bridge_routes
+    register_admin_bridge_routes(app, supabase_admin)
+except Exception as e:
+    print("admin_bridge_routes skipped:", e)
+
+# --------------------------------------------------
+# HELPERS
+# --------------------------------------------------
+def to_int(value, default=0):
+    try:
+        if value is None or value == "":
+            return int(default)
+        return int(float(value))
+    except Exception:
+        return int(default)
+
+def to_float(value, default=0.0):
+    try:
+        if value is None or value == "":
+            return float(default)
+        return float(value)
+    except Exception:
+        return float(default)
+
+def to_bool(value, default=False):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).strip().lower() in ["1", "true", "yes", "on"]
+
+def to_str(value, default=""):
+    if value is None:
+        return default
+    return str(value).strip()
+
+def parse_csv_lines(value):
+    raw = to_str(value, "")
+    if not raw:
+        return []
+    parts = []
+    for chunk in raw.replace(";", "\n").split("\n"):
+        for item in chunk.split(","):
+            item = item.strip()
+            if item:
+                parts.append(item)
+    return parts
+
+def admin_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("admin_logged_in"):
+            if request.path.startswith("/api/"):
+                return jsonify({"success": False, "error": "Unauthorized"}), 401
+            return redirect(url_for("admin_login"))
+        return fn(*args, **kwargs)
+    return wrapper
+
+def is_supabase_admin(user_id=None, email=None):
+    try:
+        if user_id:
+            res = supabase_admin.table("admin_users").select("*").eq("user_id", user_id).limit(1).execute()
+            if res and res.data:
+                role = str((res.data[0].get("role") or "")).strip().lower()
+                if role in ["", "admin", "super_admin", "superadmin"]:
+                    return True
+
+        if email:
+            res = supabase_admin.table("admin_users").select("*").eq("email", email).limit(1).execute()
+            if res and res.data:
+                role = str((res.data[0].get("role") or "")).strip().lower()
+                if role in ["", "admin", "super_admin", "superadmin"]:
+                    return True
+
+        return False
+    except Exception as e:
+        print("ADMIN CHECK EXCEPTION:", str(e))
+        return False
+
+def get_first_row(table_name):
+    try:
+        res = supabase_admin.table(table_name).select("*").limit(1).execute()
+        if res and res.data:
+            return res.data[0]
+    except Exception as e:
+        print(f"READ {table_name} ERROR:", e)
+    return {}
+
+def safe_table_rows(table_name, order_col=None, desc=False):
+    try:
+        query = supabase_admin.table(table_name).select("*")
+        if order_col:
+            query = query.order(order_col, desc=desc)
+        res = query.execute()
+        return res.data or []
+    except Exception as e:
+        print(f"READ TABLE {table_name} ERROR:", e)
+        return []
+
+# --------------------------------------------------
+# PAGE ROUTES
+# --------------------------------------------------
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/apply")
+def apply():
+    return render_template("apply.html")
+
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "GET" and request.args.get("fresh") == "1":
+        session.clear()
+
+    if session.get("admin_logged_in") and request.method == "GET" and request.args.get("fresh") != "1":
+        return redirect(url_for("admin_dashboard"))
+
+    error = None
+
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip().lower()
+        password = request.form.get("password") or ""
+
+        if not username or not password:
+            error = "Enter your admin email and password."
+        else:
+            try:
+                headers = {
+                    "apikey": SUPABASE_ANON,
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "email": username,
+                    "password": password
+                }
+
+                auth_res = requests.post(SUPABASE_AUTH_URL, headers=headers, json=payload, timeout=20)
+
+                if not auth_res.ok:
+                    error = "Invalid admin email or password."
+                else:
+                    auth_data = auth_res.json()
+                    user = auth_data.get("user") or {}
+                    user_id = user.get("id")
+                    user_email = (user.get("email") or username).lower()
+
+                    if is_supabase_admin(user_id, user_email):
+                        session["admin_logged_in"] = True
+                        session["admin_email"] = user_email
+                        session["admin_user_id"] = user_id
+                        session["admin_access_token"] = auth_data.get("access_token")
+                        return redirect(url_for("admin_dashboard"))
+                    else:
+                        error = "This user is not registered as an admin."
+            except Exception as e:
+                error = f"Admin login failed: {str(e)}"
+
+    # fallback inline page if admin_login.html does not exist
+    login_template = os.path.join(BASE_DIR, "admin_login.html")
+    if os.path.exists(login_template):
+        return render_template("admin_login.html", error=error)
+
+    return f"""
+    <html>
+    <head><title>Admin Login</title></head>
+    <body style="font-family:Arial;padding:40px;">
+      <h2>KATRAMONEY Admin Login</h2>
+      <form method="post">
+        <div style="margin-bottom:12px;"><input name="username" placeholder="Admin Email" style="padding:10px;width:300px;"></div>
+        <div style="margin-bottom:12px;"><input name="password" type="password" placeholder="Password" style="padding:10px;width:300px;"></div>
+        <button type="submit" style="padding:10px 16px;">Login</button>
+      </form>
+      <div style="color:red;margin-top:16px;">{error or ""}</div>
+    </body>
+    </html>
+    """
+
+@app.route("/api/admin/login", methods=["POST"])
+def admin_login_api():
+    data = request.json or {}
+    username = (data.get("username") or "").strip().lower()
+    password = data.get("password") or ""
+
+    if not username or not password:
+        return jsonify({"success": False, "error": "Username and password are required"}), 400
+
+    try:
+        headers = {
+            "apikey": SUPABASE_ANON,
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "email": username,
+            "password": password
+        }
+
+        auth_res = requests.post(SUPABASE_AUTH_URL, headers=headers, json=payload, timeout=20)
+
+        if not auth_res.ok:
+            return jsonify({"success": False, "error": "Invalid admin email or password"}), 401
+
+        auth_data = auth_res.json()
+        user = auth_data.get("user") or {}
+        user_id = user.get("id")
+        user_email = (user.get("email") or username).lower()
+
+        if not is_supabase_admin(user_id, user_email):
+            return jsonify({"success": False, "error": "This user is not registered as an admin"}), 403
+
+        session["admin_logged_in"] = True
+        session["admin_email"] = user_email
+        session["admin_user_id"] = user_id
+        session["admin_access_token"] = auth_data.get("access_token")
+
+        return jsonify({"success": True, "redirect": "/admin"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.clear()
+    return redirect(url_for("admin_login"))
+
+@app.route("/admin")
+@admin_required
+def admin_dashboard():
+    try:
+        apps = safe_table_rows("applications", "created_at", True)
+        loan_products = safe_table_rows("loan_products", "id", False)
+        support_tickets = safe_table_rows("support_tickets", "created_at", True)
+        customer_messages = safe_table_rows("customer_messages", "created_at", True)
+        loan_payments = safe_table_rows("loan_payments", "created_at", True)
+        loan_accounts = safe_table_rows("loan_accounts", "opened_at", True)
+        customer_profiles = safe_table_rows("customer_profiles")
+        customer_accounts = safe_table_rows("customer_accounts")
+        blacklist = safe_table_rows("blacklist", "id", True)
+        contacts = safe_table_rows("contacts", "created_at", True)
+
+        site_config = get_first_row("site_config")
+        site_settings = get_first_row("site_settings")
+
+        account_map = {str(a.get("id")): a for a in customer_accounts}
+        profile_map = {str(p.get("customer_id")): p for p in customer_profiles}
+
+        for a in apps:
+            cust_id = str(a.get("customer_id") or "")
+            acc = account_map.get(cust_id, {})
+            prof = profile_map.get(cust_id, {})
+            a["customer_name"] = prof.get("full_name") or a.get("full_name") or ""
+            a["customer_email"] = acc.get("email") or a.get("email") or ""
+            a["customer_phone"] = prof.get("phone") or a.get("phone") or ""
+            if not isinstance(a.get("uploaded_docs"), list):
+                a["uploaded_docs"] = []
+
+        for s in support_tickets:
+            cust_id = str(s.get("customer_id") or "")
+            acc = account_map.get(cust_id, {})
+            prof = profile_map.get(cust_id, {})
+            s["customer_name"] = prof.get("full_name") or ""
+            s["customer_email"] = acc.get("email") or ""
+            s["customer_phone"] = prof.get("phone") or ""
+
+        for p in loan_payments:
+            cust_id = str(p.get("customer_id") or "")
+            acc = account_map.get(cust_id, {})
+            prof = profile_map.get(cust_id, {})
+            p["customer_name"] = prof.get("full_name") or ""
+            p["customer_email"] = acc.get("email") or ""
+            p["customer_phone"] = prof.get("phone") or ""
+
+        total_val = sum(float(a.get("amount", 0) or 0) for a in apps)
+        pending = len([a for a in apps if str(a.get("status") or "").upper() == "PENDING"])
+        approved = len([a for a in apps if str(a.get("status") or "").upper() == "APPROVED"])
+        rejected = len([a for a in apps if str(a.get("status") or "").upper() == "REJECTED"])
+
+        print("ADMIN COUNTS")
+        print("applications:", len(apps))
+        print("loan_products:", len(loan_products))
+        print("support_tickets:", len(support_tickets))
+        print("customer_messages:", len(customer_messages))
+        print("loan_payments:", len(loan_payments))
+        print("loan_accounts:", len(loan_accounts))
+        print("customer_profiles:", len(customer_profiles))
+        print("customer_accounts:", len(customer_accounts))
+        print("blacklist:", len(blacklist))
+        print("contacts:", len(contacts))
+
+        return render_template(
+            "admin.html",
+            apps=apps,
+            loan_products=loan_products,
+            support_tickets=support_tickets,
+            customer_messages=customer_messages,
+            loan_payments=loan_payments,
+            loan_accounts=loan_accounts,
+            profiles=customer_profiles,
+            customer_accounts=customer_accounts,
+            blacklist=blacklist,
+            contacts=contacts,
+            site_config=site_config,
+            site_settings=site_settings,
+            total_val=total_val,
+            pending=pending,
+            approved=approved,
+            rejected=rejected
+        )
+    except Exception as e:
+        return f"ADMIN DASHBOARD ERROR: {e}"
+
+# --------------------------------------------------
+# PUBLIC DATA FOR HOMEPAGE
+# --------------------------------------------------
+@app.route("/api/public-site-data", methods=["GET"])
+def public_site_data():
+    try:
+        site_config = get_first_row("site_config")
+        site_settings = get_first_row("site_settings")
+
+        products_res = supabase_admin.table("loan_products").select("*").order("featured", desc=True).order("id").execute()
+        products_raw = products_res.data if products_res and products_res.data else []
+
+        products = []
+        for p in products_raw:
+            if p.get("active") is False:
+                continue
+            products.append({
+                "id": p.get("id"),
+                "name": p.get("name"),
+                "description": p.get("description") or "",
+                "interest_rate": to_float(p.get("interest_rate"), 0),
+                "service_fee": to_float(p.get("service_fee"), 0),
+                "min_amount": to_int(p.get("min_amount"), 0),
+                "max_amount": to_int(p.get("max_amount"), 0),
+                "active": to_bool(p.get("active"), True),
+                "featured": to_bool(p.get("featured"), False),
+                "icon": p.get("icon") or "💳",
+                "terms": p.get("terms") if isinstance(p.get("terms"), list) else [],
+                "features": p.get("features") if isinstance(p.get("features"), list) else []
+            })
+
+        payload = {
+            "success": True,
+            "site_config": {
+                "site_name": site_config.get("site_name") or "KATRAMONEY",
+                "promo_text": site_config.get("promo_text") or "Fast approvals",
+                "hero_trust_text": site_config.get("hero_trust_text") or "Trusted loan support",
+                "hero_title": site_config.get("hero_title") or "Fast Financial Help When You Need It Most",
+                "hero_subtitle": site_config.get("hero_subtitle") or "Simple loan solutions designed for real people, working professionals, and growing businesses in Namibia.",
+                "hero_chip_1": site_config.get("hero_chip_1") or "Fast",
+                "hero_chip_2": site_config.get("hero_chip_2") or "Secure",
+                "hero_chip_3": site_config.get("hero_chip_3") or "Flexible",
+                "support_phone": site_config.get("support_phone") or site_config.get("phone") or "",
+                "email": site_config.get("email") or "",
+                "office_hours": site_config.get("office_hours") or "",
+                "address": site_config.get("address") or "",
+                "contact_intro": site_config.get("contact_intro") or "",
+                "footer_text": site_config.get("footer_text") or "",
+                "compliance_text": site_config.get("compliance_text") or "",
+                "calc_note": site_config.get("calc_note") or site_config.get("calculator_note") or "Quick approvals, clear terms, and support that responds fast when you need answers.",
+                "approval_window": site_config.get("approval_window") or "24 - 48 Hours",
+                "min_loan": to_int(site_config.get("min_loan") or site_config.get("min_loan_global"), 500),
+                "max_loan": to_int(site_config.get("max_loan") or site_config.get("max_loan_global"), 50000)
+            },
+            "site_settings": site_settings,
+            "loan_products": products
+        }
+
+        return jsonify(payload)
+    except Exception as e:
+        print("PUBLIC SITE DATA ERROR:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# --------------------------------------------------
+# ADMIN API ROUTES
+# --------------------------------------------------
+@app.route("/api/admin/site-config", methods=["POST"])
+@admin_required
+def update_site_config():
+    data = request.json or {}
+    try:
+        payload = {
+            "site_name": to_str(data.get("site_name")),
+            "hero_title": to_str(data.get("hero_title")),
+            "hero_subtitle": to_str(data.get("hero_subtitle")),
+            "hero_trust_text": to_str(data.get("hero_trust_text")),
+            "promo_text": to_str(data.get("promo_text")),
+            "hero_chip_1": to_str(data.get("hero_chip_1")),
+            "hero_chip_2": to_str(data.get("hero_chip_2")),
+            "hero_chip_3": to_str(data.get("hero_chip_3")),
+            "support_phone": to_str(data.get("support_phone") or data.get("phone")),
+            "email": to_str(data.get("email")),
+            "office_hours": to_str(data.get("office_hours")),
+            "address": to_str(data.get("address")),
+            "contact_intro": to_str(data.get("contact_intro")),
+            "footer_text": to_str(data.get("footer_text")),
+            "compliance_text": to_str(data.get("compliance_text")),
+            "calc_note": to_str(data.get("calc_note") or data.get("calculator_note")),
+            "approval_window": to_str(data.get("approval_window")),
+            "min_loan": to_int(data.get("min_loan") or data.get("min_loan_global"), 500),
+            "max_loan": to_int(data.get("max_loan") or data.get("max_loan_global"), 50000),
+            "customer_wallpaper_url": to_str(data.get("customer_wallpaper_url") or data.get("wallpaper")),
+            "developer_credit": to_str(data.get("developer_credit")),
+            "homepage_notice": to_str(data.get("homepage_notice")),
+        }
+
+        existing = supabase_admin.table("site_config").select("id").limit(1).execute()
+        rows = existing.data or []
+        if rows:
+            supabase_admin.table("site_config").update(payload).eq("id", rows[0]["id"]).execute()
+        else:
+            supabase_admin.table("site_config").insert(payload).execute()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        print("SITE CONFIG ERROR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/site-settings", methods=["POST"])
+@admin_required
+def update_site_settings():
+    data = request.json or {}
+    try:
+        settings_id = to_str(data.get("id"), "global_config")
+        payload = dict(data)
+        payload["id"] = settings_id
+
+        existing = supabase_admin.table("site_settings").select("id").eq("id", settings_id).limit(1).execute()
+        rows = existing.data or []
+        if rows:
+            supabase_admin.table("site_settings").update(payload).eq("id", settings_id).execute()
+        else:
+            supabase_admin.table("site_settings").insert(payload).execute()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        print("SITE SETTINGS ERROR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/applications/<app_id>", methods=["POST"])
+@admin_required
+def update_application(app_id):
+    data = request.json or {}
+    try:
+        payload = {
+            "status": to_str(data.get("status"), "PENDING").upper(),
+            "admin_note": to_str(data.get("admin_note")),
+            "reply_message": to_str(data.get("reply_message"))
+        }
+        supabase_admin.table("applications").update(payload).eq("id", app_id).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        print("UPDATE APPLICATION ERROR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/reply-contact", methods=["POST"])
+@admin_required
+def reply_contact():
+    data = request.json or {}
+    try:
+        print(f"Simulated reply to {data.get('email')}: {data.get('message')}")
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/loan-products/create", methods=["POST"])
+@admin_required
+def create_loan_product():
+    data = request.json or {}
+    try:
+        payload = {
+            "name": to_str(data.get("name")),
+            "description": to_str(data.get("description")),
+            "interest_rate": to_float(data.get("interest_rate"), 0),
+            "service_fee": to_float(data.get("service_fee"), 0),
+            "min_amount": to_int(data.get("min_amount"), 0),
+            "max_amount": to_int(data.get("max_amount"), 0),
+            "active": to_bool(data.get("active"), True),
+            "featured": to_bool(data.get("featured"), False),
+            "icon": to_str(data.get("icon"), "💳"),
+            "terms": data.get("terms") if isinstance(data.get("terms"), list) else parse_csv_lines(data.get("terms")),
+            "features": data.get("features") if isinstance(data.get("features"), list) else parse_csv_lines(data.get("features")),
+        }
+
+        if not payload["name"]:
+            return jsonify({"success": False, "error": "Product name is required"}), 400
+
+        res = supabase_admin.table("loan_products").insert(payload).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("CREATE PRODUCT ERROR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/loan-products/<product_id>", methods=["POST"])
+@admin_required
+def update_loan_product(product_id):
+    data = request.json or {}
+    try:
+        payload = {
+            "name": to_str(data.get("name")),
+            "description": to_str(data.get("description")),
+            "interest_rate": to_float(data.get("interest_rate"), 0),
+            "service_fee": to_float(data.get("service_fee"), 0),
+            "min_amount": to_int(data.get("min_amount"), 0),
+            "max_amount": to_int(data.get("max_amount"), 0),
+            "active": to_bool(data.get("active"), True),
+            "featured": to_bool(data.get("featured"), False),
+            "icon": to_str(data.get("icon"), "💳"),
+            "terms": data.get("terms") if isinstance(data.get("terms"), list) else parse_csv_lines(data.get("terms")),
+            "features": data.get("features") if isinstance(data.get("features"), list) else parse_csv_lines(data.get("features")),
+        }
+
+        if not payload["name"]:
+            return jsonify({"success": False, "error": "Product name is required"}), 400
+
+        clean_id = int(product_id) if str(product_id).isdigit() else product_id
+        res = supabase_admin.table("loan_products").update(payload).eq("id", clean_id).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("UPDATE PRODUCT ERROR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/loan-products/<product_id>/delete", methods=["POST"])
+@admin_required
+def delete_loan_product(product_id):
+    try:
+        clean_id = int(product_id) if str(product_id).isdigit() else product_id
+        res = supabase_admin.table("loan_products").delete().eq("id", clean_id).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("DELETE PRODUCT ERROR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/blacklist/add", methods=["POST"])
+@admin_required
+def add_blacklist():
+    data = request.json or {}
+    try:
+        payload = {
+            "blocked_id": to_str(data.get("blocked_id"), "") or None,
+            "blocked_phone": to_str(data.get("blocked_phone"), "") or None,
+            "blocked_email": to_str(data.get("blocked_email"), "") or None,
+            "reason": to_str(data.get("reason"), "Blocked by admin"),
+        }
+
+        if not payload["blocked_id"] and not payload["blocked_phone"] and not payload["blocked_email"]:
+            return jsonify({"success": False, "error": "Provide blocked_id, blocked_phone, or blocked_email"}), 400
+
+        res = supabase_admin.table("blacklist").insert(payload).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("ADD BLACKLIST ERROR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/blacklist/<blacklist_id>/remove", methods=["POST"])
+@admin_required
+def remove_blacklist(blacklist_id):
+    try:
+        clean_id = int(blacklist_id) if str(blacklist_id).isdigit() else blacklist_id
+        res = supabase_admin.table("blacklist").delete().eq("id", clean_id).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("REMOVE BLACKLIST ERROR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/profiles/<profile_id>/blacklist", methods=["POST"])
+@admin_required
+def blacklist_profile(profile_id):
+    data = request.json or {}
+    try:
+        profile_res = supabase_admin.table("profiles").select("*").eq("id", profile_id).limit(1).execute()
+        profile = profile_res.data[0] if profile_res and profile_res.data else None
+
+        if not profile:
+            return jsonify({"success": False, "error": "Profile not found"}), 404
+
+        payload = {
+            "blocked_id": profile_id,
+            "blocked_phone": profile.get("phone"),
+            "blocked_email": profile.get("email"),
+            "reason": to_str(data.get("reason"), "Blocked by admin")
+        }
+
+        check = supabase_admin.table("blacklist").select("*").eq("blocked_id", profile_id).limit(1).execute()
+        if check and check.data:
+            return jsonify({"success": True, "data": check.data, "message": "Already blacklisted"})
+
+        res = supabase_admin.table("blacklist").insert(payload).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("PROFILE BLACKLIST ERROR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# --------------------------------------------------
+# ADMIN FORM ROUTES USED BY admin.html
+# --------------------------------------------------
+
+
+        clean_id = int(product_id) if str(product_id).isdigit() else product_id
+        supabase_admin.table("loan_products").update(payload).eq("id", clean_id).execute()
+        flash("Product updated successfully.", "success")
+    except Exception as e:
+        print("PRODUCT UPDATE ERROR:", e)
+        flash(f"Failed to update product: {e}", "error")
+
+    return redirect("/admin#products")
+
+        clean_id = int(product_id) if str(product_id).isdigit() else product_id
+        supabase_admin.table("loan_products").update(payload).eq("id", clean_id).execute()
+        flash("Product updated successfully.", "success")
+    except Exception as e:
+        print("PRODUCT UPDATE ERROR:", e)
+        flash(f"Failed to update product: {e}", "error")
+
+    return redirect("/admin#products")
+
+
+
+        supabase_admin.table("loan_products").insert(payload).execute()
+        flash("Product created successfully.", "success")
+    except Exception as e:
+        print("PRODUCT CREATE ERROR:", e)
+        flash(f"Failed to create product: {e}", "error")
+
+    return redirect("/admin#products")
+
+        supabase_admin.table("loan_products").insert(payload).execute()
+        flash("Product created successfully.", "success")
+    except Exception as e:
+        print("PRODUCT CREATE ERROR:", e)
+        flash(f"Failed to create product: {e}", "error")
+
+    return redirect("/admin#products")
+
+
+
+@app.route("/admin/applications/<app_id>/status", methods=["POST"])
+@admin_required
+def admin_update_application_status(app_id):
+    try:
+        payload = {
+            "status": to_str(request.form.get("status"), "PENDING").upper(),
+            "admin_note": to_str(request.form.get("admin_note")),
+            "reply_message": to_str(request.form.get("reply_message")),
+        }
+
+        supabase_admin.table("applications").update(payload).eq("id", app_id).execute()
+        flash("Application updated successfully.", "success")
+    except Exception as e:
+        print("APPLICATION UPDATE ERROR:", e)
+        flash(f"Failed to update application: {e}", "error")
+
+    return redirect("/admin#applications")
+
+@app.route("/admin/support/<ticket_id>/reply", methods=["POST"])
+@admin_required
+def admin_reply_support(ticket_id):
+    try:
+        payload = {
+            "reply_message": to_str(request.form.get("reply_message")),
+            "status": to_str(request.form.get("status"), "OPEN"),
+        }
+
+        supabase_admin.table("support_tickets").update(payload).eq("id", ticket_id).execute()
+        flash("Support reply saved.", "success")
+    except Exception as e:
+        print("SUPPORT REPLY ERROR:", e)
+        flash(f"Failed to save support reply: {e}", "error")
+
+    return redirect("/admin#messages")
+
+@app.route("/admin/messages/<message_id>/reply", methods=["POST"])
+@admin_required
+def admin_reply_customer_message(message_id):
+    try:
+        payload = {
+            "reply_message": to_str(request.form.get("reply_message")),
+        }
+
+        supabase_admin.table("customer_messages").update(payload).eq("id", message_id).execute()
+        flash("Customer reply saved.", "success")
+    except Exception as e:
+        print("CUSTOMER MESSAGE REPLY ERROR:", e)
+        flash(f"Failed to save customer reply: {e}", "error")
+
+    return redirect("/admin#messages")
+
+@app.route("/admin/site-config/save", methods=["POST"])
+@admin_required
+def admin_save_site_config_form():
+    try:
+        payload = {
+            "site_name": to_str(request.form.get("site_name")),
+            "hero_title": to_str(request.form.get("hero_title")),
+            "hero_subtitle": to_str(request.form.get("hero_subtitle")),
+            "support_phone": to_str(request.form.get("support_phone") or request.form.get("phone")),
+            "email": to_str(request.form.get("email")),
+            "promo_text": to_str(request.form.get("promo_text")),
+            "customer_wallpaper_url": to_str(request.form.get("customer_wallpaper_url")),
+            "developer_credit": to_str(request.form.get("developer_credit")),
+            "homepage_notice": to_str(request.form.get("homepage_notice")),
+            "office_hours": to_str(request.form.get("office_hours")),
+            "address": to_str(request.form.get("address")),
+            "contact_intro": to_str(request.form.get("contact_intro")),
+            "footer_text": to_str(request.form.get("footer_text")),
+            "compliance_text": to_str(request.form.get("compliance_text")),
+            "hero_chip_1": to_str(request.form.get("hero_chip_1")),
+            "hero_chip_2": to_str(request.form.get("hero_chip_2")),
+            "hero_chip_3": to_str(request.form.get("hero_chip_3")),
+            "approval_window": to_str(request.form.get("approval_window")),
+            "min_loan": to_int(request.form.get("min_loan"), 500),
+            "max_loan": to_int(request.form.get("max_loan"), 50000),
+            "calc_note": to_str(request.form.get("calc_note"))
+        }
+
+        existing = supabase_admin.table("site_config").select("id").limit(1).execute()
+        rows = existing.data or []
+        if rows:
+            supabase_admin.table("site_config").update(payload).eq("id", rows[0]["id"]).execute()
+        else:
+            supabase_admin.table("site_config").insert(payload).execute()
+
+        flash("Website settings saved.", "success")
+    except Exception as e:
+        print("SITE CONFIG SAVE ERROR:", e)
+        flash(f"Failed to save website settings: {e}", "error")
+
+    return redirect("/admin#config")
+
+# --------------------------------------------------
+# HEALTH
+# --------------------------------------------------
+@app.route("/health")
+def health():
+    return jsonify({"ok": True})
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
+
+
+
+
+# =========================
+# CLEAN PRODUCT ROUTES (FINAL)
+# =========================
+
+
+
+# =========================
+# END CLEAN PRODUCT ROUTES
+# =========================
+
+
+# =====================================================
+# CLEAN PRODUCT ROUTES (FIXED INDENT)
+# =====================================================
+
+@app.route("/admin/products/create", methods=["POST"])
+@admin_required
+def admin_create_product():
+    try:
+        payload = {
+            "name": request.form.get("name"),
+            "description": request.form.get("description"),
+            "interest_rate": float(request.form.get("interest_rate") or 0),
+            "service_fee": float(request.form.get("service_fee") or 0),
+            "min_amount": int(request.form.get("min_amount") or 0),
+            "max_amount": int(request.form.get("max_amount") or 0),
+            "active": request.form.get("active") == "true",
+            "featured": request.form.get("featured") == "true",
+            "icon": request.form.get("icon") or "💳",
+            "terms": (request.form.get("terms") or "").split(","),
+            "features": (request.form.get("features") or "").split(",")
+        }
+
+        supabase_admin.table("loan_products").insert(payload).execute()
+        flash("Product created successfully", "success")
+
+    except Exception as e:
+        print("CREATE PRODUCT ERROR:", e)
+        flash("Error creating product", "error")
+
+    return redirect("/admin#products")
+
+
+@app.route("/admin/products/<product_id>/update", methods=["POST"])
+@admin_required
+def admin_update_product(product_id):
+
+    try:
+
+        payload = {
+            "name": request.form.get("name"),
+            "description": request.form.get("description"),
+            "interest_rate": float(request.form.get("interest_rate") or 0),
+            "service_fee": float(request.form.get("service_fee") or 0),
+            "min_amount": int(request.form.get("min_amount") or 0),
+            "max_amount": int(request.form.get("max_amount") or 0),
+            "active": request.form.get("active") == "true",
+            "featured": request.form.get("featured") == "true",
+            "icon": request.form.get("icon") or "💳",
+            "terms": (request.form.get("terms") or "").split(","),
+            "features": (request.form.get("features") or "").split(",")
+        }
+
+        supabase_admin.table("loan_products").update(payload).eq("id", int(product_id)).execute()
+
+        flash("Product updated successfully", "success")
+
+    except Exception as e:
+
+        print("UPDATE PRODUCT ERROR:", e)
+
+        flash("Error updating product", "error")
+
+    return redirect("/admin#products")
+
+
+@app.route("/admin/products/<product_id>/delete", methods=["POST"])
+@admin_required
+def admin_delete_product(product_id):
+
+    try:
+
+        supabase_admin.table("loan_products").delete().eq("id", int(product_id)).execute()
+
+        flash("Product deleted successfully", "success")
+
+    except Exception as e:
+
+        print("DELETE PRODUCT ERROR:", e)
+
+        flash("Error deleting product", "error")
+
+    return redirect("/admin#products")
+
+# =====================================================

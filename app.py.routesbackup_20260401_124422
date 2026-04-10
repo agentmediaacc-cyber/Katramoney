@@ -1,0 +1,611 @@
+﻿import os
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from supabase import create_client, Client
+from customer_portal_routes import register_customer_portal_routes
+from admin_bridge_routes import register_admin_bridge_routes
+
+app = Flask(__name__)
+app.secret_key = "katramoney_admin_2026"
+
+URL = "https://dyjhkjebrcjirenyoolb.supabase.co"
+# Using the Service Role key you provided
+KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5amhramVicmNqaXJlbnlvb2xiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY4MzU4MiwiZXhwIjoyMDkwMjU5NTgyfQ.pxOQ4zXkNlxvGaEOlGrPaAY162-hJ3lFXuJO3fwFR-g"
+supabase: Client = create_client(URL, KEY)
+register_customer_portal_routes(app, supabase)
+register_admin_bridge_routes(app, supabase)
+
+# -----------------------------
+# DATA CLEAN HELPERS
+# -----------------------------
+def to_int(value, default=0):
+    try:
+        if value is None or value == "":
+            return int(default)
+        return int(float(value))
+    except:
+        return int(default)
+
+def to_float(value, default=0):
+    try:
+        if value is None or value == "":
+            return float(default)
+        return float(value)
+    except:
+        return float(default)
+
+def to_bool(value, default=False):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).lower() in ["1","true","yes","on"]
+
+def to_str(value, default=""):
+    if value is None:
+        return default
+    return str(value).strip()
+
+
+def to_float(value, default=0.0):
+    try:
+        if value is None or value == "":
+            return float(default)
+        return float(value)
+    except Exception:
+        return float(default)
+
+def to_bool(value, default=False):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).strip().lower() in ["1", "true", "yes", "on"]
+
+def to_int(value, default=0):
+    try:
+        if value is None or value == "":
+            return int(default)
+
+
+        return int(float(value))
+    except Exception:
+        return int(default)
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/admin")
+def admin_dashboard():
+    session["logged_in"] = True 
+    try:
+                # 1. Fetch all required tables
+        apps_res = supabase.table("applications").select("*").execute()
+        apps = apps_res.data if apps_res else []
+
+        prods_res = supabase.table("loan_products").select("*").execute()
+        prods_raw = prods_res.data if prods_res else []
+
+        msgs_res = supabase.table("contacts").select("*").execute()
+        msgs = msgs_res.data if msgs_res else []
+
+        profiles_res = supabase.table("profiles").select("*").execute()
+        profiles = profiles_res.data if profiles_res else []
+
+        blacklist_res = supabase.table("blacklist").select("*").execute()
+        blacklist = blacklist_res.data if blacklist_res else []
+
+        support_res = supabase.table("support_tickets").select("*").execute()
+        support_tickets = support_res.data if support_res else []
+
+        cust_msg_res = supabase.table("customer_messages").select("*").execute()
+        customer_messages = cust_msg_res.data if cust_msg_res else []
+
+        payproof_res = supabase.table("loan_payments").select("*").execute()
+        loan_payments = payproof_res.data if payproof_res else []
+
+        # Fetch configurations safely
+        conf_res = supabase.table("site_config").select("*").limit(1).execute()
+        conf = conf_res.data[0] if conf_res and conf_res.data else {}
+        
+        settings_res = supabase.table("site_settings").select("*").limit(1).execute()
+        settings = settings_res.data[0] if settings_res and settings_res.data else {}
+
+        # 2. Clean data for Jinja2
+        prods = []
+        for p in prods_raw:
+            p['terms'] = p.get('terms') if isinstance(p.get('terms'), list) else []
+            p['interest_rate'] = to_float(p.get('interest_rate'), 0)
+            p['service_fee'] = to_float(p.get('service_fee'), 0)
+            p['min_amount'] = to_float(p.get('min_amount'), 0)
+            p['max_amount'] = to_float(p.get('max_amount'), 0)
+            p['active'] = to_bool(p.get('active'), True)
+            prods.append(p)
+
+        # 3. Calculate metrics
+        total_val = sum(float(a.get('amount', 0)) for a in apps if a.get('amount'))
+        pending = len([a for a in apps if str(a.get('status')).upper() == 'PENDING'])
+        approved = len([a for a in apps if str(a.get('status')).upper() == 'APPROVED'])
+
+        # 4. Render template with ALL required variables
+        return render_template("admin.html",
+                               apps=apps,
+                               loan_products=prods,
+                               contacts=msgs,
+                               support_tickets=support_tickets,
+                               customer_messages=customer_messages,
+                               loan_payments=loan_payments, 
+                               site_config=conf,
+                               site_settings=settings,
+                               profiles=profiles,
+                               blacklist=blacklist,
+                               total_val=total_val,
+                               pending=pending,
+                               approved=approved)
+    except Exception as e:
+        return f"Error Loading Dashboard: {e}"
+
+# ==========================================
+# API ROUTES FOR NEW DASHBOARD FETCH CALLS
+# ==========================================
+
+@app.route("/api/admin/site-config", methods=["POST"])
+def update_site_config():
+    data = request.json
+    try:
+        # Assuming ID 1 for global site_config based on your previous app.py
+        supabase.table("site_config").update(data).eq("id", 1).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/site-settings", methods=["POST"])
+def update_site_settings():
+    data = request.json
+    try:
+        # site_settings id is text (usually 'global_config')
+        supabase.table("site_settings").update(data).eq("id", "global_config").execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/applications/<app_id>", methods=["POST"])
+def update_application(app_id):
+    data = request.json
+    try:
+        supabase.table("applications").update({
+            "status": data.get("status"),
+            "admin_note": data.get("admin_note")
+        }).eq("id", app_id).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/admin/reply-contact", methods=["POST"])
+def reply_contact():
+    data = request.json
+    try:
+        # You can integrate SendGrid/Resend here later to actually send the email.
+        # For now, this just accepts the request and pretends it sent successfully.
+        print(f"--> Simulating email sent to {data.get('email')}")
+        print(f"--> Message: {data.get('message')}")
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/admin/loan-products/create", methods=["POST"])
+def create_loan_product():
+    data = request.json or {}
+    try:
+        payload = {
+            "name": str(data.get("name") or "").strip(),
+            "interest_rate": to_int(data.get("interest_rate"), 0),
+            "service_fee": to_int(data.get("service_fee"), 0),
+            "min_amount": to_int(data.get("min_amount"), 0),
+            "max_amount": to_int(data.get("max_amount"), 0),
+            "active": str(data.get("active")).strip().lower() in ["true", "1", "yes", "on"]
+        }
+
+        if not payload["name"]:
+            return jsonify({"success": False, "error": "Product name is required"}), 400
+
+        print("CREATE PRODUCT PAYLOAD:", payload)
+        res = supabase.table("loan_products").insert(payload).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("CREATE LOAN PRODUCT ERROR:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/admin/loan-products/<product_id>", methods=["POST"])
+def update_loan_product(product_id):
+    data = request.json or {}
+    try:
+        clean_id = int(product_id) if str(product_id).isdigit() else product_id
+
+        payload = {
+            "name": str(data.get("name") or "").strip(),
+            "interest_rate": to_int(data.get("interest_rate"), 0),
+            "service_fee": to_int(data.get("service_fee"), 0),
+            "min_amount": to_int(data.get("min_amount"), 0),
+            "max_amount": to_int(data.get("max_amount"), 0),
+            "active": str(data.get("active")).strip().lower() in ["true", "1", "yes", "on"]
+        }
+
+        if not payload["name"]:
+            return jsonify({"success": False, "error": "Product name is required"}), 400
+
+        print("---- UPDATE PRODUCT DEBUG ----")
+        print("product_id:", clean_id)
+        print("payload:", payload)
+
+        existing = supabase.table("loan_products").select("*").eq("id", clean_id).limit(1).execute()
+        print("existing:", existing.data if existing else None)
+
+        res = supabase.table("loan_products").update(payload).eq("id", clean_id).execute()
+
+        print("update response:", res.data if res else None)
+        print("---- END UPDATE PRODUCT DEBUG ----")
+
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("UPDATE LOAN PRODUCT ERROR:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/admin/loan-products/<product_id>/delete", methods=["POST"])
+def delete_loan_product(product_id):
+    try:
+        clean_id = int(product_id) if str(product_id).isdigit() else product_id
+        res = supabase.table("loan_products").delete().eq("id", clean_id).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("DELETE LOAN PRODUCT ERROR:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/admin/blacklist/add", methods=["POST"])
+def add_blacklist():
+    data = request.json or {}
+    try:
+        payload = {
+            "blocked_id": to_str(data.get("blocked_id"), ""),
+            "blocked_phone": to_str(data.get("blocked_phone"), ""),
+            "blocked_email": to_str(data.get("blocked_email"), ""),
+            "reason": to_str(data.get("reason"), "Blocked by admin")
+        }
+
+        if payload["blocked_id"] == "":
+            payload["blocked_id"] = None
+        if payload["blocked_phone"] == "":
+            payload["blocked_phone"] = None
+        if payload["blocked_email"] == "":
+            payload["blocked_email"] = None
+
+        if not payload["blocked_id"] and not payload["blocked_phone"] and not payload["blocked_email"]:
+            return jsonify({"success": False, "error": "Provide blocked_id, blocked_phone, or blocked_email"}), 400
+
+        res = supabase.table("blacklist").insert(payload).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("ADD BLACKLIST ERROR:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/admin/blacklist/<blacklist_id>/remove", methods=["POST"])
+def remove_blacklist(blacklist_id):
+    try:
+        clean_id = int(blacklist_id) if str(blacklist_id).isdigit() else blacklist_id
+        res = supabase.table("blacklist").delete().eq("id", clean_id).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("REMOVE BLACKLIST ERROR:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/admin/profiles/<profile_id>/blacklist", methods=["POST"])
+def blacklist_profile(profile_id):
+    data = request.json or {}
+    try:
+        clean_id = profile_id
+        profile_res = supabase.table("profiles").select("*").eq("id", clean_id).limit(1).execute()
+        profile = profile_res.data[0] if profile_res and profile_res.data else None
+
+        if not profile:
+            return jsonify({"success": False, "error": "Profile not found"}), 404
+
+        payload = {
+            "blocked_id": clean_id,
+            "blocked_phone": profile.get("phone"),
+            "blocked_email": profile.get("email"),
+            "reason": to_str(data.get("reason"), "Blocked by admin")
+        }
+
+        check = supabase.table("blacklist").select("*").eq("blocked_id", clean_id).limit(1).execute()
+        if check and check.data:
+            return jsonify({"success": True, "data": check.data, "message": "Already blacklisted"})
+
+        res = supabase.table("blacklist").insert(payload).execute()
+        return jsonify({"success": True, "data": res.data if res else []})
+    except Exception as e:
+        print("PROFILE BLACKLIST ERROR:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/public-site-data", methods=["GET"])
+def public_site_data():
+    try:
+        conf_res = supabase.table("site_config").select("*").limit(1).execute()
+        site_config = conf_res.data[0] if conf_res and conf_res.data else {}
+
+        settings_res = supabase.table("site_settings").select("*").limit(1).execute()
+        site_settings = settings_res.data[0] if settings_res and settings_res.data else {}
+
+        products_res = supabase.table("loan_products").select("*").eq("active", True).execute()
+        products_raw = products_res.data if products_res and products_res.data else []
+
+        products = []
+        for p in products_raw:
+            products.append({
+                "id": p.get("id"),
+                "name": p.get("name"),
+                "description": p.get("description") or "",
+                "interest_rate": to_int(p.get("interest_rate"), 0),
+                "service_fee": to_int(p.get("service_fee"), 0),
+                "min_amount": to_int(p.get("min_amount"), 0),
+                "max_amount": to_int(p.get("max_amount"), 0),
+                "active": to_bool(p.get("active"), True),
+                "featured": to_bool(p.get("featured"), False),
+                "icon": p.get("icon") or "💳",
+                "terms": p.get("terms") if isinstance(p.get("terms"), list) else [],
+                "features": p.get("features") if isinstance(p.get("features"), list) else []
+            })
+
+        payload = {
+            "success": True,
+            "site_config": {
+                "site_name": site_config.get("site_name") or "KATRAMONEY",
+                "promo_text": site_config.get("promo_text") or "Fast approvals",
+                "hero_trust_text": site_config.get("hero_trust_text") or "Trusted loan support",
+                "hero_title": site_config.get("hero_title") or "Fast Financial Help When You Need It Most",
+                "hero_subtitle": site_config.get("hero_subtitle") or "Simple loan solutions designed for real people, working professionals, and growing businesses in Namibia.",
+                "hero_chip_1": site_config.get("hero_chip_1") or "Fast",
+                "hero_chip_2": site_config.get("hero_chip_2") or "Secure",
+                "hero_chip_3": site_config.get("hero_chip_3") or "Flexible",
+                "support_phone": site_config.get("support_phone") or "",
+                "email": site_config.get("email") or "",
+                "office_hours": site_config.get("office_hours") or "",
+                "address": site_config.get("address") or "",
+                "contact_intro": site_config.get("contact_intro") or "",
+                "footer_text": site_config.get("footer_text") or "",
+                "compliance_text": site_config.get("compliance_text") or "",
+                "calc_note": site_config.get("calc_note") or "Quick approvals, clear terms, and support that responds fast when you need answers.",
+                "approval_window": site_config.get("approval_window") or "24 - 48 Hours",
+                "min_loan": to_int(site_config.get("min_loan"), 500),
+                "max_loan": to_int(site_config.get("max_loan"), 50000)
+            },
+            "site_settings": site_settings,
+            "loan_products": products
+        }
+
+        return jsonify(payload)
+    except Exception as e:
+        print("PUBLIC SITE DATA ERROR:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# -----------------------------
+# ADMIN LOGIN
+# -----------------------------
+@app.route("/admin/login", methods=["GET","POST"])
+def admin_login():
+
+    if request.method == "POST":
+
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username == "admin@katramoney.com" and password == "admin123":
+
+            session["admin_logged_in"] = True
+
+            return redirect(url_for("admin_dashboard"))
+
+    return render_template("admin_login.html")
+
+
+@app.route("/admin/logout")
+def admin_logout():
+
+    session.pop("admin_logged_in", None)
+
+    return redirect(url_for("admin_login"))
+
+
+# -----------------------------
+# CUSTOMER APPLY PAGE
+# -----------------------------
+# -----------------------------
+# SAVE APPLICATION
+# -----------------------------
+@app.route("/submit-application", methods=["POST"])
+def submit_application():
+
+    try:
+
+        data = {
+
+            "reference": str(uuid.uuid4()),
+
+            "full_name": request.form.get("full_name"),
+
+            "phone": request.form.get("phone"),
+
+            "email": request.form.get("email"),
+
+            "id_number": request.form.get("id_number"),
+
+            "physical_address": request.form.get("physical_address"),
+
+            "town_city": request.form.get("town_city"),
+
+            "region": request.form.get("region"),
+
+            "employment_status": request.form.get("employment_status"),
+
+            "employer_name": request.form.get("employer_name"),
+
+            "monthly_income": to_int(request.form.get("monthly_income"),0),
+
+            "amount": to_int(request.form.get("loan_amount"),0),
+
+            "term": to_int(request.form.get("loan_term"),1),
+
+            "loan_purpose": request.form.get("loan_purpose"),
+
+            "next_of_kin_name": request.form.get("next_of_kin_name"),
+
+            "next_of_kin_phone": request.form.get("next_of_kin_phone"),
+
+            "next_of_kin_relationship": request.form.get("next_of_kin_relationship"),
+
+            "status":"PENDING"
+
+        }
+
+        supabase.table("applications").insert(data).execute()
+
+        return "<h2>Application submitted successfully</h2><a href='/'>Return home</a>"
+
+    except Exception as e:
+
+        return str(e)
+
+
+@app.route("/customer/login-demo", methods=["GET", "POST"])
+def customer_login_demo_old():
+    error = None
+    if request.method == "POST":
+        email = (request.form.get("email") or "").strip()
+        password = request.form.get("password") or ""
+
+        if email.lower() == CUSTOMER_DEMO_EMAIL.lower() and password == CUSTOMER_DEMO_PASSWORD:
+            session["customer_logged_in"] = True
+            session["customer_email"] = email
+            return redirect(url_for("customer_dashboard"))
+        else:
+            error = "Invalid customer login details."
+
+    return render_template("customer_login.html", error=error)
+
+
+@app.route("/customer/logout-demo")
+def customer_logout_demo_old():
+    session.pop("customer_logged_in", None)
+    session.pop("customer_email", None)
+    return redirect(url_for("customer_login"))
+
+
+@app.route("/customer/dashboard-demo")
+def customer_dashboard_demo_old():
+    if not session.get("customer_logged_in"):
+        return redirect(url_for("customer_login"))
+
+    customer_email = session.get("customer_email", "")
+
+    apps = []
+    notifications = [
+        {"title": "Welcome", "message": "Your customer dashboard is active.", "level": "info"},
+        {"title": "Verification", "message": "Face and document checks are reviewed by admin.", "level": "warning"}
+    ]
+
+    try:
+        if customer_email:
+            apps_res = supabase.table("applications").select("*").eq("email", customer_email).execute()
+            apps = apps_res.data if apps_res and apps_res.data else []
+
+        for a in apps:
+            a["amount"] = to_int(a.get("amount"), 0)
+            a["term"] = to_int(a.get("term"), 0)
+            if not isinstance(a.get("uploaded_docs"), list):
+                a["uploaded_docs"] = []
+
+        latest_app = apps[0] if apps else None
+
+        approved_amount = 0
+        paid_amount = 0
+        balance_amount = 0
+        active_status = latest_app.get("status") if latest_app else "NO APPLICATION"
+
+        if latest_app:
+            approved_amount = latest_app.get("amount", 0)
+            paid_amount = 0
+            balance_amount = approved_amount
+
+        return render_template(
+            "customer_dashboard.html",
+            customer_email=customer_email,
+            applications=apps,
+            latest_app=latest_app,
+            approved_amount=approved_amount,
+            paid_amount=paid_amount,
+            balance_amount=balance_amount,
+            active_status=active_status,
+            notifications=notifications
+        )
+
+    except Exception as e:
+        return f"Customer dashboard error: {str(e)}", 500
+
+
+@app.route("/api/admin/support-ticket/reply", methods=["POST"])
+def admin_reply_support_ticket():
+    data = request.json or {}
+    try:
+        ticket_id = data.get("ticket_id")
+        customer_id = data.get("customer_id")
+        subject = (data.get("subject") or "Support Reply").strip()
+        message = (data.get("message") or "").strip()
+        close_ticket = bool(data.get("close_ticket", True))
+
+        if not ticket_id or not customer_id or not message:
+            return jsonify({"success": False, "error": "ticket_id, customer_id, and message are required"}), 400
+
+        supabase.table("customer_messages").insert({
+            "customer_id": customer_id,
+            "subject": subject,
+            "message": message,
+            "sender_role": "ADMIN",
+            "is_read": False
+        }).execute()
+
+        if close_ticket:
+            supabase.table("support_tickets").update({
+                "status": "CLOSED",
+                "updated_at": datetime.utcnow().isoformat()
+            }).eq("id", ticket_id).execute()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

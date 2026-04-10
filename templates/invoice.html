@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Katramoney Invoice</title>
+    <style>
+        body { font-family: sans-serif; padding: 50px; color: #333; }
+        .invoice-box { border: 2px solid #003366; padding: 30px; max-width: 600px; margin: auto; }
+        .header { text-align: center; border-bottom: 2px solid #003366; padding-bottom: 10px; }
+        .legal { font-size: 10px; text-align: center; margin-top: 20px; color: #666; }
+        .btn-print { background: #003366; color: white; padding: 10px 20px; border: none; cursor: pointer; display: block; margin: 20px auto; }
+        @media print { .btn-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <div class="header">
+            <h1>KATRAMONEY (PTY) LTD</h1>
+            <p>Loan Application Receipt</p>
+        </div>
+        <div style="margin-top:20px;">
+            <p><strong>Client Name:</strong> {{ name }}</p>
+            <p><strong>Principal Amount:</strong> NAD {{ amount }}</p>
+            <p><strong>Expected Repayment:</strong> {{ date }}</p>
+            <p><strong>Status:</strong> Pending Review</p>
+        </div>
+        <div class="legal">
+            <p>NAMFISA License: 25/11/2312 | BIPA Reg: CC/2025/10919</p>
+            <p>This document is subject to the Microlending Act of 2018.</p>
+        </div>
+    </div>
+    <button class="btn-print" onclick="window.print()">Print or Save as PDF</button>
+    <p style="text-align:center;"><a href="/">Back to Home</a></p>
+</body>
+</html>

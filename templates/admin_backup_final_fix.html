@@ -1,0 +1,2888 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KATRAMONEY Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#06140e;
+      --panel:rgba(9,22,16,.96);
+      --card:rgba(255,255,255,.05);
+      --line:rgba(255,255,255,.10);
+      --text:#edf7f0;
+      --muted:#a1c0ab;
+      --primary:#22c55e;
+      --primary2:#15803d;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --success:#22c55e;
+      --shadow:0 14px 40px rgba(0,0,0,.28);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,sans-serif;
+      color:var(--text);
+      background:
+        linear-gradient(rgba(3,11,8,.84), rgba(5,15,10,.94)),
+        url("https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1800&q=80") center/cover fixed no-repeat;
+      overflow-x:hidden;
+    }
+    .shell{min-height:100vh;display:grid;grid-template-columns:280px minmax(0,1fr)}
+    .sidebar{
+      background:var(--panel);
+      border-right:1px solid var(--line);
+      padding:18px 14px;
+      position:sticky;top:0;height:100vh;overflow:auto;z-index:20
+    }
+    .brand{padding:16px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.04);margin-bottom:18px;box-shadow:var(--shadow)}
+    .brand h1{margin:0;font-size:20px}
+    .brand p{margin:6px 0 0;color:var(--muted);font-size:12px}
+    .nav-title{margin:18px 10px 8px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.12em}
+    .nav{display:flex;flex-direction:column;gap:8px}
+    .nav button,.nav a{
+      border:none;background:transparent;color:var(--muted);padding:13px 14px;border-radius:14px;
+      text-align:left;font-weight:800;cursor:pointer;text-decoration:none;border:1px solid transparent
+    }
+    .nav button.active,.nav button:hover,.nav a:hover{background:rgba(34,197,94,.12);color:var(--text);border-color:rgba(34,197,94,.18)}
+    .main{padding:20px;min-width:0}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;
+      background:rgba(9,18,15,.72);border:1px solid var(--line);border-radius:22px;padding:18px 20px;margin-bottom:18px;box-shadow:var(--shadow)
+    }
+    .topbar h2{margin:0}
+    .topbar p{margin:6px 0 0;color:var(--muted);font-size:13px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{
+      border:none;border-radius:12px;padding:10px 14px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2));
+      font-weight:800;cursor:pointer;box-shadow:var(--shadow)
+    }
+    .btn.secondary{background:rgba(255,255,255,.06);border:1px solid var(--line)}
+    .btn.success{background:linear-gradient(135deg,#22c55e,#15803d)}
+    .btn.warn{background:linear-gradient(135deg,#f59e0b,#d97706)}
+    .btn.danger{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+    .btn.sm{padding:8px 12px;font-size:12px}
+    .section{display:none}
+    .section.active{display:block}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:18px}
+    .stat,.card{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+    .stat small{display:block;color:var(--muted);font-size:12px;font-weight:900;text-transform:uppercase;margin-bottom:8px}
+    .stat .num{font-size:28px;font-weight:900}
+    .card{margin-bottom:16px}
+    .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}
+    table{width:100%;min-width:900px;border-collapse:collapse}
+    th,td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{font-size:12px;color:var(--muted);text-transform:uppercase}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:900}
+    .pending{background:rgba(245,158,11,.16);color:#ffd58a}
+    .approved{background:rgba(34,197,94,.16);color:#a7f3c0}
+    .rejected{background:rgba(239,68,68,.16);color:#fecaca}
+    .active-pill{background:rgba(34,197,94,.16);color:#a7f3c0}
+    .disabled-pill{background:rgba(239,68,68,.16);color:#fecaca}
+    .modal-wrap{position:fixed;inset:0;background:rgba(4,10,18,.72);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .modal-wrap.show{display:flex}
+    .modal{width:100%;max-width:900px;max-height:90vh;overflow:auto;background:#0c1828;border:1px solid var(--line);border-radius:22px}
+    .modal-head,.modal-body{padding:18px}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .field label{display:block;margin-bottom:6px;color:var(--muted);font-size:12px;font-weight:800}
+    input,select,textarea{
+      width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(255,255,255,.05);color:var(--text)
+    }
+    textarea{min-height:110px;resize:vertical}
+    .docs-list{display:grid;gap:10px}
+    .doc-item{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.04)}
+    .loading,.empty{padding:20px;color:var(--muted);font-weight:700;text-align:center}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;z-index:15}
+    .overlay.show{display:block}
+
+    .msg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+    .msg-card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background:rgba(255,255,255,.04);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .msg-card h4{margin:0;font-size:15px}
+    .msg-meta{font-size:12px;color:var(--muted);display:grid;gap:4px}
+    .msg-body{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      font-size:13px;
+      line-height:1.45;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .msg-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .section-note{color:var(--muted);font-size:13px;margin-bottom:12px}
+
+    @media (max-width:980px){
+      .shell{grid-template-columns:1fr}
+      .sidebar{position:fixed;left:-110%;width:280px;transition:.25s}
+      .sidebar.show{left:0}
+      .main{padding:14px}
+    }
+  
+    .desktop-only{display:inline-flex}
+    .mobile-only{display:none}
+
+    .table-card-list{
+      display:none;
+    }
+
+    @media (min-width: 981px){
+      .sidebar{
+        left:0 !important;
+      }
+      .overlay{
+        display:none !important;
+      }
+      .btn-menu-mobile{
+        display:none !important;
+      }
+    }
+
+    @media (max-width: 980px){
+      body{
+        background:
+          linear-gradient(rgba(3,11,8,.88), rgba(5,15,10,.96)),
+          url("https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1800&q=80") center/cover no-repeat fixed;
+      }
+
+      .shell{
+        grid-template-columns:1fr;
+      }
+
+      .sidebar{
+        position:fixed;
+        left:-110%;
+        top:0;
+        width:min(86vw,320px);
+        max-width:320px;
+        height:100vh;
+        transition:.25s ease;
+        border-right:1px solid var(--line);
+        box-shadow:var(--shadow);
+      }
+
+      .sidebar.show{
+        left:0;
+      }
+
+      .main{
+        padding:12px;
+      }
+
+      .topbar{
+        padding:14px;
+        border-radius:18px;
+      }
+
+      .topbar h2{
+        font-size:22px;
+      }
+
+      .topbar p{
+        font-size:12px;
+      }
+
+      .actions{
+        width:100%;
+      }
+
+      .actions .btn{
+        flex:1 1 auto;
+      }
+
+      .stats{
+        grid-template-columns:1fr 1fr;
+        gap:12px;
+      }
+
+      .stat,.card{
+        padding:14px;
+        border-radius:16px;
+      }
+
+      .card-head{
+        align-items:flex-start;
+      }
+
+      .modal-wrap{
+        padding:10px;
+      }
+
+      .modal{
+        border-radius:18px;
+      }
+
+      .modal-head,.modal-body{
+        padding:14px;
+      }
+
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+
+      .msg-grid{
+        grid-template-columns:1fr;
+      }
+
+      .msg-card{
+        padding:12px;
+      }
+
+      .msg-actions{
+        flex-direction:column;
+      }
+
+      .msg-actions .btn{
+        width:100%;
+      }
+    }
+
+    @media (max-width: 700px){
+      .stats{
+        grid-template-columns:1fr;
+      }
+
+      .topbar{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .actions{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+
+      .actions .btn{
+        width:100%;
+      }
+
+      .brand h1{
+        font-size:18px;
+      }
+
+      .brand p{
+        font-size:11px;
+      }
+
+      th, td{
+        padding:10px 8px;
+        font-size:13px;
+      }
+
+      table{
+        min-width:760px;
+      }
+
+      input,select,textarea{
+        font-size:16px;
+        padding:12px 13px;
+      }
+    }
+
+    @media (max-width: 560px){
+      .main{
+        padding:10px;
+      }
+
+      .topbar{
+        padding:12px;
+      }
+
+      .topbar h2{
+        font-size:20px;
+      }
+
+      .stat .num{
+        font-size:24px;
+      }
+
+      .btn{
+        padding:10px 12px;
+        font-size:13px;
+      }
+
+      .btn.sm{
+        padding:9px 11px;
+        font-size:12px;
+      }
+
+      .table-wrap{
+        border-radius:12px;
+      }
+
+      .modal-head{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .modal-head .btn{
+        width:100%;
+      }
+    }
+
+  
+    .mobile-cards{
+      display:none;
+      gap:12px;
+      margin-top:12px;
+    }
+
+    .mobile-card{
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:var(--shadow);
+      display:grid;
+      gap:10px;
+    }
+
+    .mobile-card-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+
+    .mobile-card-title{
+      font-weight:900;
+      font-size:15px;
+      color:var(--text);
+      line-height:1.4;
+      word-break:break-word;
+    }
+
+    .mobile-card-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px 12px;
+    }
+
+    .mobile-card-item{
+      min-width:0;
+    }
+
+    .mobile-card-item.full{
+      grid-column:1 / -1;
+    }
+
+    .mobile-card-item strong{
+      display:block;
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      margin-bottom:4px;
+      letter-spacing:.05em;
+    }
+
+    .mobile-card-item span{
+      color:var(--text);
+      font-size:14px;
+      line-height:1.5;
+      word-break:break-word;
+    }
+
+    .mobile-card-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    @media (max-width: 760px){
+      .desktop-table{
+        display:none;
+      }
+
+      .mobile-cards{
+        display:grid;
+      }
+
+      .mobile-card-grid{
+        grid-template-columns:1fr;
+      }
+
+      .mobile-card-actions{
+        flex-direction:column;
+      }
+
+      .mobile-card-actions .btn{
+        width:100%;
+      }
+    }
+
+  
+    .btn-menu-mobile{
+      display:none;
+    }
+
+    .topbar-main{
+      min-width:0;
+      flex:1;
+    }
+
+    .topbar-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+
+    .topbar-actions .btn{
+      min-height:42px;
+    }
+
+    @media (min-width: 981px){
+      .btn-menu-mobile{
+        display:none !important;
+      }
+
+      #sidebar{
+        left:0 !important;
+        transform:none !important;
+      }
+
+      #overlay{
+        display:none !important;
+      }
+
+      .topbar{
+        align-items:center;
+      }
+
+      .topbar-actions{
+        justify-content:flex-end;
+      }
+    }
+
+    @media (max-width: 980px){
+      .btn-menu-mobile{
+        display:inline-flex !important;
+      }
+
+      .topbar{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:14px;
+      }
+
+      .topbar-main{
+        width:100%;
+      }
+
+      .topbar-actions{
+        width:100%;
+        justify-content:stretch;
+      }
+
+      .topbar-actions .btn{
+        flex:1 1 calc(50% - 10px);
+      }
+    }
+
+    @media (max-width: 700px){
+      .topbar-actions{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:10px;
+      }
+
+      .topbar-actions .btn{
+        width:100%;
+      }
+
+      .topbar h2{
+        line-height:1.2;
+      }
+
+      .topbar p{
+        line-height:1.5;
+      }
+    }
+
+  
+    .modal{
+      width:100%;
+      max-width:900px;
+      max-height:90vh;
+      overflow:auto;
+      background:#0c1828;
+      border:1px solid var(--line);
+      border-radius:22px;
+    }
+
+    .modal-head h3{
+      margin:0;
+      line-height:1.2;
+    }
+
+    .modal-head-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .modal-footer-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:18px;
+    }
+
+    .docs-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .doc-item{
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.04);
+      line-height:1.6;
+      word-break:break-word;
+    }
+
+    .doc-item a{
+      color:#86efac;
+      word-break:break-all;
+    }
+
+    @media (max-width: 980px){
+      .modal{
+        max-width:760px;
+      }
+    }
+
+    @media (max-width: 700px){
+      .modal-wrap{
+        padding:8px;
+        align-items:flex-end;
+      }
+
+      .modal{
+        max-width:100%;
+        max-height:94vh;
+        border-radius:18px 18px 0 0;
+      }
+
+      .modal-head,
+      .modal-body{
+        padding:14px;
+      }
+
+      .modal-head{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:10px;
+        align-items:start;
+      }
+
+      .modal-head-actions{
+        width:100%;
+      }
+
+      .modal-head-actions .btn{
+        width:100%;
+      }
+
+      .modal-footer-actions{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:10px;
+      }
+
+      .modal-footer-actions .btn{
+        width:100%;
+      }
+
+      .form-grid{
+        grid-template-columns:1fr !important;
+        gap:12px;
+      }
+
+      .field{
+        min-width:0;
+      }
+
+      .field label{
+        font-size:11px;
+      }
+
+      input,select,textarea{
+        font-size:16px;
+        padding:12px 13px;
+      }
+
+      textarea{
+        min-height:100px;
+      }
+
+      .doc-item{
+        padding:10px;
+        border-radius:10px;
+      }
+    }
+
+    @media (max-width: 480px){
+      .modal-wrap{
+        padding:0;
+      }
+
+      .modal{
+        border-radius:16px 16px 0 0;
+        max-height:96vh;
+      }
+
+      .modal-head,
+      .modal-body{
+        padding:12px;
+      }
+
+      .modal-head h3{
+        font-size:18px;
+      }
+
+      .btn.sm{
+        padding:10px 12px;
+      }
+    }
+
+  
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .stat{
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:var(--shadow);
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .stat:hover{
+      transform:translateY(-3px);
+      border-color:rgba(34,197,94,.22);
+      box-shadow:0 20px 50px rgba(0,0,0,.30);
+    }
+
+    .stat::after{
+      content:"";
+      position:absolute;
+      top:-30px;
+      right:-30px;
+      width:120px;
+      height:120px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(34,197,94,.16), transparent 70%);
+      pointer-events:none;
+    }
+
+    .stat small{
+      display:block;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.09em;
+      margin-bottom:10px;
+    }
+
+    .stat .num{
+      font-size:30px;
+      font-weight:900;
+      line-height:1.05;
+      color:#ffffff;
+      letter-spacing:-.03em;
+      margin-bottom:6px;
+    }
+
+    .stat .sub{
+      color:#b7d6c0;
+      font-size:13px;
+      line-height:1.5;
+      font-weight:600;
+    }
+
+    .overview-hero{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .overview-hero-card{
+      background:linear-gradient(135deg, rgba(34,197,94,.12), rgba(255,255,255,.04));
+      border:1px solid rgba(34,197,94,.16);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .overview-hero-card h3{
+      margin:0 0 8px;
+      font-size:22px;
+      color:#ffffff;
+    }
+
+    .overview-hero-card p{
+      margin:0;
+      color:#b7d6c0;
+      font-size:14px;
+      line-height:1.7;
+    }
+
+    .overview-mini-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+    }
+
+    .overview-mini{
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .overview-mini strong{
+      display:block;
+      color:#ffffff;
+      font-size:16px;
+      margin-bottom:4px;
+    }
+
+    .overview-mini span{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .recent-head-note{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+      margin-top:4px;
+    }
+
+    @media (max-width: 980px){
+      .overview-hero{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 700px){
+      .stats{
+        grid-template-columns:1fr;
+      }
+
+      .stat{
+        padding:16px;
+        border-radius:18px;
+      }
+
+      .stat .num{
+        font-size:26px;
+      }
+
+      .overview-mini-grid{
+        grid-template-columns:1fr;
+      }
+
+      .overview-hero-card{
+        padding:16px;
+        border-radius:18px;
+      }
+
+      .overview-hero-card h3{
+        font-size:20px;
+      }
+    }
+
+  
+    .filter-bar{
+      display:grid;
+      grid-template-columns:1.2fr .8fr auto;
+      gap:12px;
+      margin-bottom:14px;
+      align-items:end;
+    }
+
+    .filter-bar .btn{
+      min-height:46px;
+    }
+
+    @media (max-width: 760px){
+      .filter-bar{
+        grid-template-columns:1fr;
+      }
+    }
+
+  
+    .security-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:16px;
+    }
+
+    .info-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .info-item{
+      padding:12px 14px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.04);
+    }
+
+    .info-item strong{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      margin-bottom:5px;
+      letter-spacing:.06em;
+    }
+
+    .info-item span{
+      display:block;
+      color:var(--text);
+      font-size:14px;
+      line-height:1.5;
+      word-break:break-word;
+    }
+
+    .visitor-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:14px;
+    }
+
+    .visitor-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.04);
+      padding:14px;
+      box-shadow:var(--shadow);
+      display:grid;
+      gap:10px;
+    }
+
+    .visitor-card h4{
+      margin:0;
+      font-size:16px;
+      color:var(--text);
+      line-height:1.4;
+      word-break:break-word;
+    }
+
+    .visitor-meta{
+      display:grid;
+      gap:6px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+      word-break:break-word;
+    }
+
+    .user-reset-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:14px;
+    }
+
+    .user-reset-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.04);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+
+    .user-reset-card h4{
+      margin:0;
+      font-size:16px;
+      color:var(--text);
+    }
+
+    .quick-inline-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .helper-note{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+      margin-top:8px;
+    }
+
+    @media (max-width: 760px){
+      .security-grid,
+      .visitor-grid,
+      .user-reset-grid{
+        grid-template-columns:1fr;
+      }
+
+      .quick-inline-actions{
+        flex-direction:column;
+      }
+
+      .quick-inline-actions .btn{
+        width:100%;
+      }
+    }
+
+  
+    .stat.clickable{
+      cursor:pointer;
+    }
+
+    .stat.clickable:hover{
+      transform:translateY(-4px);
+      border-color:rgba(34,197,94,.28);
+      box-shadow:0 24px 60px rgba(0,0,0,.34);
+    }
+
+    .danger-zone{
+      border:1px solid rgba(239,68,68,.30);
+      background:linear-gradient(180deg, rgba(239,68,68,.08), rgba(255,255,255,.03));
+    }
+
+    .danger-note{
+      color:#fecaca;
+      font-size:13px;
+      line-height:1.6;
+      margin-top:8px;
+    }
+
+  
+    .msg-card.clickable-ticket{
+      cursor:pointer;
+      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .msg-card.clickable-ticket:hover{
+      transform:translateY(-2px);
+      border-color:rgba(34,197,94,.28);
+      box-shadow:0 18px 40px rgba(0,0,0,.22);
+    }
+
+    .msg-card.clickable-ticket .msg-actions{
+      position:relative;
+      z-index:2;
+    }
+
+  </style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <h1>KATRAMONEY Admin</h1>
+      <p>Premium Loan & Finance Control Center</p>
+    </div>
+
+    <div class="nav-title">Dashboard</div>
+    <div class="nav">
+      <button class="nav-btn active" data-section="overview">Overview</button>
+    </div>
+
+    <div class="nav-title">Loan Management</div>
+    <div class="nav">
+      <button class="nav-btn" data-section="applications">Applications</button>
+      <button class="nav-btn" data-section="products">Loan Products</button>
+      <button class="nav-btn" data-section="messages">Messages <span id="sidebarMessagesBadge" class="pill pending" style="margin-left:6px;">0</span></button>
+      <button class="nav-btn" data-section="site-settings">System Rates</button>
+      <button class="nav-btn" data-section="cleanup">Cleanup Tools</button>
+      <button class="nav-btn" data-section="security">Security & Users</button>
+      <button class="nav-btn" data-section="visitors">Visitors & Devices</button>
+      <button class="nav-btn" data-section="chatbot-library">Chatbot Library</button>
+    </div>
+
+    <div class="nav-title">Account</div>
+    <div class="nav">
+      <a href="/admin/logout">Logout</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-main">
+        <h2 id="pageTitle">Overview</h2>
+        <p id="pageSubtitle">Manage applications, products, messages, approvals, and settings.</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn secondary btn-menu-mobile" type="button" onclick="toggleSidebar()">☰ Menu</button>
+        <button class="btn secondary" type="button" onclick="refreshCurrent()">Refresh</button>
+        <a class="btn secondary" href="/admin/reports/applications.csv" download>Download Excel Report</a>
+        <a class="btn secondary" href="/admin/reports/applications.pdf" target="_blank">Download PDF Report</a>
+        <button class="btn" type="button" onclick="openProductModal()">+ New Product</button>
+      </div>
+    </div>
+
+    <section class="section active" id="section-overview">
+      <div class="overview-hero">
+        <div class="overview-hero-card">
+          <h3>Admin Command Center</h3>
+          <p>Monitor approvals, products, support traffic, customer messages, and finance activity from one cleaner control panel built for mobile and laptop use.</p>
+        </div>
+        <div class="overview-mini-grid">
+          <div class="overview-mini">
+            <strong>Faster reviews</strong>
+            <span>Open applications, inspect uploaded documents, and approve or reject quickly.</span>
+          </div>
+          <div class="overview-mini">
+            <strong>Smarter control</strong>
+            <span>Update products, rates, and customer communications without leaving the dashboard.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats" id="overviewStats"></div>
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3>Recent Applications</h3>
+            <div class="recent-head-note">Latest customer requests with direct open access for quick review.</div>
+          </div>
+        </div>
+        <div class="table-wrap desktop-table">
+          <table>
+            <thead><tr><th>Ref</th><th>Applicant</th><th>Product</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="recentAppsBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="recentAppsCards" class="mobile-cards"></div>
+      </div>
+    </section>
+
+    <section class="section" id="section-applications">
+      <div class="card">
+        <div class="card-head"><h3>Applications</h3></div>
+        <div class="table-wrap desktop-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Ref</th><th>Applicant</th><th>Phone</th><th>Product</th><th>Amount</th><th>Term</th><th>Status</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="applicationsBody"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="applicationsCards" class="mobile-cards"></div>
+      </div>
+    </section>
+
+    <section class="section" id="section-products">
+      <div class="card">
+        <div class="card-head">
+          <h3>Loan Products</h3>
+          <button class="btn" type="button" onclick="openProductModal()">+ Create Product</button>
+        </div>
+
+        <div class="section-note" id="chatbotDebugNote" style="margin-bottom:10px;">
+          Loading chatbot library...
+        </div>
+        <div class="filter-bar">
+          <div class="field">
+            <label>Search Products</label>
+            <input id="productSearch" type="text" placeholder="Search name, rate, amount">
+          </div>
+          <div class="field">
+            <label>Status Filter</label>
+            <select id="productStatusFilter">
+              <option value="">All Products</option>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="DISABLED">DISABLED</option>
+            </select>
+          </div>
+          <button class="btn secondary" type="button" onclick="resetProductFilters()">Reset</button>
+        </div>
+
+        <div class="table-wrap desktop-table">
+          <table>
+            <thead><tr><th>Name</th><th>Interest</th><th>Fee</th><th>Min</th><th>Max</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="productsBody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="productsCards" class="mobile-cards"></div>
+      </div>
+    </section>
+
+    <section class="section" id="section-messages">
+      <div class="card">
+        <div class="card-head"><h3>Contacts</h3></div>
+        <div class="section-note">Open, reply, or delete without horizontal scrolling.</div>
+        <div id="contactsCards" class="msg-grid"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Customer Messages</h3></div>
+        <div id="customerMessagesCards" class="msg-grid"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Support Tickets</h3></div>
+        <div id="supportTicketsCards" class="msg-grid"><div class="loading">Loading...</div></div>
+      </div>
+    </section>
+
+    <section class="section" id="section-site-settings">
+      <div class="card">
+        <div class="card-head">
+          <h3>System Rates</h3>
+          <div class="actions">
+            <button class="btn success" type="button" onclick="saveSiteSettings()">Save Rates</button>
+            <button class="btn warn" type="button" onclick="applySettingsToProducts()">Apply Rates To Products</button>
+          </div>
+        </div>
+        <form id="siteSettingsForm">
+          <div class="form-grid">
+            <div class="field"><label>Base Interest Rate (%)</label><input type="number" step="0.01" id="ss_interest_rate" name="interest_rate"></div>
+            <div class="field"><label>Base Service Fee (N$)</label><input type="number" step="0.01" id="ss_service_fee" name="service_fee"></div>
+            <div class="field"><label>Business Loan Rate (%)</label><input type="number" step="0.01" id="ss_business_loan_rate" name="business_loan_rate"></div>
+            <div class="field"><label>Personal Loan Rate (%)</label><input type="number" step="0.01" id="ss_personal_loan_rate" name="personal_loan_rate"></div>
+            <div class="field"><label>Salary Advance Rate (%)</label><input type="number" step="0.01" id="ss_salary_advance_rate" name="salary_advance_rate"></div>
+          </div>
+        </form>
+      </div>
+    </section>
+  
+    <section class="section" id="section-security">
+      <div class="security-grid">
+        <div class="card">
+          <div class="card-head"><h3>Admin Security</h3></div>
+          <div class="info-list" id="adminSecurityProfile">
+            <div class="info-item"><strong>Admin Email</strong><span id="adminProfileEmail">Loading...</span></div>
+            <div class="info-item"><strong>Support Phone</strong><span id="adminProfilePhone">Loading...</span></div>
+            <div class="info-item"><strong>Last Updated</strong><span id="adminProfileUpdated">Loading...</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Change Admin Password</h3></div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Current Password</label>
+              <input type="password" id="admin_current_password">
+            </div>
+            <div class="field">
+              <label>New Password</label>
+              <input type="password" id="admin_new_password">
+            </div>
+            <div class="field">
+              <label>Confirm New Password</label>
+              <input type="password" id="admin_confirm_password">
+            </div>
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn success" type="button" onclick="changeAdminPassword()">Update Password</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Update Official Support Number</h3></div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Official Support Number</label>
+              <input type="text" id="admin_support_phone" placeholder="+264812548973">
+            </div>
+          </div>
+          <div class="helper-note">This number can be used on the public site and support channels.</div>
+          <div class="modal-footer-actions">
+            <button class="btn warn" type="button" onclick="updateAdminContact()">Save Support Number</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>User Access Help</h3></div>
+          <div class="helper-note">Find customer accounts and help them recover or reset access in a mobile-friendly way.</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Search User</label>
+              <input type="text" id="userResetSearch" placeholder="Search by email, name, phone">
+            </div>
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn secondary" type="button" onclick="searchResetUsers()">Search Users</button>
+          </div>
+          <div id="userResetResults" class="user-reset-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-visitors">
+      <div class="card">
+        <div class="card-head">
+          <h3>Visitors, Devices & Browsers</h3>
+          <button class="btn secondary" type="button" onclick="loadVisitors()">Refresh Visitors</button>
+        </div>
+        <div class="helper-note">Track who visited, device type, browser, platform, and location details where available.</div>
+        <div id="visitorsGrid" class="visitor-grid">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </section>
+
+  
+    <section class="section" id="section-cleanup">
+      <div class="card danger-zone">
+        <div class="card-head">
+          <h3>Delete Old Applications</h3>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Delete Applications Older Than (Days)</label>
+            <input type="number" id="cleanup_days_old" min="1" value="30">
+          </div>
+          <div class="field">
+            <label>Status Filter</label>
+            <select id="cleanup_status">
+              <option value="">All Statuses</option>
+              <option value="PENDING">PENDING</option>
+              <option value="APPROVED">APPROVED</option>
+              <option value="REJECTED">REJECTED</option>
+              <option value="UNDER REVIEW">UNDER REVIEW</option>
+              <option value="BLOCKED">BLOCKED</option>
+            </select>
+          </div>
+        </div>
+        <div class="danger-note">
+          This permanently removes matching applications from the database. Use carefully.
+        </div>
+        <div class="modal-footer-actions">
+          <button class="btn danger" type="button" onclick="deleteOldApplications()">Delete Old Applications</button>
+        </div>
+      </div>
+    </section>
+  
+    <section class="section" id="section-chatbot-library">
+      <div class="card">
+        <div class="card-head">
+          <h3>Chatbot Knowledge Library</h3>
+          <button class="btn" type="button" onclick="openChatbotModal()">+ New Bot Answer</button>
+        </div>
+
+        <div class="filter-bar">
+          <div class="field">
+            <label>Search Chatbot Library</label>
+            <input id="chatbotSearch" type="text" placeholder="Search title, intent, keywords, answer">
+          </div>
+          <div class="field">
+            <label>Status Filter</label>
+            <select id="chatbotStatusFilter">
+              <option value="">All Records</option>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="DISABLED">DISABLED</option>
+            </select>
+          </div>
+          <button class="btn secondary" type="button" onclick="resetChatbotFilters()">Reset</button>
+        </div>
+
+        <div class="table-wrap desktop-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Intent</th>
+                <th>Keywords</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="chatbotLibraryBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+
+        <div id="chatbotLibraryCards" class="mobile-cards"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-wrap" id="productModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="productModalTitle">Create Product</h3>
+      <div class="modal-head-actions">
+        <button class="btn secondary sm" type="button" onclick="closeModal('productModalWrap')">Close</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="product_id">
+      <div class="form-grid">
+        <div class="field"><label>Product Name</label><input id="product_name"></div>
+        <div class="field"><label>Interest Rate (%)</label><input type="number" step="0.01" id="product_rate"></div>
+        <div class="field"><label>Service Fee</label><input type="number" step="0.01" id="product_fee"></div>
+        <div class="field"><label>Minimum Amount</label><input type="number" step="1" id="product_min"></div>
+        <div class="field"><label>Maximum Amount</label><input type="number" step="1" id="product_max"></div>
+        <div class="field"><label>Status</label><select id="product_active"><option value="true">Active</option><option value="false">Disabled</option></select></div>
+      </div>
+      <div class="modal-footer-actions">
+        <button class="btn danger" id="deleteProductBtn" type="button" style="display:none" onclick="deleteProduct()">Delete</button>
+        <button class="btn success" type="button" onclick="saveProduct()">Save Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="replyModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Reply To Customer</h3>
+      <div class="modal-head-actions">
+        <button class="btn secondary sm" type="button" onclick="closeModal('replyModalWrap')">Close</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="reply_customer_id">
+      <div class="field"><label>Subject</label><input id="reply_subject"></div>
+      <div class="field" style="margin-top:14px"><label>Message</label><textarea id="reply_message"></textarea></div>
+      <div class="modal-footer-actions">
+        <button class="btn success" type="button" onclick="sendReply()">Send Reply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="applicationModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Application Detail</h3>
+      <div class="modal-head-actions">
+        <button class="btn secondary sm" type="button" onclick="closeModal('applicationModalWrap')">Close</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="app_detail_id">
+
+      <div class="form-grid">
+        <div class="field"><label>Full Name</label><input id="app_full_name"></div>
+        <div class="field"><label>Phone</label><input id="app_phone"></div>
+        <div class="field"><label>Email</label><input id="app_email"></div>
+        <div class="field"><label>Product</label><input id="app_product_name"></div>
+        <div class="field"><label>Amount</label><input id="app_amount" type="number" step="0.01"></div>
+        <div class="field"><label>Term</label><input id="app_term"></div>
+        <div class="field"><label>Status</label>
+          <select id="app_status">
+            <option value="PENDING">PENDING</option>
+            <option value="APPROVED">APPROVED</option>
+            <option value="REJECTED">REJECTED</option>
+            <option value="UNDER REVIEW">UNDER REVIEW</option>
+            <option value="BLOCKED">BLOCKED</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label>Review Note</label>
+        <textarea id="app_review_note"></textarea>
+      </div>
+
+      <div style="margin-top:16px">
+        <h4 style="margin:0 0 10px 0">Uploaded Documents</h4>
+        <div id="applicationDocuments" class="docs-list"></div>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button class="btn secondary" type="button" onclick="downloadApplicationProfilePDF()">Profile PDF</button>
+        <button class="btn warn" type="button" onclick="updateApplication()">Update</button>
+        <button class="btn success" type="button" onclick="approveApplication()">Approve</button>
+        <button class="btn danger" type="button" onclick="rejectApplication()">Reject</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="messageViewModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Message Detail</h3>
+      <div class="modal-head-actions">
+        <button class="btn secondary sm" type="button" onclick="closeModal('messageViewModalWrap')">Close</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="msg_view_id">
+      <input type="hidden" id="msg_view_table">
+      <input type="hidden" id="msg_view_customer_id">
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Name / Sender</label>
+          <input id="msg_view_name" readonly>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input id="msg_view_email" readonly>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label>Subject</label>
+        <input id="msg_view_subject" readonly>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label>Original Message</label>
+        <textarea id="msg_view_message" readonly></textarea>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label>Reply Message</label>
+        <textarea id="msg_view_reply"></textarea>
+      </div>
+
+      <div class="field" id="msgStatusWrap" style="margin-top:14px; display:none;">
+        <label>Support Status</label>
+        <select id="msg_view_status">
+          <option value="OPEN">OPEN</option>
+          <option value="IN PROGRESS">IN PROGRESS</option>
+          <option value="RESOLVED">RESOLVED</option>
+          <option value="CLOSED">CLOSED</option>
+        </select>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button class="btn secondary" type="button" onclick="copyMessageToReplyModal()">Reply In Compose</button>
+        <button class="btn warn" id="saveTicketReplyBtn" type="button" style="display:none;" onclick="saveSupportTicketReplyFromView()">Save Ticket Reply</button>
+        <button class="btn danger" type="button" onclick="deleteMessageFromView()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const titles = {
+  overview:["Overview","Manage applications, products, messages, approvals, and settings."],
+  applications:["Applications","View all client loan applications and uploaded documents."],
+  products:["Loan Products","Create, edit, delete, and activate real loan products."],
+  messages:["Messages","Reply to customers and manage support records."],
+  "site-settings":["System Rates","Save rates and apply them to products."],
+  security:["Security & Users","Change admin password, update support phone, and help users reset access."],
+  visitors:["Visitors & Devices","Track browser, device, platform, and visitor activity."]
+};
+
+let currentSection = "overview";
+window.__contactsMap = {};
+window.__customerMessagesMap = {};
+window.__supportTicketsMap = {};
+window.__applicationsCache = [];
+window.__productsCache = [];
+window.__productsCache = [];
+
+function esc(v){
+  return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function money(v){
+  const n = Number(v || 0);
+  return isNaN(n) ? "0.00" : n.toFixed(2);
+}
+function toggleSidebar(){
+  if (window.innerWidth > 980) return;
+  document.getElementById("sidebar").classList.toggle("show");
+  document.getElementById("overlay").classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
+}
+function openModal(id){ document.getElementById(id).classList.add("show"); }
+function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+
+function statusPill(status){
+  const s = String(status || "PENDING").toUpperCase();
+  let cls = "pending";
+  if (s === "APPROVED" || s === "ACTIVE" || s === "RESOLVED") cls = "approved";
+  if (s === "REJECTED" || s === "DISABLED" || s === "CLOSED" || s === "BLOCKED") cls = "rejected";
+  return `<span class="pill ${cls}">${esc(s)}</span>`;
+}
+function activePill(active){
+  return active
+    ? '<span class="pill active-pill">ACTIVE</span>'
+    : '<span class="pill disabled-pill">DISABLED</span>';
+}
+
+async function fetchJSON(url, options={}){
+  const res = await fetch(url, options);
+  let data = {};
+  try { data = await res.json(); } catch(e) { throw new Error("Invalid server response."); }
+  if (!res.ok || !data.success) throw new Error(data.error || "Request failed.");
+  return data;
+}
+
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+  btn.addEventListener("click", async ()=>{
+    const name = btn.dataset.section;
+    currentSection = name;
+    document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+    document.getElementById("section-"+name).classList.add("active");
+    document.getElementById("pageTitle").textContent = titles[name][0];
+    document.getElementById("pageSubtitle").textContent = titles[name][1];
+    closeSidebar();
+    await 
+async function loadAdminSecurityProfile(){
+  try{
+    const data = await fetchJSON("/api/admin/security/profile");
+    const row = data.data || {};
+    document.getElementById("adminProfileEmail").textContent = row.email || "Not available";
+    document.getElementById("adminProfilePhone").textContent = row.phone || "Not available";
+    document.getElementById("adminProfileUpdated").textContent = row.updated_at || "Not available";
+    document.getElementById("admin_support_phone").value = row.phone || "";
+  }catch(err){
+    document.getElementById("adminProfileEmail").textContent = "Profile route not ready";
+    document.getElementById("adminProfilePhone").textContent = "Profile route not ready";
+    document.getElementById("adminProfileUpdated").textContent = "Profile route not ready";
+  }
+}
+
+async function changeAdminPassword(){
+  const current_password = document.getElementById("admin_current_password").value.trim();
+  const new_password = document.getElementById("admin_new_password").value.trim();
+  const confirm_password = document.getElementById("admin_confirm_password").value.trim();
+
+  if (!current_password) return alert("Current password is required.");
+  if (!new_password) return alert("New password is required.");
+  if (new_password.length < 6) return alert("New password must be at least 6 characters.");
+  if (new_password !== confirm_password) return alert("New password and confirm password do not match.");
+
+  const data = await fetchJSON("/admin/security/change-password", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify({ current_password, new_password })
+  });
+
+  document.getElementById("admin_current_password").value = "";
+  document.getElementById("admin_new_password").value = "";
+  document.getElementById("admin_confirm_password").value = "";
+  alert(data.message || "Password updated.");
+}
+
+async function updateAdminContact(){
+  const phone = document.getElementById("admin_support_phone").value.trim();
+  if (!phone) return alert("Support number is required.");
+
+  const data = await fetchJSON("/admin/security/update-contact", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify({ phone })
+  });
+
+  await loadAdminSecurityProfile();
+  alert(data.message || "Support number updated.");
+}
+
+async function loadVisitors(){
+  const holder = document.getElementById("visitorsGrid");
+  holder.innerHTML = '<div class="loading">Loading...</div>';
+
+  try{
+    const data = await fetchJSON("/api/admin/visitors");
+    const rows = data.data || [];
+
+    if (!rows.length){
+      holder.innerHTML = '<div class="empty">No visitor data found.</div>';
+      return;
+    }
+
+    holder.innerHTML = rows.map(v => `
+      <div class="visitor-card">
+        <h4>${esc(v.name || v.email || v.ip_address || "Visitor")}</h4>
+        <div class="visitor-meta">
+          <div><strong style="color:var(--muted)">Email:</strong> ${esc(v.email || "-")}</div>
+          <div><strong style="color:var(--muted)">Phone:</strong> ${esc(v.phone || "-")}</div>
+          <div><strong style="color:var(--muted)">Device:</strong> ${esc(v.device_type || "-")}</div>
+          <div><strong style="color:var(--muted)">Browser:</strong> ${esc(v.browser || v.user_agent || "-")}</div>
+          <div><strong style="color:var(--muted)">Platform:</strong> ${esc(v.platform || "-")}</div>
+          <div><strong style="color:var(--muted)">Location:</strong> ${esc(v.location || v.region || v.city || "-")}</div>
+          <div><strong style="color:var(--muted)">IP:</strong> ${esc(v.ip_address || "-")}</div>
+          <div><strong style="color:var(--muted)">Last Seen:</strong> ${esc(v.created_at || v.last_seen || "-")}</div>
+        </div>
+      </div>
+    `).join("");
+  }catch(err){
+    holder.innerHTML = '<div class="empty">Visitor route not ready yet.</div>';
+  }
+}
+
+async function searchResetUsers(){
+  const holder = document.getElementById("userResetResults");
+  const q = String(document.getElementById("userResetSearch")?.value || "").trim();
+  holder.innerHTML = '<div class="loading">Loading...</div>';
+
+  try{
+    const url = q ? `/api/admin/customers?q=${encodeURIComponent(q)}` : "/api/admin/customers";
+    const data = await fetchJSON(url);
+    const rows = data.data || [];
+
+    if (!rows.length){
+      holder.innerHTML = '<div class="empty">No users found.</div>';
+      return;
+    }
+
+    holder.innerHTML = rows.map(u => `
+      <div class="user-reset-card">
+        <h4>${esc(u.full_name || u.email || "Customer")}</h4>
+        <div class="visitor-meta">
+          <div><strong style="color:var(--muted)">Email:</strong> ${esc(u.email || "-")}</div>
+          <div><strong style="color:var(--muted)">Phone:</strong> ${esc(u.phone || "-")}</div>
+          <div><strong style="color:var(--muted)">Status:</strong> ${esc(u.status || "-")}</div>
+          <div><strong style="color:var(--muted)">Last Login:</strong> ${esc(u.last_login || "-")}</div>
+        </div>
+        <div class="quick-inline-actions">
+          <button class="btn sm warn" type="button" onclick="resetUserAccess(${JSON.stringify("")} + ${JSON.stringify("")})" style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify("")})' style="display:none;"></button>
+          <button class="btn sm secondary" type="button" onclick='openReply(${JSON.stringify("")}, ${JSON.stringify("Account Help")})' style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify("")})' style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify("")})' style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify("")})' style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify(u.id)})'>Reset Access</button>
+          <button class="btn sm secondary" type="button" onclick='openReply(${JSON.stringify(u.id)}, ${JSON.stringify("Account Help")})'>Help User</button>
+        </div>
+      </div>
+    `).join("");
+  }catch(err){
+    holder.innerHTML = '<div class="empty">Customer search/reset route not ready yet.</div>';
+  }
+}
+
+async function resetUserAccess(userId){
+  if (!userId) return alert("User id missing.");
+  if (!confirm("Reset this user access?")) return;
+
+  const data = await fetchJSON(`/admin/customers/${userId}/reset-access`, {
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+
+  alert(data.message || "User access reset.");
+  await searchResetUsers();
+}
+
+function updateSidebarMessageBadges(){
+  const customerCount = Array.isArray(window.__customerMessagesCache) ? window.__customerMessagesCache.length : 0;
+  const supportCount = Array.isArray(window.__supportTicketsCache) ? window.__supportTicketsCache.length : 0;
+  const total = customerCount + supportCount;
+  const badge = document.getElementById("sidebarMessagesBadge");
+  if (badge) badge.textContent = String(total || 0);
+}
+
+
+console.log("ADMIN CLICK PATCH LOADED");
+refreshCurrent();
+  });
+});
+
+document.addEventListener("DOMContentLoaded", function(){
+  const search = document.getElementById("applicationSearch");
+  const filter = document.getElementById("applicationStatusFilter");
+  const productSearch = document.getElementById("productSearch");
+  const productFilter = document.getElementById("productStatusFilter");
+
+  if (search) {
+    search.addEventListener("input", function(){
+      if (currentSection === "applications") renderApplicationsList();
+    });
+  }
+
+  if (filter) {
+    filter.addEventListener("change", function(){
+      if (currentSection === "applications") renderApplicationsList();
+    });
+  }
+
+  if (productSearch) {
+    productSearch.addEventListener("input", function(){
+      if (currentSection === "products") renderProductsList();
+    });
+  }
+
+  if (productFilter) {
+    productFilter.addEventListener("change", function(){
+      if (currentSection === "products") renderProductsList();
+    });
+  }
+});
+
+
+function activateSection(name){
+  currentSection = name;
+  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
+  const btn = document.querySelector('.nav-btn[data-section="' + name + '"]');
+  if (btn) btn.classList.add("active");
+  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+  const section = document.getElementById("section-" + name);
+  if (section) section.classList.add("active");
+  if (titles[name]) {
+    document.getElementById("pageTitle").textContent = titles[name][0];
+    document.getElementById("pageSubtitle").textContent = titles[name][1];
+  }
+  closeSidebar();
+}
+
+async function jumpToApplicationsWithStatus(statusValue=""){
+  activateSection("applications");
+  const filter = document.getElementById("applicationStatusFilter");
+  if (filter) filter.value = statusValue || "";
+  await loadApplications();
+  if (typeof renderApplicationsList === "function") renderApplicationsList();
+}
+
+async function jumpToProducts(){
+  activateSection("products");
+  await loadProducts();
+  if (typeof renderProductsList === "function") renderProductsList();
+}
+
+
+async function refreshCurrent(){
+  try{
+    if (currentSection === "overview") await loadOverview();
+    if (currentSection === "applications") await loadApplications();
+    if (currentSection === "products") await loadProducts();
+    if (currentSection === "messages") await loadMessages();
+    if (currentSection === "site-settings") await loadSiteSettings();
+    if (currentSection === "security") {
+      await loadAdminSecurityProfile();
+      await searchResetUsers();
+    }
+    if (currentSection === "visitors") await loadVisitors();
+    if (currentSection === "chatbot-library") await loadChatbotLibrary();
+    if (currentSection === "chatbot-library") await loadChatbotLibrary();
+  }catch(err){
+    alert(err.message || String(err));
+  }
+}
+
+async function loadOverview(){
+  const data = await fetchJSON("/api/admin/overview");
+  const c = data.counts || {};
+
+  document.getElementById("overviewStats").innerHTML = `
+    <div class="stat clickable" onclick="jumpToApplicationsWithStatus('')">
+      <small>Total Applications</small>
+      <div class="num">${esc(c.applications || 0)}</div>
+      <div class="sub">Open all applications</div>
+    </div>
+    <div class="stat clickable" onclick="jumpToApplicationsWithStatus('PENDING')">
+      <small>Pending</small>
+      <div class="num">${esc(c.pending || 0)}</div>
+      <div class="sub">Open pending applications</div>
+    </div>
+    <div class="stat clickable" onclick="jumpToApplicationsWithStatus('APPROVED')">
+      <small>Approved</small>
+      <div class="num">${esc(c.approved || 0)}</div>
+      <div class="sub">Open approved applications</div>
+    </div>
+    <div class="stat clickable" onclick="jumpToApplicationsWithStatus('REJECTED')">
+      <small>Rejected</small>
+      <div class="num">${esc(c.rejected || 0)}</div>
+      <div class="sub">Open rejected applications</div>
+    </div>
+    <div class="stat clickable" onclick="jumpToProducts()">
+      <small>Loan Products</small>
+      <div class="num">${esc(c.loan_products || 0)}</div>
+      <div class="sub">Open products</div>
+    </div>
+    <div class="stat clickable" onclick="jumpToApplicationsWithStatus('')">
+      <small>Total Requested</small>
+      <div class="num">N$ ${money(c.total_requested || 0)}</div>
+      <div class="sub">Open applications</div>
+    </div>
+  `;
+const rows = data.recent_applications || [];
+  if (!rows.length) {
+    document.getElementById("recentAppsBody").innerHTML = '<tr><td colspan="6" class="empty">No recent applications found.</td></tr>';
+    document.getElementById("recentAppsCards").innerHTML = '<div class="empty">No recent applications found.</div>';
+    return;
+  }
+
+  document.getElementById("recentAppsBody").innerHTML = rows.map(a => `
+    <tr>
+      <td>${esc(a.reference || a.ref || "-")}</td>
+      <td>${esc(a.full_name || "-")}</td>
+      <td>${esc(a.product_name || "-")}</td>
+      <td>N$ ${money(a.amount)}</td>
+      <td>${statusPill(a.status)}</td>
+      <td><button class="btn sm secondary" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button></td>
+    </tr>
+  `).join("");
+
+  document.getElementById("recentAppsCards").innerHTML = rows.map(a => `
+    <div class="mobile-card">
+      <div class="mobile-card-head">
+        <div class="mobile-card-title">${esc(a.reference || a.ref || "-")}</div>
+        <div>${statusPill(a.status)}</div>
+      </div>
+      <div class="mobile-card-grid">
+        <div class="mobile-card-item"><strong>Applicant</strong><span>${esc(a.full_name || "-")}</span></div>
+        <div class="mobile-card-item"><strong>Product</strong><span>${esc(a.product_name || "-")}</span></div>
+        <div class="mobile-card-item"><strong>Amount</strong><span>N$ ${money(a.amount)}</span></div>
+      </div>
+      <div class="mobile-card-actions">
+        <button class="btn sm secondary" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function loadApplications(){
+  const data = await fetchJSON("/api/admin/applications");
+  window.__applicationsCache = data.data || [];
+  renderApplicationsList();
+}
+
+function getFilteredApplications(){
+  const rows = Array.isArray(window.__applicationsCache) ? window.__applicationsCache : [];
+  const q = String(document.getElementById("applicationSearch")?.value || "").trim().toLowerCase();
+  const status = String(document.getElementById("applicationStatusFilter")?.value || "").trim().toUpperCase();
+
+  return rows.filter(a => {
+    const ref = String(a.reference || a.ref || "").toLowerCase();
+    const name = String(a.full_name || "").toLowerCase();
+    const phone = String(a.phone || a.contact_number || "").toLowerCase();
+    const product = String(a.product_name || "").toLowerCase();
+    const appStatus = String(a.status || "").toUpperCase();
+
+    const matchesSearch = !q || ref.includes(q) || name.includes(q) || phone.includes(q) || product.includes(q);
+    const matchesStatus = !status || appStatus === status;
+
+    return matchesSearch && matchesStatus;
+  });
+}
+
+function renderApplicationsList(){
+  const rows = getFilteredApplications();
+
+  if (!rows.length) {
+    document.getElementById("applicationsBody").innerHTML = '<tr><td colspan="8" class="empty">No applications match your filter.</td></tr>';
+    document.getElementById("applicationsCards").innerHTML = '<div class="empty">No applications match your filter.</div>';
+    return;
+  }
+
+  document.getElementById("applicationsBody").innerHTML = rows.map(a => `
+    <tr>
+      <td>${esc(a.reference || a.ref || "-")}</td>
+      <td>${esc(a.full_name || "-")}</td>
+      <td>${esc(a.phone || a.contact_number || "-")}</td>
+      <td>${esc(a.product_name || "-")}</td>
+      <td>N$ ${money(a.amount)}</td>
+      <td>${esc(a.term || "-")}</td>
+      <td>${statusPill(a.status)}</td>
+      <td>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sm secondary" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button>
+          <button class="btn sm success" onclick='quickApproveApplication(${JSON.stringify(a.id)})'>Approve</button>
+          <button class="btn sm warn" onclick='quickRejectApplication(${JSON.stringify(a.id)})'>Reject</button>
+          <button class="btn sm danger" onclick='deleteApplication(${JSON.stringify(a.id)})'>Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+
+  document.getElementById("applicationsCards").innerHTML = rows.map(a => `
+    <div class="mobile-card">
+      <div class="mobile-card-head">
+        <div class="mobile-card-title">${esc(a.reference || a.ref || "-")}</div>
+        <div>${statusPill(a.status)}</div>
+      </div>
+      <div class="mobile-card-grid">
+        <div class="mobile-card-item"><strong>Applicant</strong><span>${esc(a.full_name || "-")}</span></div>
+        <div class="mobile-card-item"><strong>Phone</strong><span>${esc(a.phone || a.contact_number || "-")}</span></div>
+        <div class="mobile-card-item"><strong>Product</strong><span>${esc(a.product_name || "-")}</span></div>
+        <div class="mobile-card-item"><strong>Amount</strong><span>N$ ${money(a.amount)}</span></div>
+        <div class="mobile-card-item"><strong>Term</strong><span>${esc(a.term || "-")}</span></div>
+      </div>
+      <div class="mobile-card-actions">
+        <button class="btn sm secondary" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button>
+        <button class="btn sm success" onclick='quickApproveApplication(${JSON.stringify(a.id)})'>Approve</button>
+        <button class="btn sm warn" onclick='quickRejectApplication(${JSON.stringify(a.id)})'>Reject</button>
+        <button class="btn sm danger" onclick='deleteApplication(${JSON.stringify(a.id)})'>Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function resetApplicationFilters(){
+  const search = document.getElementById("applicationSearch");
+  const filter = document.getElementById("applicationStatusFilter");
+  if (search) search.value = "";
+  if (filter) filter.value = "";
+  renderApplicationsList();
+}
+
+async function quickApproveApplication(id){
+  if (!confirm("Quick approve this application?")) return;
+
+  const data = await fetchJSON(`/admin/applications/${id}/approve`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body: JSON.stringify({ review_note: "Quick approved from applications list." })
+  });
+
+  await loadApplications();
+  await loadOverview();
+  alert(data.message || "Application approved.");
+}
+
+
+async function deleteApplication(id){
+  if (!id) return alert("Application id missing.");
+  if (!confirm("Delete this application permanently?")) return;
+
+  const data = await fetchJSON(`/admin/applications/${id}/delete`, {
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+
+  await loadOverview();
+  await loadApplications();
+  alert(data.message || "Application deleted.");
+}
+
+async function quickRejectApplication(id){
+  if (!confirm("Quick reject this application?")) return;
+
+  const data = await fetchJSON(`/admin/applications/${id}/reject`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body: JSON.stringify({ review_note: "Quick rejected from applications list." })
+  });
+
+  await loadApplications();
+  await loadOverview();
+  alert(data.message || "Application rejected.");
+}
+
+async function viewApplication(id){
+  const data = await fetchJSON(`/api/admin/applications/${id}`);
+  const a = data.data || {};
+  document.getElementById("app_detail_id").value = a.id || "";
+  document.getElementById("app_full_name").value = a.full_name || "";
+  document.getElementById("app_phone").value = a.phone || a.contact_number || "";
+  document.getElementById("app_email").value = a.email || "";
+  document.getElementById("app_product_name").value = a.product_name || "";
+  document.getElementById("app_amount").value = a.amount || "";
+  document.getElementById("app_term").value = a.term || "";
+  document.getElementById("app_status").value = (a.status || "PENDING");
+  document.getElementById("app_review_note").value = a.review_note || "";
+
+  const docs = a.documents_list || [];
+  const holder = document.getElementById("applicationDocuments");
+  if (!docs.length) {
+    holder.innerHTML = `<div class="doc-item">No uploaded documents found in this application row.</div>`;
+  } else {
+    holder.innerHTML = docs.map(d => `
+      <div class="doc-item">
+        <strong>${esc(d.label || "Document")}</strong><br>
+        <a href="${esc(d.url)}" target="_blank" style="color:#86efac">Open document</a>
+      </div>
+    `).join("");
+  }
+
+  openModal("applicationModalWrap");
+}
+
+async function updateApplication(){
+  const id = document.getElementById("app_detail_id").value;
+  const payload = {
+    full_name: document.getElementById("app_full_name").value.trim(),
+    phone: document.getElementById("app_phone").value.trim(),
+    email: document.getElementById("app_email").value.trim(),
+    product_name: document.getElementById("app_product_name").value.trim(),
+    amount: parseFloat(document.getElementById("app_amount").value || 0),
+    term: document.getElementById("app_term").value.trim(),
+    status: document.getElementById("app_status").value,
+    review_note: document.getElementById("app_review_note").value.trim()
+  };
+
+  const data = await fetchJSON(`/admin/applications/${id}/update`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+
+  await loadApplications();
+  await loadOverview();
+  alert(data.message || "Application updated.");
+}
+
+async function approveApplication(){
+  const id = document.getElementById("app_detail_id").value;
+  const payload = { review_note: document.getElementById("app_review_note").value.trim() };
+  const data = await fetchJSON(`/admin/applications/${id}/approve`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+  await viewApplication(id);
+  await loadApplications();
+  await loadOverview();
+  alert(data.message || "Application approved.");
+}
+
+async function rejectApplication(){
+  const id = document.getElementById("app_detail_id").value;
+  const payload = { review_note: document.getElementById("app_review_note").value.trim() };
+  const data = await fetchJSON(`/admin/applications/${id}/reject`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+  await viewApplication(id);
+  await loadApplications();
+  await loadOverview();
+  alert(data.message || "Application rejected.");
+}
+
+async function loadProducts(){
+  const data = await fetchJSON("/api/admin/loan-products");
+  window.__productsCache = data.data || [];
+  renderProductsList();
+}
+
+function getFilteredProducts(){
+  const rows = Array.isArray(window.__productsCache) ? window.__productsCache : [];
+  const q = String(document.getElementById("productSearch")?.value || "").trim().toLowerCase();
+  const status = String(document.getElementById("productStatusFilter")?.value || "").trim().toUpperCase();
+
+  return rows.filter(p => {
+    const name = String(p.name || "").toLowerCase();
+    const rate = String(p.interest_rate || "").toLowerCase();
+    const min = String(p.min_amount || "").toLowerCase();
+    const max = String(p.max_amount || "").toLowerCase();
+    const productStatus = p.active ? "ACTIVE" : "DISABLED";
+
+    const matchesSearch = !q || name.includes(q) || rate.includes(q) || min.includes(q) || max.includes(q);
+    const matchesStatus = !status || productStatus === status;
+
+    return matchesSearch && matchesStatus;
+  });
+}
+
+function renderProductsList(){
+  const rows = getFilteredProducts();
+
+  if (!rows.length) {
+    document.getElementById("productsBody").innerHTML = '<tr><td colspan="7" class="empty">No loan products match your filter.</td></tr>';
+    document.getElementById("productsCards").innerHTML = '<div class="empty">No loan products match your filter.</div>';
+    return;
+  }
+
+  document.getElementById("productsBody").innerHTML = rows.map(p => `
+    <tr>
+      <td>${esc(p.name || "-")}</td>
+      <td>${esc(p.interest_rate || 0)}%</td>
+      <td>N$ ${money(p.service_fee)}</td>
+      <td>N$ ${money(p.min_amount)}</td>
+      <td>N$ ${money(p.max_amount)}</td>
+      <td>${activePill(!!p.active)}</td>
+      <td>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sm secondary" onclick='openEditProduct(${JSON.stringify(p.id)}, ${JSON.stringify(p.name)}, ${JSON.stringify(p.interest_rate)}, ${JSON.stringify(p.service_fee)}, ${JSON.stringify(p.min_amount)}, ${JSON.stringify(p.max_amount)}, ${JSON.stringify(!!p.active)})'>Edit</button>
+          ${p.active
+            ? `<button class="btn sm danger" onclick='quickToggleProduct(${JSON.stringify(p.id)}, false)'>Disable</button>`
+            : `<button class="btn sm success" onclick='quickToggleProduct(${JSON.stringify(p.id)}, true)'>Enable</button>`
+          }
+        </div>
+      </td>
+    </tr>
+  `).join("");
+
+  document.getElementById("productsCards").innerHTML = rows.map(p => `
+    <div class="mobile-card">
+      <div class="mobile-card-head">
+        <div class="mobile-card-title">${esc(p.name || "-")}</div>
+        <div>${activePill(!!p.active)}</div>
+      </div>
+      <div class="mobile-card-grid">
+        <div class="mobile-card-item"><strong>Interest</strong><span>${esc(p.interest_rate || 0)}%</span></div>
+        <div class="mobile-card-item"><strong>Fee</strong><span>N$ ${money(p.service_fee)}</span></div>
+        <div class="mobile-card-item"><strong>Minimum</strong><span>N$ ${money(p.min_amount)}</span></div>
+        <div class="mobile-card-item"><strong>Maximum</strong><span>N$ ${money(p.max_amount)}</span></div>
+      </div>
+      <div class="mobile-card-actions">
+        <button class="btn sm secondary" onclick='openEditProduct(${JSON.stringify(p.id)}, ${JSON.stringify(p.name)}, ${JSON.stringify(p.interest_rate)}, ${JSON.stringify(p.service_fee)}, ${JSON.stringify(p.min_amount)}, ${JSON.stringify(p.max_amount)}, ${JSON.stringify(!!p.active)})'>Edit</button>
+        ${p.active
+          ? `<button class="btn sm danger" onclick='quickToggleProduct(${JSON.stringify(p.id)}, false)'>Disable</button>`
+          : `<button class="btn sm success" onclick='quickToggleProduct(${JSON.stringify(p.id)}, true)'>Enable</button>`
+        }
+      </div>
+    </div>
+  `).join("");
+}
+
+function resetProductFilters(){
+  const search = document.getElementById("productSearch");
+  const filter = document.getElementById("productStatusFilter");
+  if (search) search.value = "";
+  if (filter) filter.value = "";
+  renderProductsList();
+}
+
+async function quickToggleProduct(id, activeValue){
+  const row = (window.__productsCache || []).find(p => String(p.id) === String(id));
+  if (!row) return alert("Product not found.");
+
+  const payload = {
+    name: row.name || "",
+    interest_rate: parseFloat(row.interest_rate || 0),
+    service_fee: parseFloat(row.service_fee || 0),
+    min_amount: parseInt(row.min_amount || 0, 10),
+    max_amount: parseInt(row.max_amount || 0, 10),
+    active: !!activeValue
+  };
+
+  const actionWord = activeValue ? "enable" : "disable";
+  if (!confirm("Quick " + actionWord + " this product?")) return;
+
+  const data = await fetchJSON(`/admin/products/${id}/update`,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+
+  await loadProducts();
+  await loadOverview();
+  alert(data.message || "Product updated.");
+}
+
+function openProductModal(){
+  document.getElementById("productModalTitle").textContent = "Create Product";
+  document.getElementById("product_id").value = "";
+  document.getElementById("product_name").value = "";
+  document.getElementById("product_rate").value = "";
+  document.getElementById("product_fee").value = "";
+  document.getElementById("product_min").value = "";
+  document.getElementById("product_max").value = "";
+  document.getElementById("product_active").value = "true";
+  document.getElementById("deleteProductBtn").style.display = "none";
+  openModal("productModalWrap");
+}
+
+function openEditProduct(id, name, rate, fee, minAmount, maxAmount, active){
+  document.getElementById("productModalTitle").textContent = "Edit Product";
+  document.getElementById("product_id").value = id || "";
+  document.getElementById("product_name").value = name || "";
+  document.getElementById("product_rate").value = rate || "";
+  document.getElementById("product_fee").value = fee || "";
+  document.getElementById("product_min").value = minAmount || "";
+  document.getElementById("product_max").value = maxAmount || "";
+  document.getElementById("product_active").value = String(active) === "true" ? "true" : "false";
+  document.getElementById("deleteProductBtn").style.display = "";
+  openModal("productModalWrap");
+}
+
+async function saveProduct(){
+  const id = document.getElementById("product_id").value.trim();
+  const payload = {
+    name: document.getElementById("product_name").value.trim(),
+    interest_rate: parseFloat(document.getElementById("product_rate").value || 0),
+    service_fee: parseFloat(document.getElementById("product_fee").value || 0),
+    min_amount: parseInt(document.getElementById("product_min").value || 0, 10),
+    max_amount: parseInt(document.getElementById("product_max").value || 0, 10),
+    active: document.getElementById("product_active").value === "true"
+  };
+  if (!payload.name) return alert("Product name is required.");
+
+  const url = id ? `/admin/products/${id}/update` : `/admin/products/create`;
+  const data = await fetchJSON(url,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+  closeModal("productModalWrap");
+  await loadProducts();
+  await loadOverview();
+  alert(data.message || "Product saved.");
+}
+
+async function deleteProduct(){
+  const id = document.getElementById("product_id").value.trim();
+  if (!id) return;
+  if (!confirm("Delete this product?")) return;
+
+  const data = await fetchJSON(`/admin/products/${id}/delete`,{
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+  closeModal("productModalWrap");
+  await loadProducts();
+  await loadOverview();
+  alert(data.message || "Product deleted.");
+}
+
+function buildMessageCard(title, metaLines, body, openFn, deleteFn, badgeHtml=""){
+  return `
+    <div class="msg-card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <h4>${esc(title || "-")}</h4>
+        ${badgeHtml || ""}
+      </div>
+      <div class="msg-meta">${metaLines.map(x => `<div>${x}</div>`).join("")}</div>
+      <div class="msg-body">${esc(body || "-")}</div>
+      <div class="msg-actions">
+        <button class="btn sm secondary" type="button" onclick="${openFn}">Open</button>
+        <button class="btn sm danger" type="button" onclick="${deleteFn}">Delete</button>
+      </div>
+    </div>
+  `;
+}
+
+async function loadMessages(){
+  const data = await fetchJSON("/api/admin/messages-feed");
+
+  const contacts = data.contacts || [];
+  const customerMessages = data.customer_messages || [];
+  const supportTickets = data.support_tickets || [];
+
+  window.__contactsMap = {};
+  window.__customerMessagesMap = {};
+  window.__supportTicketsMap = {};
+window.__applicationsCache = [];
+window.__productsCache = [];
+window.__productsCache = [];
+
+  contacts.forEach(m => { window.__contactsMap[String(m.id)] = m; });
+  customerMessages.forEach(m => { window.__customerMessagesMap[String(m.id)] = m; });
+  supportTickets.forEach(s => { window.__supportTicketsMap[String(s.id)] = s; });
+
+  const contactsHolder = document.getElementById("contactsCards");
+  const customerHolder = document.getElementById("customerMessagesCards");
+  const supportHolder = document.getElementById("supportTicketsCards");
+
+  if (!contacts.length) {
+    contactsHolder.innerHTML = '<div class="empty">No contacts found.</div>';
+  } else {
+    contactsHolder.innerHTML = contacts.map(m => buildMessageCard(
+      m.subject || "Contact Message",
+      [
+        `Name: ${esc(m.name || "-")}`,
+        `Email: ${esc(m.email || "-")}`,
+        `Date: ${esc(m.created_at || "-")}`
+      ],
+      m.message || "",
+      `openContactMessageById(${JSON.stringify(String(m.id || ""))})`,
+      `deleteMessage("contacts", ${JSON.stringify(m.id)})`
+    )).join("");
+  }
+
+  if (!customerMessages.length) {
+    customerHolder.innerHTML = '<div class="empty">No customer messages found.</div>';
+  } else {
+    customerHolder.innerHTML = customerMessages.map(m => buildMessageCard(
+      m.subject || "Customer Message",
+      [
+        `Sender: ${esc(m.sender_role || "-")}`,
+        `Read: ${esc(m.is_read ?? "-")}`,
+        `Date: ${esc(m.created_at || "-")}`
+      ],
+      m.message || "",
+      `openCustomerMessageById(${JSON.stringify(String(m.id || ""))})`,
+      `deleteMessage("customer_messages", ${JSON.stringify(m.id)})`
+    )).join("");
+  }
+
+  if (!supportTickets.length) {
+    supportHolder.innerHTML = '<div class="empty">No support tickets found.</div>';
+  } else {
+    supportHolder.innerHTML = supportTickets.map(s => buildMessageCard(
+      s.subject || "Support Ticket",
+      [
+        `Customer: ${esc(s.customer_name || "-")}`,
+        `Email: ${esc(s.customer_email || "-")}`,
+        `Date: ${esc(s.created_at || "-")}`
+      ],
+      s.message || "",
+      `openSupportTicketById(${JSON.stringify(String(s.id || ""))})`,
+      `deleteMessage("support_tickets", ${JSON.stringify(s.id)})`,
+      statusPill(s.status || "OPEN")
+    )).join("");
+  }
+}
+
+function openMessageView(tableName, row){
+  document.getElementById("msg_view_table").value = tableName || "";
+  document.getElementById("msg_view_id").value = row.id || "";
+  document.getElementById("msg_view_customer_id").value = row.customer_id || "";
+  document.getElementById("msg_view_name").value = row.name || row.customer_name || row.sender_role || "";
+  document.getElementById("msg_view_email").value = row.email || row.customer_email || "";
+  document.getElementById("msg_view_subject").value = row.subject || "";
+  document.getElementById("msg_view_message").value = row.message || "";
+  document.getElementById("msg_view_reply").value = row.reply_message || "";
+
+  const isSupport = tableName === "support_tickets";
+  document.getElementById("msgStatusWrap").style.display = isSupport ? "" : "none";
+  document.getElementById("saveTicketReplyBtn").style.display = isSupport ? "" : "none";
+
+  if (isSupport) {
+    document.getElementById("msg_view_status").value = row.status || "OPEN";
+  }
+
+  openModal("messageViewModalWrap");
+}
+
+function openContactMessageById(id){
+  const row = window.__contactsMap[String(id)];
+  if (!row) return alert("Contact message not found.");
+  openMessageView("contacts", row);
+}
+
+function openCustomerMessageById(id){
+  const row = window.__customerMessagesMap[String(id)];
+  if (!row) return alert("Customer message not found.");
+  openMessageView("customer_messages", row);
+}
+
+function openSupportTicketById(id){
+  const item = window.__supportTicketsMap?.[String(id)];
+  if (!item){
+    alert("Support ticket not found.");
+    return;
+  }
+
+  window.__currentOpenMessage = {
+    table: "support_tickets",
+    id: item.id
+  };
+
+  const subjectEl = document.getElementById("messageView_subject");
+  const metaEl = document.getElementById("messageView_meta");
+  const bodyEl = document.getElementById("messageView_body");
+  const replyBtn = document.getElementById("saveTicketReplyBtn");
+
+  if (subjectEl) subjectEl.textContent = item.subject || "Support Ticket";
+  if (metaEl) metaEl.innerHTML = `
+    <div><strong>Customer:</strong> ${esc(item.customer_name || "-")}</div>
+    <div><strong>Email:</strong> ${esc(item.customer_email || "-")}</div>
+    <div><strong>Phone:</strong> ${esc(item.customer_phone || "-")}</div>
+    <div><strong>Status:</strong> ${esc(item.status || "-")}</div>
+    <div><strong>Source:</strong> ${esc(item.source || "-")}</div>
+    <div><strong>Date:</strong> ${esc(item.created_at || "-")}</div>
+  `;
+  if (bodyEl) bodyEl.textContent = item.message || "-";
+  if (replyBtn) replyBtn.style.display = "";
+
+  openModal("messageViewModalWrap");
+}
+
+
+function replyToSupportTicket(ticketId){
+  const item = window.__supportTicketsMap?.[String(ticketId)];
+  if (!item){
+    alert("Support ticket not found.");
+    return;
+  }
+
+  document.getElementById("reply_customer_id").value = item.customer_id || "";
+  document.getElementById("reply_subject").value = "Reply: " + (item.subject || "Support Ticket");
+  document.getElementById("reply_message").value = "";
+  openModal("replyModalWrap");
+}
+
+function openReply(customerId, subject){
+  document.getElementById("reply_customer_id").value = customerId || "";
+  document.getElementById("reply_subject").value = subject || "Admin Reply";
+  document.getElementById("reply_message").value = "";
+  openModal("replyModalWrap");
+}
+
+function copyMessageToReplyModal(){
+  const customerId = document.getElementById("msg_view_customer_id").value || "";
+  const subject = document.getElementById("msg_view_subject").value || "Admin Reply";
+  const reply = document.getElementById("msg_view_reply").value || "";
+
+  document.getElementById("reply_customer_id").value = customerId;
+  document.getElementById("reply_subject").value = "Reply: " + subject;
+  document.getElementById("reply_message").value = reply;
+
+  closeModal("messageViewModalWrap");
+  openModal("replyModalWrap");
+}
+
+async function sendReply(){
+  const payload = {
+    customer_id: document.getElementById("reply_customer_id").value,
+    subject: document.getElementById("reply_subject").value.trim(),
+    message: document.getElementById("reply_message").value.trim()
+  };
+
+  if (!payload.subject) return alert("Subject required.");
+  if (!payload.message) return alert("Message required.");
+
+  const data = await fetchJSON("/admin/messages/reply",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+
+  closeModal("replyModalWrap");
+  await loadMessages();
+  alert(data.message || "Reply sent.");
+}
+
+async function deleteMessage(tableName, id){
+  if (!confirm("Delete this record?")) return;
+
+  const data = await fetchJSON(`/admin/messages/${tableName}/${id}/delete`,{
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+  await loadMessages();
+  await loadOverview();
+  alert(data.message || "Deleted.");
+}
+
+async function deleteMessageFromView(){
+  const tableName = document.getElementById("msg_view_table").value;
+  const id = document.getElementById("msg_view_id").value;
+  if (!tableName || !id) return alert("Message info missing.");
+  if (!confirm("Delete this record?")) return;
+
+  const data = await fetchJSON(`/admin/messages/${tableName}/${id}/delete`,{
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+
+  closeModal("messageViewModalWrap");
+  await loadMessages();
+  await loadOverview();
+  alert(data.message || "Deleted.");
+}
+
+async function saveSupportTicketReplyFromView(){
+  const current = window.__currentOpenMessage || {};
+  const ticketId = current.id;
+  if (!ticketId) return alert("No open support ticket selected.");
+
+  const replyText = prompt("Type your reply to the customer:");
+  if (!replyText || !replyText.trim()) return;
+
+  try{
+    const data = await fetchJSON(`/admin/support-tickets/${ticketId}/reply`, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ reply_message: replyText.trim() })
+    });
+
+    await loadMessages();
+    alert(data.message || "Reply saved.");
+  }catch(err){
+    alert("Failed to save reply: " + String(err.message || err));
+  }
+}
+
+async function loadSiteSettings(){
+  const data = await fetchJSON("/api/admin/site-settings");
+  const s = data.data || {};
+  document.getElementById("ss_interest_rate").value = s.interest_rate ?? "";
+  document.getElementById("ss_service_fee").value = s.service_fee ?? "";
+  document.getElementById("ss_business_loan_rate").value = s.business_loan_rate ?? "";
+  document.getElementById("ss_personal_loan_rate").value = s.personal_loan_rate ?? "";
+  document.getElementById("ss_salary_advance_rate").value = s.salary_advance_rate ?? "";
+}
+
+async function saveSiteSettings(){
+  const fd = new FormData(document.getElementById("siteSettingsForm"));
+  const payload = {};
+  for (const [k,v] of fd.entries()) payload[k] = v;
+
+  const data = await fetchJSON("/admin/site-settings/save",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify(payload)
+  });
+  alert(data.message || "Rates saved.");
+}
+
+async function applySettingsToProducts(){
+  const data = await fetchJSON("/admin/site-settings/apply-products",{
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+  await loadProducts();
+  await loadOverview();
+  alert(data.message || "Applied.");
+}
+
+
+async function loadAdminSecurityProfile(){
+  try{
+    const data = await fetchJSON("/api/admin/security/profile");
+    const row = data.data || {};
+    document.getElementById("adminProfileEmail").textContent = row.email || "Not available";
+    document.getElementById("adminProfilePhone").textContent = row.phone || "Not available";
+    document.getElementById("adminProfileUpdated").textContent = row.updated_at || "Not available";
+    document.getElementById("admin_support_phone").value = row.phone || "";
+  }catch(err){
+    document.getElementById("adminProfileEmail").textContent = "Profile route not ready";
+    document.getElementById("adminProfilePhone").textContent = "Profile route not ready";
+    document.getElementById("adminProfileUpdated").textContent = "Profile route not ready";
+  }
+}
+
+async function changeAdminPassword(){
+  const current_password = document.getElementById("admin_current_password").value.trim();
+  const new_password = document.getElementById("admin_new_password").value.trim();
+  const confirm_password = document.getElementById("admin_confirm_password").value.trim();
+
+  if (!current_password) return alert("Current password is required.");
+  if (!new_password) return alert("New password is required.");
+  if (new_password.length < 6) return alert("New password must be at least 6 characters.");
+  if (new_password !== confirm_password) return alert("New password and confirm password do not match.");
+
+  const data = await fetchJSON("/admin/security/change-password", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify({ current_password, new_password })
+  });
+
+  document.getElementById("admin_current_password").value = "";
+  document.getElementById("admin_new_password").value = "";
+  document.getElementById("admin_confirm_password").value = "";
+  alert(data.message || "Password updated.");
+}
+
+async function updateAdminContact(){
+  const phone = document.getElementById("admin_support_phone").value.trim();
+  if (!phone) return alert("Support number is required.");
+
+  const data = await fetchJSON("/admin/security/update-contact", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" },
+    body:JSON.stringify({ phone })
+  });
+
+  await loadAdminSecurityProfile();
+  alert(data.message || "Support number updated.");
+}
+
+async function loadVisitors(){
+  const holder = document.getElementById("visitorsGrid");
+  holder.innerHTML = '<div class="loading">Loading...</div>';
+
+  try{
+    const data = await fetchJSON("/api/admin/visitors");
+    const rows = data.data || [];
+
+    if (!rows.length){
+      holder.innerHTML = '<div class="empty">No visitor data found.</div>';
+      return;
+    }
+
+    holder.innerHTML = rows.map(v => `
+      <div class="visitor-card">
+        <h4>${esc(v.name || v.email || v.ip_address || "Visitor")}</h4>
+        <div class="visitor-meta">
+          <div><strong style="color:var(--muted)">Email:</strong> ${esc(v.email || "-")}</div>
+          <div><strong style="color:var(--muted)">Phone:</strong> ${esc(v.phone || "-")}</div>
+          <div><strong style="color:var(--muted)">Device:</strong> ${esc(v.device_type || "-")}</div>
+          <div><strong style="color:var(--muted)">Browser:</strong> ${esc(v.browser || v.user_agent || "-")}</div>
+          <div><strong style="color:var(--muted)">Platform:</strong> ${esc(v.platform || "-")}</div>
+          <div><strong style="color:var(--muted)">Location:</strong> ${esc(v.location || v.region || v.city || "-")}</div>
+          <div><strong style="color:var(--muted)">IP:</strong> ${esc(v.ip_address || "-")}</div>
+          <div><strong style="color:var(--muted)">Last Seen:</strong> ${esc(v.created_at || v.last_seen || "-")}</div>
+        </div>
+      </div>
+    `).join("");
+  }catch(err){
+    holder.innerHTML = '<div class="empty">Visitor route not ready yet.</div>';
+  }
+}
+
+async function searchResetUsers(){
+  const holder = document.getElementById("userResetResults");
+  const q = String(document.getElementById("userResetSearch")?.value || "").trim();
+  holder.innerHTML = '<div class="loading">Loading...</div>';
+
+  try{
+    const url = q ? `/api/admin/customers?q=${encodeURIComponent(q)}` : "/api/admin/customers";
+    const data = await fetchJSON(url);
+    const rows = data.data || [];
+
+    if (!rows.length){
+      holder.innerHTML = '<div class="empty">No users found.</div>';
+      return;
+    }
+
+    holder.innerHTML = rows.map(u => `
+      <div class="user-reset-card">
+        <h4>${esc(u.full_name || u.email || "Customer")}</h4>
+        <div class="visitor-meta">
+          <div><strong style="color:var(--muted)">Email:</strong> ${esc(u.email || "-")}</div>
+          <div><strong style="color:var(--muted)">Phone:</strong> ${esc(u.phone || "-")}</div>
+          <div><strong style="color:var(--muted)">Status:</strong> ${esc(u.status || "-")}</div>
+          <div><strong style="color:var(--muted)">Last Login:</strong> ${esc(u.last_login || "-")}</div>
+        </div>
+        <div class="quick-inline-actions">
+          <button class="btn sm warn" type="button" onclick="resetUserAccess(${JSON.stringify("")} + ${JSON.stringify("")})" style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify("")})' style="display:none;"></button>
+          <button class="btn sm secondary" type="button" onclick='openReply(${JSON.stringify("")}, ${JSON.stringify("Account Help")})' style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify("")})' style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify("")})' style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify("")})' style="display:none;"></button>
+          <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify(u.id)})'>Reset Access</button>
+          <button class="btn sm secondary" type="button" onclick='openReply(${JSON.stringify(u.id)}, ${JSON.stringify("Account Help")})'>Help User</button>
+        </div>
+      </div>
+    `).join("");
+  }catch(err){
+    holder.innerHTML = '<div class="empty">Customer search/reset route not ready yet.</div>';
+  }
+}
+
+async function resetUserAccess(userId){
+  if (!userId) return alert("User id missing.");
+  if (!confirm("Reset this user access?")) return;
+
+  const data = await fetchJSON(`/admin/customers/${userId}/reset-access`, {
+    method:"POST",
+    headers:{ "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+  });
+
+  alert(data.message || "User access reset.");
+  await searchResetUsers();
+}
+
+function updateSidebarMessageBadges(){
+  const customerCount = Array.isArray(window.__customerMessagesCache) ? window.__customerMessagesCache.length : 0;
+  const supportCount = Array.isArray(window.__supportTicketsCache) ? window.__supportTicketsCache.length : 0;
+  const total = customerCount + supportCount;
+  const badge = document.getElementById("sidebarMessagesBadge");
+  if (badge) badge.textContent = String(total || 0);
+}
+
+
+console.log("ADMIN CLICK PATCH LOADED");
+refreshCurrent();
+
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 980) {
+    document.getElementById("sidebar")?.classList.remove("show");
+    document.getElementById("overlay")?.classList.remove("show");
+  }
+});
+
+</script>
+
+<div class="modal-wrap" id="chatbotModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="chatbotModalTitle">Create Bot Answer</h3>
+      <div class="modal-head-actions">
+        <button class="btn secondary sm" type="button" onclick="closeModal('chatbotModalWrap')">Close</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="chatbot_id">
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Title</label>
+          <input id="chatbot_title">
+        </div>
+        <div class="field">
+          <label>Intent</label>
+          <input id="chatbot_intent">
+        </div>
+        <div class="field">
+          <label>Priority</label>
+          <input type="number" id="chatbot_priority" value="100">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="chatbot_active">
+            <option value="true">Active</option>
+            <option value="false">Disabled</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column:1 / -1;">
+          <label>Keywords (comma separated)</label>
+          <textarea id="chatbot_keywords"></textarea>
+        </div>
+        <div class="field" style="grid-column:1 / -1;">
+          <label>Bot Answer</label>
+          <textarea id="chatbot_answer"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button class="btn danger" id="deleteChatbotBtn" type="button" style="display:none" onclick="deleteChatbotItem()">Delete</button>
+        <button class="btn success" type="button" onclick="saveChatbotItem()">Save Bot Answer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.replyToSupportTicket = function(ticketId){
+  const item = (window.__supportTicketsMap || {})[String(ticketId)];
+  if (!item){
+    alert("Support ticket not found.");
+    return;
+  }
+
+  const customerIdField = document.getElementById("reply_customer_id");
+  const subjectField = document.getElementById("reply_subject");
+  const messageField = document.getElementById("reply_message");
+
+  if (customerIdField) customerIdField.value = item.customer_id || "";
+  if (subjectField) subjectField.value = "Reply: " + (item.subject || "Support Ticket");
+  if (messageField) messageField.value = "";
+
+  if (typeof openModal === "function") {
+    openModal("replyModalWrap");
+  } else {
+    alert("Reply modal not available.");
+  }
+};
+
+window.openSupportTicketById = function(id){
+  const item = (window.__supportTicketsMap || {})[String(id)];
+  if (!item){
+    alert("Support ticket not found.");
+    return;
+  }
+
+  window.__currentOpenMessage = { table: "support_tickets", id: item.id };
+
+  const subjectEl = document.getElementById("messageView_subject");
+  const metaEl = document.getElementById("messageView_meta");
+  const bodyEl = document.getElementById("messageView_body");
+  const replyBtn = document.getElementById("saveTicketReplyBtn");
+
+  if (subjectEl) subjectEl.textContent = item.subject || "Support Ticket";
+  if (metaEl) {
+    metaEl.innerHTML = `
+      <div><strong>Customer:</strong> ${item.customer_name || "-"}</div>
+      <div><strong>Email:</strong> ${item.customer_email || "-"}</div>
+      <div><strong>Phone:</strong> ${item.customer_phone || "-"}</div>
+      <div><strong>Status:</strong> ${item.status || "-"}</div>
+      <div><strong>Source:</strong> ${item.source || "-"}</div>
+      <div><strong>Date:</strong> ${item.created_at || "-"}</div>
+    `;
+  }
+  if (bodyEl) bodyEl.textContent = item.message || "-";
+  if (replyBtn) replyBtn.style.display = "";
+
+  if (typeof openModal === "function") {
+    openModal("messageViewModalWrap");
+  } else {
+    alert("Message view modal not available.");
+  }
+};
+
+window.deleteMessage = async function(table, id){
+  if (!table || !id){
+    alert("Delete target missing.");
+    return;
+  }
+  if (!confirm("Delete this message?")) return;
+
+  try{
+    const res = await fetch("/admin/messages/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ table, id })
+    });
+
+    const text = await res.text();
+    let data = {};
+    try { data = JSON.parse(text); } catch(e) { throw new Error(text); }
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Delete failed");
+    }
+
+    if (typeof loadMessages === "function") await loadMessages();
+    alert(data.message || "Message deleted.");
+  }catch(err){
+    alert("Failed to delete message: " + String(err.message || err));
+  }
+};
+
+window.saveSupportTicketReplyFromView = async function(){
+  const current = window.__currentOpenMessage || {};
+  const ticketId = current.id;
+  if (!ticketId){
+    alert("No open support ticket selected.");
+    return;
+  }
+
+  const replyText = prompt("Type your reply to the customer:");
+  if (!replyText || !replyText.trim()) return;
+
+  try{
+    const res = await fetch(`/admin/support-tickets/${ticketId}/reply`, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ reply_message: replyText.trim() })
+    });
+
+    const text = await res.text();
+    let data = {};
+    try { data = JSON.parse(text); } catch(e) { throw new Error(text); }
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Reply failed");
+    }
+
+    if (typeof loadMessages === "function") await loadMessages();
+    alert(data.message || "Reply saved.");
+  }catch(err){
+    alert("Failed to save reply: " + String(err.message || err));
+  }
+};
+</script>
+
+</body>
+</html>
+

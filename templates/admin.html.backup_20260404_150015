@@ -1,0 +1,1278 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KATRAMONEY Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#06140e;
+      --bg2:#0b2016;
+      --panel:rgba(9,22,16,.92);
+      --panel-2:rgba(12,28,21,.88);
+      --card:rgba(255,255,255,.05);
+      --line:rgba(255,255,255,.09);
+      --text:#edf7f0;
+      --muted:#a3c2b0;
+      --primary:#22c55e;
+      --primary-2:#16a34a;
+      --accent:#86efac;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --success:#22c55e;
+      --shadow:0 14px 40px rgba(0,0,0,.28);
+      --radius:20px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        linear-gradient(rgba(3,11,8,.80), rgba(5,15,10,.92)),
+        url("https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1800&q=80") center/cover fixed no-repeat;
+      overflow-x:hidden;
+    }
+
+    .app-shell{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:280px minmax(0,1fr);
+    }
+
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow:auto;
+      background:linear-gradient(180deg, rgba(9,22,16,.96), rgba(7,18,13,.96));
+      border-right:1px solid var(--line);
+      padding:18px 14px;
+      z-index:30;
+    }
+
+    .brand{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      border-radius:22px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:20px;
+      font-weight:900;
+      letter-spacing:.02em;
+    }
+
+    .brand p{
+      margin:6px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .nav-title{
+      margin:18px 10px 8px;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.13em;
+    }
+
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .nav-btn,.nav-link{
+      appearance:none;
+      border:none;
+      width:100%;
+      background:transparent;
+      color:var(--muted);
+      padding:13px 14px;
+      border-radius:15px;
+      text-align:left;
+      font-weight:800;
+      cursor:pointer;
+      text-decoration:none;
+      border:1px solid transparent;
+      transition:.18s ease;
+    }
+
+    .nav-btn:hover,.nav-link:hover,
+    .nav-btn.active{
+      background:rgba(34,197,94,.12);
+      color:var(--text);
+      border-color:rgba(134,239,172,.18);
+      transform:translateY(-1px);
+    }
+
+    .main{
+      min-width:0;
+      padding:22px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      flex-wrap:wrap;
+      padding:18px 20px;
+      border:1px solid var(--line);
+      background:rgba(7,18,13,.72);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+      backdrop-filter:blur(8px);
+    }
+
+    .topbar h2{
+      margin:0;
+      font-size:26px;
+      font-weight:900;
+    }
+
+    .topbar p{
+      margin:7px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      border:none;
+      border-radius:14px;
+      padding:11px 15px;
+      color:white;
+      cursor:pointer;
+      font-weight:800;
+      letter-spacing:.01em;
+      transition:.18s ease;
+      box-shadow:var(--shadow);
+    }
+
+    .btn:hover{transform:translateY(-1px)}
+    .btn:disabled{opacity:.65;cursor:not-allowed;transform:none}
+
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2))}
+    .btn-secondary{background:rgba(255,255,255,.06);border:1px solid var(--line)}
+    .btn-success{background:linear-gradient(135deg,#22c55e,#15803d)}
+    .btn-warn{background:linear-gradient(135deg,#f59e0b,#d97706)}
+    .btn-danger{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+    .btn-sm{padding:8px 11px;font-size:12px;border-radius:12px}
+
+    .section{display:none}
+    .section.active{display:block}
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .stat,.card{
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+    }
+
+    .stat small{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+      text-transform:uppercase;
+      margin-bottom:10px;
+      letter-spacing:.08em;
+    }
+
+    .stat .num{
+      font-size:29px;
+      font-weight:900;
+      line-height:1.1;
+    }
+
+    .card{
+      margin-bottom:16px;
+    }
+
+    .card-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .card-head h3{
+      margin:0;
+      font-size:18px;
+      font-weight:900;
+    }
+
+    .small{font-size:12px}
+    .muted{color:var(--muted)}
+
+    .table-wrap{
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.02);
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:850px;
+    }
+
+    th,td{
+      padding:14px 12px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      vertical-align:top;
+      font-size:14px;
+    }
+
+    th{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    tr:hover td{
+      background:rgba(255,255,255,.02);
+    }
+
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.04em;
+      white-space:nowrap;
+    }
+
+    .pill-pending{background:rgba(245,158,11,.16);color:#ffd58a}
+    .pill-approved{background:rgba(34,197,94,.16);color:#9ff3ba}
+    .pill-rejected{background:rgba(239,68,68,.16);color:#ffb0b0}
+    .pill-active{background:rgba(34,197,94,.16);color:#a7f3c0}
+    .pill-disabled{background:rgba(239,68,68,.16);color:#fecaca}
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+    }
+
+    .field label{
+      display:block;
+      margin-bottom:6px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    input,select,textarea{
+      width:100%;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:12px 14px;
+      outline:none;
+      font-family:inherit;
+    }
+
+    input:focus,select:focus,textarea:focus{
+      border-color:rgba(134,239,172,.35);
+      box-shadow:0 0 0 3px rgba(34,197,94,.12);
+    }
+
+    textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+
+    .empty-state{
+      padding:20px;
+      text-align:center;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .loading{
+      padding:22px;
+      text-align:center;
+      color:var(--muted);
+      font-weight:800;
+    }
+
+    .top-note{
+      margin-bottom:16px;
+      padding:14px 16px;
+      border-radius:18px;
+      border:1px solid rgba(134,239,172,.16);
+      background:rgba(34,197,94,.08);
+      color:#d7fbe1;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      display:none;
+      z-index:25;
+    }
+
+    .overlay.show{display:block}
+
+    .modal-wrap{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      background:rgba(0,0,0,.42);
+      z-index:50;
+    }
+
+    .modal-wrap.show{display:flex}
+
+    .modal{
+      width:min(760px,100%);
+      max-height:90vh;
+      overflow:auto;
+      background:linear-gradient(180deg,#0b1d14,#0d2418);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+    }
+
+    .modal-head,.modal-body{
+      padding:18px;
+    }
+
+    .modal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .modal-head h3{
+      margin:0;
+      font-size:18px;
+      font-weight:900;
+    }
+
+    .footer-space{height:4px}
+
+    @media (max-width: 1020px){
+      .app-shell{
+        grid-template-columns:1fr;
+      }
+      .sidebar{
+        position:fixed;
+        left:-110%;
+        width:280px;
+        transition:left .22s ease;
+      }
+      .sidebar.show{
+        left:0;
+      }
+      .main{
+        padding:16px;
+      }
+      .topbar h2{
+        font-size:22px;
+      }
+    }
+
+    @media (max-width: 640px){
+      .main{
+        padding:12px;
+      }
+      .topbar{
+        padding:16px;
+        border-radius:18px;
+      }
+      .stat,.card{
+        border-radius:18px;
+        padding:15px;
+      }
+      .actions{
+        width:100%;
+      }
+      .actions .btn{
+        flex:1 1 auto;
+      }
+      .btn{
+        width:auto;
+      }
+      .modal{
+        border-radius:18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <h1>KATRAMONEY Admin</h1>
+        <p>Premium Finance Control Center</p>
+      </div>
+
+      <div class="nav-title">Overview</div>
+      <div class="nav">
+        <button class="nav-btn active" data-section="overview">Dashboard</button>
+      </div>
+
+      <div class="nav-title">Operations</div>
+      <div class="nav">
+        <button class="nav-btn" data-section="applications">Applications</button>
+        <button class="nav-btn" data-section="products">Loan Products</button>
+        <button class="nav-btn" data-section="messages">Messages</button>
+      </div>
+
+      <div class="nav-title">System</div>
+      <div class="nav">
+        <button class="nav-btn" data-section="site-settings">System Rates</button>
+        <a class="nav-link" href="/admin/logout">Logout</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="pageTitle">Dashboard Overview</h2>
+          <p id="pageSubtitle">Live finance control panel with products, messages, applications, and rates.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" type="button" onclick="toggleSidebar()">☰ Menu</button>
+          <button class="btn btn-secondary" type="button" onclick="refreshCurrent()">Refresh</button>
+          <button class="btn btn-primary" type="button" onclick="openProductModal()">+ New Product</button>
+        </div>
+      </div>
+
+      <div class="top-note">
+        Premium green financial dashboard rebuilt for better mobile fit, safer loading, and easier management.
+      </div>
+
+      <section class="section active" id="section-overview">
+        <div class="stats" id="overviewStats">
+          <div class="stat"><small>Loading</small><div class="num">...</div></div>
+          <div class="stat"><small>Loading</small><div class="num">...</div></div>
+          <div class="stat"><small>Loading</small><div class="num">...</div></div>
+          <div class="stat"><small>Loading</small><div class="num">...</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Recent Applications</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Applicant</th>
+                  <th>Product</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentAppsBody">
+                <tr><td colspan="5" class="loading">Loading recent applications...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-applications">
+        <div class="card">
+          <div class="card-head">
+            <h3>Applications</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Applicant</th>
+                  <th>Product</th>
+                  <th>Amount</th>
+                  <th>Term</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="applicationsBody">
+                <tr><td colspan="6" class="loading">Loading applications...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-products">
+        <div class="card">
+          <div class="card-head">
+            <h3>Loan Products</h3>
+            <button class="btn btn-primary" type="button" onclick="openProductModal()">+ Create Product</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Interest</th>
+                  <th>Fee</th>
+                  <th>Min</th>
+                  <th>Max</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="productsBody">
+                <tr><td colspan="7" class="loading">Loading loan products...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-messages">
+        <div class="card">
+          <div class="card-head">
+            <h3>Contacts</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Subject</th>
+                  <th>Message</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="contactsBody">
+                <tr><td colspan="6" class="loading">Loading contacts...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Customer Messages</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Message</th>
+                  <th>Sender</th>
+                  <th>Read</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="customerMessagesBody">
+                <tr><td colspan="6" class="loading">Loading customer messages...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Support Tickets</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Email</th>
+                  <th>Subject</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="supportTicketsBody">
+                <tr><td colspan="7" class="loading">Loading support tickets...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-site-settings">
+        <div class="card">
+          <div class="card-head">
+            <h3>System Rates</h3>
+            <div class="actions">
+              <button class="btn btn-success" type="button" onclick="saveSiteSettings()" id="saveRatesBtn">Save Rates</button>
+              <button class="btn btn-warn" type="button" onclick="applySettingsToProducts()" id="applyRatesBtn">Apply Rates To Products</button>
+            </div>
+          </div>
+
+          <form id="siteSettingsForm">
+            <div class="form-grid">
+              <div class="field">
+                <label>Base Interest Rate (%)</label>
+                <input type="number" step="0.01" name="interest_rate" id="ss_interest_rate">
+              </div>
+              <div class="field">
+                <label>Base Service Fee (N$)</label>
+                <input type="number" step="0.01" name="service_fee" id="ss_service_fee">
+              </div>
+              <div class="field">
+                <label>Business Loan Rate (%)</label>
+                <input type="number" step="0.01" name="business_loan_rate" id="ss_business_loan_rate">
+              </div>
+              <div class="field">
+                <label>Personal Loan Rate (%)</label>
+                <input type="number" step="0.01" name="personal_loan_rate" id="ss_personal_loan_rate">
+              </div>
+              <div class="field">
+                <label>Salary Advance Rate (%)</label>
+                <input type="number" step="0.01" name="salary_advance_rate" id="ss_salary_advance_rate">
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <div class="footer-space"></div>
+    </main>
+  </div>
+
+  <div class="modal-wrap" id="productModalWrap">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="productModalTitle">Create Product</h3>
+        <button class="btn btn-secondary btn-sm" type="button" onclick="closeModal('productModalWrap')">Close</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="product_id">
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Product Name</label>
+            <input id="product_name" />
+          </div>
+          <div class="field">
+            <label>Interest Rate (%)</label>
+            <input type="number" step="0.01" id="product_rate" />
+          </div>
+          <div class="field">
+            <label>Service Fee</label>
+            <input type="number" step="0.01" id="product_fee" />
+          </div>
+          <div class="field">
+            <label>Minimum Amount</label>
+            <input type="number" step="0.01" id="product_min" />
+          </div>
+          <div class="field">
+            <label>Maximum Amount</label>
+            <input type="number" step="0.01" id="product_max" />
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="product_active">
+              <option value="true">Active</option>
+              <option value="false">Disabled</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
+          <button class="btn btn-danger" id="deleteProductBtn" type="button" onclick="deleteProduct()" style="display:none">Delete</button>
+          <button class="btn btn-success" id="saveProductBtn" type="button" onclick="saveProduct()">Save Product</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-wrap" id="replyModalWrap">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Reply To Customer</h3>
+        <button class="btn btn-secondary btn-sm" type="button" onclick="closeModal('replyModalWrap')">Close</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reply_customer_id">
+
+        <div class="field">
+          <label>Subject</label>
+          <input id="reply_subject" />
+        </div>
+
+        <div class="field" style="margin-top:14px">
+          <label>Message</label>
+          <textarea id="reply_message"></textarea>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+          <button class="btn btn-success" id="sendReplyBtn" type="button" onclick="sendReply()">Send Reply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const titles = {
+      overview:["Dashboard Overview","Live finance control panel with products, messages, applications, and rates."],
+      applications:["Applications","Review and manage submitted loan applications."],
+      products:["Loan Products","Create, edit, activate, and manage all products."],
+      messages:["Messages","Read, reply to, and remove customer communication."],
+      "site-settings":["System Rates","Control base rates and apply them to products."]
+    };
+
+    let currentSection = "overview";
+    let isBusy = false;
+
+    function esc(v){
+      return String(v ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#39;");
+    }
+
+    function money(v){
+      const n = Number(v || 0);
+      return isNaN(n) ? "0.00" : n.toFixed(2);
+    }
+
+    function statusPill(status){
+      const s = String(status || "PENDING").trim().toUpperCase();
+      if (["APPROVED","ACTIVE","CLOSED"].includes(s)) return `<span class="pill pill-approved">${esc(s)}</span>`;
+      if (["REJECTED","DECLINED","DISABLED"].includes(s)) return `<span class="pill pill-rejected">${esc(s)}</span>`;
+      return `<span class="pill pill-pending">${esc(s)}</span>`;
+    }
+
+    function activePill(active){
+      return active
+        ? `<span class="pill pill-active">ACTIVE</span>`
+        : `<span class="pill pill-disabled">DISABLED</span>`;
+    }
+
+    function toggleSidebar(){
+      document.getElementById("sidebar").classList.toggle("show");
+      document.getElementById("sidebarOverlay").classList.toggle("show");
+    }
+
+    function closeSidebar(){
+      document.getElementById("sidebar").classList.remove("show");
+      document.getElementById("sidebarOverlay").classList.remove("show");
+    }
+
+    function openModal(id){
+      document.getElementById(id).classList.add("show");
+    }
+
+    function closeModal(id){
+      document.getElementById(id).classList.remove("show");
+    }
+
+    function setLoadingRow(tbodyId, colspan, text){
+      const el = document.getElementById(tbodyId);
+      if (!el) return;
+      el.innerHTML = `<tr><td colspan="${colspan}" class="loading">${esc(text)}</td></tr>`;
+    }
+
+    function setEmptyRow(tbodyId, colspan, text){
+      const el = document.getElementById(tbodyId);
+      if (!el) return;
+      el.innerHTML = `<tr><td colspan="${colspan}" class="empty-state">${esc(text)}</td></tr>`;
+    }
+
+    async function fetchJSON(url, options={}){
+      const res = await fetch(url, options);
+      let data = {};
+      try {
+        data = await res.json();
+      } catch(e) {
+        throw new Error(`Invalid JSON response from ${url}`);
+      }
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || `Request failed: ${url}`);
+      }
+      return data;
+    }
+
+    document.querySelectorAll(".nav-btn").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const name = btn.dataset.section;
+        currentSection = name;
+
+        document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
+        btn.classList.add("active");
+
+        document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+        document.getElementById("section-"+name).classList.add("active");
+
+        document.getElementById("pageTitle").textContent = titles[name][0];
+        document.getElementById("pageSubtitle").textContent = titles[name][1];
+
+        closeSidebar();
+        await refreshCurrent();
+      });
+    });
+
+    async function refreshCurrent(){
+      if (isBusy) return;
+      try {
+        if (currentSection === "overview") await loadOverview();
+        if (currentSection === "applications") await loadApplications();
+        if (currentSection === "products") await loadProducts();
+        if (currentSection === "messages") await loadMessages();
+        if (currentSection === "site-settings") await loadSiteSettings();
+      } catch (e) {
+        alert(e.message || "Something went wrong.");
+      }
+    }
+
+    async function loadOverview(){
+      const data = await fetchJSON("/api/admin/overview");
+
+      const c = data.counts || {};
+      document.getElementById("overviewStats").innerHTML = `
+        <div class="stat"><small>Total Applications</small><div class="num">${esc(c.applications || 0)}</div></div>
+        <div class="stat"><small>Pending Reviews</small><div class="num">${esc(c.pending || 0)}</div></div>
+        <div class="stat"><small>Loan Products</small><div class="num">${esc(c.loan_products || 0)}</div></div>
+        <div class="stat"><small>Total Requested</small><div class="num">N$ ${money(c.total_requested || 0)}</div></div>
+      `;
+
+      const rows = data.recent_applications || [];
+      if (!rows.length) {
+        setEmptyRow("recentAppsBody", 5, "No recent applications found.");
+        return;
+      }
+
+      document.getElementById("recentAppsBody").innerHTML = rows.map(a => `
+        <tr>
+          <td><strong>${esc(a.reference || a.ref || "-")}</strong></td>
+          <td>${esc(a.full_name || a.applicant_name || "-")}</td>
+          <td>${esc(a.product_name || a.loan_product_name || "-")}</td>
+          <td>N$ ${money(a.amount)}</td>
+          <td>${statusPill(a.status)}</td>
+        </tr>
+      `).join("");
+    }
+
+    async function loadApplications(){
+      setLoadingRow("applicationsBody", 6, "Loading applications...");
+      const data = await fetchJSON("/api/admin/applications");
+      const rows = data.data || [];
+
+      if (!rows.length) {
+        setEmptyRow("applicationsBody", 6, "No applications found.");
+        return;
+      }
+
+      document.getElementById("applicationsBody").innerHTML = rows.map(a => `
+        <tr>
+          <td>${esc(a.reference || a.ref || "-")}</td>
+          <td>${esc(a.full_name || a.applicant_name || "-")}</td>
+          <td>${esc(a.product_name || a.loan_product_name || "-")}</td>
+          <td>N$ ${money(a.amount)}</td>
+          <td>${esc(a.term ?? "-")} ${a.term ? "months" : ""}</td>
+          <td>${statusPill(a.status)}</td>
+        </tr>
+      `).join("");
+    }
+
+    async function loadProducts(){
+      setLoadingRow("productsBody", 7, "Loading loan products...");
+      const data = await fetchJSON("/api/admin/loan-products");
+      const rows = data.data || [];
+
+      if (!rows.length) {
+        setEmptyRow("productsBody", 7, "No loan products found.");
+        return;
+      }
+
+      document.getElementById("productsBody").innerHTML = rows.map(p => `
+        <tr>
+          <td><strong>${esc(p.name || "-")}</strong></td>
+          <td>${esc(p.interest_rate ?? 0)}%</td>
+          <td>N$ ${money(p.service_fee)}</td>
+          <td>N$ ${money(p.min_amount)}</td>
+          <td>N$ ${money(p.max_amount)}</td>
+          <td>${activePill(!!p.active)}</td>
+          <td>
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              onclick='openEditProduct(
+                ${JSON.stringify(p.id ?? "")},
+                ${JSON.stringify(p.name ?? "")},
+                ${JSON.stringify(p.interest_rate ?? "")},
+                ${JSON.stringify(p.service_fee ?? "")},
+                ${JSON.stringify(p.min_amount ?? "")},
+                ${JSON.stringify(p.max_amount ?? "")},
+                ${JSON.stringify(!!p.active)}
+              )'
+            >Edit</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    async function loadMessages(){
+      setLoadingRow("contactsBody", 6, "Loading contacts...");
+      setLoadingRow("customerMessagesBody", 6, "Loading customer messages...");
+      setLoadingRow("supportTicketsBody", 7, "Loading support tickets...");
+
+      const data = await fetchJSON("/api/admin/messages-feed");
+
+      const contacts = data.contacts || [];
+      const customerMessages = data.customer_messages || [];
+      const supportTickets = data.support_tickets || [];
+
+      if (!contacts.length) {
+        setEmptyRow("contactsBody", 6, "No contacts found.");
+      } else {
+        document.getElementById("contactsBody").innerHTML = contacts.map(m => `
+          <tr>
+            <td>${esc(m.name || "-")}</td>
+            <td>${esc(m.email || "-")}</td>
+            <td>${esc(m.subject || "-")}</td>
+            <td>${esc(m.message || "-")}</td>
+            <td>${esc(m.created_at || "-")}</td>
+            <td>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-secondary btn-sm" onclick='openReply(${JSON.stringify(m.customer_id || "")}, ${JSON.stringify("Reply: " + (m.subject || "Customer Message"))})'>Reply</button>
+                <button class="btn btn-danger btn-sm" onclick='deleteMessage("contacts", ${JSON.stringify(m.id)})'>Delete</button>
+              </div>
+            </td>
+          </tr>
+        `).join("");
+      }
+
+      if (!customerMessages.length) {
+        setEmptyRow("customerMessagesBody", 6, "No customer messages found.");
+      } else {
+        document.getElementById("customerMessagesBody").innerHTML = customerMessages.map(m => `
+          <tr>
+            <td>${esc(m.subject || "-")}</td>
+            <td>${esc(m.message || "-")}</td>
+            <td>${esc(m.sender_role || "-")}</td>
+            <td>${esc(m.is_read ?? "-")}</td>
+            <td>${esc(m.created_at || "-")}</td>
+            <td>
+              <button class="btn btn-danger btn-sm" onclick='deleteMessage("customer_messages", ${JSON.stringify(m.id)})'>Delete</button>
+            </td>
+          </tr>
+        `).join("");
+      }
+
+      if (!supportTickets.length) {
+        setEmptyRow("supportTicketsBody", 7, "No support tickets found.");
+      } else {
+        document.getElementById("supportTicketsBody").innerHTML = supportTickets.map(s => `
+          <tr>
+            <td>${esc(s.customer_name || "-")}</td>
+            <td>${esc(s.customer_email || "-")}</td>
+            <td>${esc(s.subject || "-")}</td>
+            <td>${esc(s.message || "-")}</td>
+            <td>${esc(s.status || "-")}</td>
+            <td>${esc(s.created_at || "-")}</td>
+            <td>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-secondary btn-sm" onclick='openReply(${JSON.stringify(s.customer_id || "")}, ${JSON.stringify("Support Reply: " + (s.subject || "Ticket"))})'>Reply</button>
+                <button class="btn btn-danger btn-sm" onclick='deleteMessage("support_tickets", ${JSON.stringify(s.id)})'>Delete</button>
+              </div>
+            </td>
+          </tr>
+        `).join("");
+      }
+    }
+
+    async function loadSiteSettings(){
+      const data = await fetchJSON("/api/admin/site-settings");
+      const s = data.data || {};
+
+      document.getElementById("ss_interest_rate").value = s.interest_rate ?? "";
+      document.getElementById("ss_service_fee").value = s.service_fee ?? "";
+      document.getElementById("ss_business_loan_rate").value = s.business_loan_rate ?? "";
+      document.getElementById("ss_personal_loan_rate").value = s.personal_loan_rate ?? "";
+      document.getElementById("ss_salary_advance_rate").value = s.salary_advance_rate ?? "";
+    }
+
+    function openProductModal(){
+      document.getElementById("productModalTitle").textContent = "Create Product";
+      document.getElementById("product_id").value = "";
+      document.getElementById("product_name").value = "";
+      document.getElementById("product_rate").value = "";
+      document.getElementById("product_fee").value = "";
+      document.getElementById("product_min").value = "";
+      document.getElementById("product_max").value = "";
+      document.getElementById("product_active").value = "true";
+      document.getElementById("deleteProductBtn").style.display = "none";
+      openModal("productModalWrap");
+    }
+
+    function openEditProduct(id, name, rate, fee, minAmount, maxAmount, active){
+      document.getElementById("productModalTitle").textContent = "Edit Product";
+      document.getElementById("product_id").value = id || "";
+      document.getElementById("product_name").value = name || "";
+      document.getElementById("product_rate").value = rate || "";
+      document.getElementById("product_fee").value = fee || "";
+      document.getElementById("product_min").value = minAmount || "";
+      document.getElementById("product_max").value = maxAmount || "";
+      document.getElementById("product_active").value = String(active) === "true" ? "true" : "false";
+      document.getElementById("deleteProductBtn").style.display = "";
+      openModal("productModalWrap");
+    }
+
+    async function saveProduct(){
+      const btn = document.getElementById("saveProductBtn");
+      const id = document.getElementById("product_id").value.trim();
+
+      const payload = {
+        name: document.getElementById("product_name").value.trim(),
+        interest_rate: parseFloat(document.getElementById("product_rate").value || 0),
+        service_fee: parseFloat(document.getElementById("product_fee").value || 0),
+        min_amount: parseFloat(document.getElementById("product_min").value || 0),
+        max_amount: parseFloat(document.getElementById("product_max").value || 0),
+        active: document.getElementById("product_active").value === "true"
+      };
+
+      if (!payload.name) {
+        alert("Product name is required.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+
+      try {
+        const url = id ? `/admin/products/${id}/update` : `/admin/products/create`;
+        const data = await fetchJSON(url, {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Accept":"application/json",
+            "X-Requested-With":"XMLHttpRequest"
+          },
+          body:JSON.stringify(payload)
+        });
+
+        closeModal("productModalWrap");
+        await loadProducts();
+        await loadOverview();
+        alert(data.message || "Product saved successfully.");
+      } catch(e) {
+        alert(e.message || "Save failed.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Save Product";
+      }
+    }
+
+    async function deleteProduct(){
+      const id = document.getElementById("product_id").value.trim();
+      if (!id) return;
+      if (!confirm("Delete this product?")) return;
+
+      const btn = document.getElementById("deleteProductBtn");
+      btn.disabled = true;
+      btn.textContent = "Deleting...";
+
+      try {
+        const data = await fetchJSON(`/admin/products/${id}/delete`, {
+          method:"POST",
+          headers:{
+            "Accept":"application/json",
+            "X-Requested-With":"XMLHttpRequest"
+          }
+        });
+
+        closeModal("productModalWrap");
+        await loadProducts();
+        await loadOverview();
+        alert(data.message || "Product deleted successfully.");
+      } catch(e) {
+        alert(e.message || "Delete failed.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Delete";
+      }
+    }
+
+    function openReply(customerId, subject){
+      document.getElementById("reply_customer_id").value = customerId || "";
+      document.getElementById("reply_subject").value = subject || "Admin Reply";
+      document.getElementById("reply_message").value = "";
+      openModal("replyModalWrap");
+    }
+
+    async function sendReply(){
+      const btn = document.getElementById("sendReplyBtn");
+      const payload = {
+        customer_id: document.getElementById("reply_customer_id").value,
+        subject: document.getElementById("reply_subject").value.trim(),
+        message: document.getElementById("reply_message").value.trim()
+      };
+
+      if (!payload.subject) {
+        alert("Reply subject is required.");
+        return;
+      }
+      if (!payload.message) {
+        alert("Reply message is required.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Sending...";
+
+      try {
+        const data = await fetchJSON("/admin/messages/reply",{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Accept":"application/json",
+            "X-Requested-With":"XMLHttpRequest"
+          },
+          body:JSON.stringify(payload)
+        });
+
+        closeModal("replyModalWrap");
+        await loadMessages();
+        alert(data.message || "Reply sent successfully.");
+      } catch(e) {
+        alert(e.message || "Reply failed.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Send Reply";
+      }
+    }
+
+    async function deleteMessage(tableName, id){
+      if (!id) return;
+      if (!confirm("Delete this record?")) return;
+
+      try {
+        const data = await fetchJSON(`/admin/messages/${tableName}/${id}/delete`,{
+          method:"POST",
+          headers:{
+            "Accept":"application/json",
+            "X-Requested-With":"XMLHttpRequest"
+          }
+        });
+
+        await loadMessages();
+        await loadOverview();
+        alert(data.message || "Record deleted successfully.");
+      } catch(e) {
+        alert(e.message || "Delete failed.");
+      }
+    }
+
+    async function saveSiteSettings(){
+      const btn = document.getElementById("saveRatesBtn");
+      const fd = new FormData(document.getElementById("siteSettingsForm"));
+      const payload = {};
+      for (const [k,v] of fd.entries()) payload[k] = v;
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+
+      try {
+        const data = await fetchJSON("/admin/site-settings/save",{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Accept":"application/json",
+            "X-Requested-With":"XMLHttpRequest"
+          },
+          body:JSON.stringify(payload)
+        });
+
+        alert(data.message || "Rates saved successfully.");
+      } catch(e) {
+        alert(e.message || "Save failed.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Save Rates";
+      }
+    }
+
+    async function applySettingsToProducts(){
+      const btn = document.getElementById("applyRatesBtn");
+
+      btn.disabled = true;
+      btn.textContent = "Applying...";
+
+      try {
+        const data = await fetchJSON("/admin/site-settings/apply-products",{
+          method:"POST",
+          headers:{
+            "Accept":"application/json",
+            "X-Requested-With":"XMLHttpRequest"
+          }
+        });
+
+        await loadProducts();
+        await loadOverview();
+        alert(data.message || "Rates applied successfully.");
+      } catch(e) {
+        alert(e.message || "Apply failed.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Apply Rates To Products";
+      }
+    }
+
+    refreshCurrent();
+  </script>
+</body>
+</html>

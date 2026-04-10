@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+gunicorn
+requests
+python-dotenv
+flask-cors
+supabase
+postgrest
+realtime
+storage3
+gotrue
+httpx
