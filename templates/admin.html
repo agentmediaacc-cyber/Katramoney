@@ -1023,11 +1023,13 @@
     <div class="nav-title">Loan Management</div>
     <div class="nav">
       <button class="nav-btn" data-section="applications">Applications</button>
+      <button class="nav-btn" data-section="documents-center">Documents Center</button>
       <button class="nav-btn" data-section="products">Loan Products</button>
       <button class="nav-btn" data-section="messages">Messages <span id="sidebarMessagesBadge" class="pill pending" style="margin-left:6px;">0</span></button>
       <button class="nav-btn" data-section="site-settings">System Rates</button>
       <button class="nav-btn" data-section="cleanup">Cleanup Tools</button>
       <button class="nav-btn" data-section="security">Security & Users</button>
+      <button class="nav-btn" data-section="admin-team">Admin Team</button>
       <button class="nav-btn" data-section="visitors">Visitors & Devices</button>
       <button class="nav-btn" data-section="chatbot-library">Chatbot Library</button>
     </div>
@@ -1106,6 +1108,70 @@
       </div>
     </section>
 
+
+    <section class="section" id="section-documents-center">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3>Documents Center</h3>
+            <div class="section-note">Select an applicant, preview uploaded records, and download files for safe record keeping.</div>
+          </div>
+          <div class="actions">
+            <button class="btn secondary" type="button" onclick="loadDocumentsCenter()">Refresh Documents</button>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field">
+            <label>Search Applicant</label>
+            <input id="docsCenterSearch" type="text" placeholder="Search by name, reference, email, phone" oninput="filterDocumentsCenterList()">
+          </div>
+          <div class="field">
+            <label>Selected Applicant</label>
+            <input id="docsCenterSelectedLabel" type="text" placeholder="No applicant selected" readonly>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;">
+          <div class="card" style="margin:0;">
+            <div class="card-head">
+              <h3 style="margin:0;font-size:16px;">Applicants</h3>
+            </div>
+            <div id="docsCenterList" style="display:grid;gap:10px;">
+              <div class="loading">Loading applicants...</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin:0;">
+            <div class="card-head">
+              <div>
+                <h3 id="docsCenterApplicantName" style="margin:0;font-size:18px;">No applicant selected</h3>
+                <div id="docsCenterApplicantMeta" class="section-note">Choose an applicant from the left.</div>
+              </div>
+              <div class="actions">
+                <button class="btn secondary" type="button" onclick="downloadSelectedApplicantPDF()">Download Profile PDF</button>
+                <button class="btn secondary" type="button" onclick="downloadSelectedApplicantDocs()">Download All Files</button>
+                <button class="btn danger" type="button" onclick="deleteSelectedApplication()">Delete Application</button>
+              </div>
+            </div>
+
+            <div id="docsCenterDocuments" class="docs-list">
+              <div class="empty">No applicant selected yet.</div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <h4 style="margin:0 0 10px 0;">Document Preview</h4>
+              <div id="docsCenterPreviewWrap" style="border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(255,255,255,.03);min-height:420px;">
+                <div id="docsCenterPreviewEmpty" class="empty" style="padding:30px;">Select a document to preview it here.</div>
+                <iframe id="docsCenterPreviewFrame" style="display:none;width:100%;height:520px;border:none;background:#fff;"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
     <section class="section" id="section-products">
       <div class="card">
         <div class="card-head">
@@ -1113,9 +1179,6 @@
           <button class="btn" type="button" onclick="openProductModal()">+ Create Product</button>
         </div>
 
-        <div class="section-note" id="chatbotDebugNote" style="margin-bottom:10px;">
-          Loading chatbot library...
-        </div>
         <div class="filter-bar">
           <div class="field">
             <label>Search Products</label>
@@ -1244,6 +1307,24 @@
       </div>
     </section>
 
+
+    <section class="section" id="section-admin-team">
+      <div class="card">
+        <div class="card-head">
+          <h3>Admin Team Management</h3>
+          <button class="btn" type="button" onclick="openAdminUserModal()">+ Add Admin</button>
+        </div>
+        <div id="adminTeamGrid" class="visitor-grid"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Assigned Tasks</h3>
+        </div>
+        <div id="adminTasksGrid" class="msg-grid"><div class="loading">Loading...</div></div>
+      </div>
+    </section>
+
     <section class="section" id="section-visitors">
       <div class="card">
         <div class="card-head">
@@ -1350,6 +1431,7 @@
         <div class="field"><label>Service Fee</label><input type="number" step="0.01" id="product_fee"></div>
         <div class="field"><label>Minimum Amount</label><input type="number" step="1" id="product_min"></div>
         <div class="field"><label>Maximum Amount</label><input type="number" step="1" id="product_max"></div>
+        <div class="field"><label>Allowed Loan Months</label><input id="product_terms" placeholder="1,2,3,6,12"></div>
         <div class="field"><label>Status</label><select id="product_active"><option value="true">Active</option><option value="false">Disabled</option></select></div>
       </div>
       <div class="modal-footer-actions">
@@ -1370,6 +1452,7 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="reply_customer_id">
+      <input type="hidden" id="reply_support_ticket_id">
       <div class="field"><label>Subject</label><input id="reply_subject"></div>
       <div class="field" style="margin-top:14px"><label>Message</label><textarea id="reply_message"></textarea></div>
       <div class="modal-footer-actions">
@@ -1382,13 +1465,32 @@
 <div class="modal-wrap" id="applicationModalWrap">
   <div class="modal">
     <div class="modal-head">
-      <h3>Application Detail</h3>
+      <div>
+        <h3 style="margin:0 0 6px 0;">Application Detail</h3>
+        <div style="color:var(--muted);font-size:13px;">Professional applicant review panel with profile PDF and uploaded records.</div>
+      </div>
       <div class="modal-head-actions">
-        <button class="btn secondary sm" type="button" onclick="closeModal('applicationModalWrap')">Close</button>
+        <button class="btn danger sm" type="button" onclick="closeModal('applicationModalWrap')">✕ Close</button>
       </div>
     </div>
     <div class="modal-body">
       <input type="hidden" id="app_detail_id">
+      <div class="card" style="margin-bottom:14px;padding:14px;border-radius:16px;background:rgba(255,255,255,.04);">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+          <div>
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800;">Client Reference</div>
+            <div id="app_reference_display" style="font-size:16px;font-weight:900;color:#fff;">-</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800;">Application ID</div>
+            <div id="app_id_display" style="font-size:14px;font-weight:700;color:#d1fae5;word-break:break-word;">-</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800;">Records Download</div>
+            <div style="font-size:14px;color:#bbf7d0;">Use profile PDF and document links below.</div>
+          </div>
+        </div>
+      </div>
 
       <div class="form-grid">
         <div class="field"><label>Full Name</label><input id="app_full_name"></div>
@@ -1414,15 +1516,23 @@
       </div>
 
       <div style="margin-top:16px">
-        <h4 style="margin:0 0 10px 0">Uploaded Documents</h4>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <h4 style="margin:0">Uploaded Documents & Records</h4>
+          <button class="btn secondary sm" type="button" onclick="downloadAllApplicationDocuments()">Download / Open All</button>
+        </div>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:10px;">
+          Admin should be able to review and keep records for ID, payslip, bank statement, selfie, proof of address, and any extra uploaded files.
+        </div>
         <div id="applicationDocuments" class="docs-list"></div>
       </div>
 
       <div class="modal-footer-actions">
-        <button class="btn secondary" type="button" onclick="downloadApplicationProfilePDF()">Profile PDF</button>
+        <button class="btn secondary" type="button" onclick="downloadApplicationProfilePDF()">Download Profile PDF</button>
+        <button class="btn secondary" type="button" onclick="downloadAllApplicationDocuments()">Download All Documents</button>
         <button class="btn warn" type="button" onclick="updateApplication()">Update</button>
         <button class="btn success" type="button" onclick="approveApplication()">Approve</button>
         <button class="btn danger" type="button" onclick="rejectApplication()">Reject</button>
+        <button class="btn danger" type="button" onclick="deleteApplicationFromModal()">Delete Application</button>
       </div>
     </div>
   </div>
@@ -1490,11 +1600,22 @@
 const titles = {
   overview:["Overview","Manage applications, products, messages, approvals, and settings."],
   applications:["Applications","View all client loan applications and uploaded documents."],
+  "documents-center":["Documents Center","Select an applicant and preview or download uploaded documents."],
   products:["Loan Products","Create, edit, delete, and activate real loan products."],
   messages:["Messages","Reply to customers and manage support records."],
   "site-settings":["System Rates","Save rates and apply them to products."],
+  "admin-team":["Admin Team","Create admins, block them, and assign tasks."],
+  "visitors":["Visitors & Devices","Track browser, device, platform, and visitor activity."],
+    "visitors":["Visitors & Devices","Track browser, device, platform, and visitor activity."],
+    "admin-team":["Admin Team","Create admins, block them, and assign tasks."],
+  "visitors":["Visitors & Devices","Track browser, device, platform, and visitor activity."],
+    "visitors":["Visitors & Devices","Track browser, device, platform, and visitor activity."],
   security:["Security & Users","Change admin password, update support phone, and help users reset access."],
   visitors:["Visitors & Devices","Track browser, device, platform, and visitor activity."]
+,
+  cleanup:["Cleanup Tools","Delete old applications safely from the dashboard." ]
+,
+  "chatbot-library":["Chatbot Library","Manage chatbot answers, intents, and response records."]
 };
 
 let currentSection = "overview";
@@ -1502,7 +1623,6 @@ window.__contactsMap = {};
 window.__customerMessagesMap = {};
 window.__supportTicketsMap = {};
 window.__applicationsCache = [];
-window.__productsCache = [];
 window.__productsCache = [];
 
 function esc(v){
@@ -1539,9 +1659,28 @@ function activePill(active){
 
 async function fetchJSON(url, options={}){
   const res = await fetch(url, options);
+  const raw = await res.text();
+
   let data = {};
-  try { data = await res.json(); } catch(e) { throw new Error("Invalid server response."); }
-  if (!res.ok || !data.success) throw new Error(data.error || "Request failed.");
+  try{
+    data = raw ? JSON.parse(raw) : {};
+  }catch(e){
+    console.error("Non-JSON response from", url, raw);
+    throw new Error("Invalid server response.");
+  }
+
+  console.log("FETCH", url, { status: res.status, ok: res.ok, data });
+
+  if (!res.ok) {
+    throw new Error(data.error || data.message || ("HTTP " + res.status));
+  }
+
+  if (typeof data === "object" && data !== null && "success" in data) {
+    if (!data.success) {
+      throw new Error(data.error || data.message || "Request failed.");
+    }
+  }
+
   return data;
 }
 
@@ -1549,14 +1688,43 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
   btn.addEventListener("click", async ()=>{
     const name = btn.dataset.section;
     currentSection = name;
-    document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
+
+    document.querySelectorAll(".nav-btn").forEach(x => x.classList.remove("active"));
     btn.classList.add("active");
-    document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
-    document.getElementById("section-"+name).classList.add("active");
-    document.getElementById("pageTitle").textContent = titles[name][0];
-    document.getElementById("pageSubtitle").textContent = titles[name][1];
+
+    document.querySelectorAll(".section").forEach(x => x.classList.remove("active"));
+    const sectionEl = document.getElementById("section-" + name);
+    if (sectionEl) sectionEl.classList.add("active");
+
+    const titlePair = titles[name] || [name, ""];
+    document.getElementById("pageTitle").textContent = titlePair[0] || name;
+    document.getElementById("pageSubtitle").textContent = titlePair[1] || "";
+
     closeSidebar();
-    await 
+
+    try{
+      if (name === "overview") await loadOverview();
+      else if (name === "applications") await loadApplications();
+      else if (name === "products") await loadProducts();
+      else if (name === "messages") await loadMessages();
+      else if (name === "site-settings") await loadSiteSettings();
+      else if (name === "security") {
+        await loadAdminSecurityProfile();
+        if (typeof searchResetUsers === "function") await searchResetUsers();
+      }
+      else if (name === "visitors") await loadVisitors();
+      else if (name === "cleanup") {
+        if (typeof loadOverview === "function") await loadOverview();
+      }
+      else if (name === "chatbot-library") {
+        if (typeof loadChatbotLibrary === "function") await loadChatbotLibrary();
+      }
+    }catch(err){
+      console.error("Section load failed:", name, err);
+      alert("Failed to load " + name + ": " + (err.message || err));
+    }
+  });
+});
 async function loadAdminSecurityProfile(){
   try{
     const data = await fetchJSON("/api/admin/security/profile");
@@ -1610,11 +1778,33 @@ async function updateAdminContact(){
 
 async function loadVisitors(){
   const holder = document.getElementById("visitorsGrid");
+  if (!holder) {
+    console.error("visitorsGrid element not found");
+    return;
+  }
+
   holder.innerHTML = '<div class="loading">Loading...</div>';
 
   try{
-    const data = await fetchJSON("/api/admin/visitors");
-    const rows = data.data || [];
+    const res = await fetch("/api/admin/visitors", {
+      headers: { "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+    });
+
+    const raw = await res.text();
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; }
+    catch(e) { throw new Error("Visitors API did not return valid JSON."); }
+
+    if (!res.ok) {
+      throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
+    }
+
+    let rows = [];
+    if (Array.isArray(data)) rows = data;
+    else if (Array.isArray(data.data)) rows = data.data;
+    else if (Array.isArray(data.rows)) rows = data.rows;
+    else if (Array.isArray(data.visitors)) rows = data.visitors;
+    else if (data.data && Array.isArray(data.data.visitors)) rows = data.data.visitors;
 
     if (!rows.length){
       holder.innerHTML = '<div class="empty">No visitor data found.</div>';
@@ -1629,15 +1819,20 @@ async function loadVisitors(){
           <div><strong style="color:var(--muted)">Phone:</strong> ${esc(v.phone || "-")}</div>
           <div><strong style="color:var(--muted)">Device:</strong> ${esc(v.device_type || "-")}</div>
           <div><strong style="color:var(--muted)">Browser:</strong> ${esc(v.browser || v.user_agent || "-")}</div>
-          <div><strong style="color:var(--muted)">Platform:</strong> ${esc(v.platform || "-")}</div>
+          <div><strong style="color:var(--muted)">Platform:</strong> ${esc(v.platform || v.platform_info || "-")}</div>
           <div><strong style="color:var(--muted)">Location:</strong> ${esc(v.location || v.region || v.city || "-")}</div>
           <div><strong style="color:var(--muted)">IP:</strong> ${esc(v.ip_address || "-")}</div>
+          <div><strong style="color:var(--muted)">Interest:</strong> ${esc(
+            [v.page_title, v.path, v.current_page, v.referrer, v.search_query, v.interest, v.message]
+              .filter(Boolean).join(" • ") || "No clear interest recorded"
+          )}</div>
           <div><strong style="color:var(--muted)">Last Seen:</strong> ${esc(v.created_at || v.last_seen || "-")}</div>
         </div>
       </div>
     `).join("");
   }catch(err){
-    holder.innerHTML = '<div class="empty">Visitor route not ready yet.</div>';
+    console.error("loadVisitors failed:", err);
+    holder.innerHTML = `<div class="empty">${esc(err.message || "Visitor route not ready yet.")}</div>`;
   }
 }
 
@@ -1703,7 +1898,6 @@ function updateSidebarMessageBadges(){
   if (badge) badge.textContent = String(total || 0);
 }
 
-
 console.log("ADMIN CLICK PATCH LOADED");
 refreshCurrent();
   });
@@ -1740,7 +1934,6 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 });
 
-
 function activateSection(name){
   currentSection = name;
   document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
@@ -1770,34 +1963,27 @@ async function jumpToProducts(){
   if (typeof renderProductsList === "function") renderProductsList();
 }
 
-
 async function refreshCurrent(){
-  try{
-    if (currentSection === "overview") await loadOverview();
-    if (currentSection === "applications") await loadApplications();
-    if (currentSection === "products") await loadProducts();
-    if (currentSection === "messages") await loadMessages();
-    if (currentSection === "site-settings") await loadSiteSettings();
-    if (currentSection === "security") {
-      await loadAdminSecurityProfile();
-      await searchResetUsers();
-    }
-    if (currentSection === "visitors") await loadVisitors();
-    if (currentSection === "chatbot-library") await loadChatbotLibrary();
-    if (currentSection === "chatbot-library") await loadChatbotLibrary();
-  }catch(err){
-    alert(err.message || String(err));
-  }
+  if (currentSection === "overview" && typeof loadOverview === "function") return loadOverview();
+  if (currentSection === "applications" && typeof loadApplications === "function") return loadApplications();
+  if (currentSection === "products" && typeof loadProducts === "function") return loadProducts();
+  if (currentSection === "messages" && typeof loadMessages === "function") return loadMessages();
+  if (currentSection === "site-settings" && typeof loadSiteSettings === "function") return loadSiteSettings();
+  if (currentSection === "security" && typeof loadAdminSecurityProfile === "function") return loadAdminSecurityProfile();
+  if (currentSection === "visitors" && typeof loadVisitors === "function") return loadVisitors();
+  if (currentSection === "chatbot-library" && typeof loadChatbotLibrary === "function") return loadChatbotLibrary();
+  if (currentSection === "admin-team" && typeof loadAdminTeam === "function") return loadAdminTeam();
 }
 
 async function loadOverview(){
   const data = await fetchJSON("/api/admin/overview");
-  const c = data.counts || {};
+  const c = data.counts || data.data?.counts || data.overview?.counts || {};
+  const rows = data.recent_applications || data.data?.recent_applications || data.recentApplications || data.data?.recentApplications || [];
 
   document.getElementById("overviewStats").innerHTML = `
     <div class="stat clickable" onclick="jumpToApplicationsWithStatus('')">
       <small>Total Applications</small>
-      <div class="num">${esc(c.applications || 0)}</div>
+      <div class="num">${esc(c.applications || c.total_applications || 0)}</div>
       <div class="sub">Open all applications</div>
     </div>
     <div class="stat clickable" onclick="jumpToApplicationsWithStatus('PENDING')">
@@ -1817,7 +2003,7 @@ async function loadOverview(){
     </div>
     <div class="stat clickable" onclick="jumpToProducts()">
       <small>Loan Products</small>
-      <div class="num">${esc(c.loan_products || 0)}</div>
+      <div class="num">${esc(c.loan_products || c.products || 0)}</div>
       <div class="sub">Open products</div>
     </div>
     <div class="stat clickable" onclick="jumpToApplicationsWithStatus('')">
@@ -1826,8 +2012,8 @@ async function loadOverview(){
       <div class="sub">Open applications</div>
     </div>
   `;
-const rows = data.recent_applications || [];
-  if (!rows.length) {
+
+  if (!Array.isArray(rows) || !rows.length) {
     document.getElementById("recentAppsBody").innerHTML = '<tr><td colspan="6" class="empty">No recent applications found.</td></tr>';
     document.getElementById("recentAppsCards").innerHTML = '<div class="empty">No recent applications found.</div>';
     return;
@@ -1836,8 +2022,8 @@ const rows = data.recent_applications || [];
   document.getElementById("recentAppsBody").innerHTML = rows.map(a => `
     <tr>
       <td>${esc(a.reference || a.ref || "-")}</td>
-      <td>${esc(a.full_name || "-")}</td>
-      <td>${esc(a.product_name || "-")}</td>
+      <td>${esc(a.full_name || a.name || "-")}</td>
+      <td>${esc(a.product_name || a.product || "-")}</td>
       <td>N$ ${money(a.amount)}</td>
       <td>${statusPill(a.status)}</td>
       <td><button class="btn sm secondary" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button></td>
@@ -1851,8 +2037,8 @@ const rows = data.recent_applications || [];
         <div>${statusPill(a.status)}</div>
       </div>
       <div class="mobile-card-grid">
-        <div class="mobile-card-item"><strong>Applicant</strong><span>${esc(a.full_name || "-")}</span></div>
-        <div class="mobile-card-item"><strong>Product</strong><span>${esc(a.product_name || "-")}</span></div>
+        <div class="mobile-card-item"><strong>Applicant</strong><span>${esc(a.full_name || a.name || "-")}</span></div>
+        <div class="mobile-card-item"><strong>Product</strong><span>${esc(a.product_name || a.product || "-")}</span></div>
         <div class="mobile-card-item"><strong>Amount</strong><span>N$ ${money(a.amount)}</span></div>
       </div>
       <div class="mobile-card-actions">
@@ -1864,7 +2050,8 @@ const rows = data.recent_applications || [];
 
 async function loadApplications(){
   const data = await fetchJSON("/api/admin/applications");
-  window.__applicationsCache = data.data || [];
+  const rows = data.data || data.applications || data.rows || [];
+  window.__applicationsCache = Array.isArray(rows) ? rows : [];
   renderApplicationsList();
 }
 
@@ -1960,7 +2147,6 @@ async function quickApproveApplication(id){
   await loadOverview();
   alert(data.message || "Application approved.");
 }
-
 
 async function deleteApplication(id){
   if (!id) return alert("Application id missing.");
@@ -2073,7 +2259,8 @@ async function rejectApplication(){
 
 async function loadProducts(){
   const data = await fetchJSON("/api/admin/loan-products");
-  window.__productsCache = data.data || [];
+  const rows = data.data || data.products || data.loan_products || [];
+  window.__productsCache = Array.isArray(rows) ? rows : [];
   renderProductsList();
 }
 
@@ -2277,7 +2464,6 @@ async function loadMessages(){
   window.__supportTicketsMap = {};
 window.__applicationsCache = [];
 window.__productsCache = [];
-window.__productsCache = [];
 
   contacts.forEach(m => { window.__contactsMap[String(m.id)] = m; });
   customerMessages.forEach(m => { window.__customerMessagesMap[String(m.id)] = m; });
@@ -2402,7 +2588,6 @@ function openSupportTicketById(id){
   openModal("messageViewModalWrap");
 }
 
-
 function replyToSupportTicket(ticketId){
   const item = window.__supportTicketsMap?.[String(ticketId)];
   if (!item){
@@ -2495,7 +2680,7 @@ async function saveSupportTicketReplyFromView(){
   if (!replyText || !replyText.trim()) return;
 
   try{
-    const data = await fetchJSON(`/admin/support-tickets/${ticketId}/reply`, {
+    const data = await fetchJSON(`/admin/support/${ticketId}/reply`, {
       method:"POST",
       headers:{
         "Content-Type":"application/json",
@@ -2544,7 +2729,6 @@ async function applySettingsToProducts(){
   await loadOverview();
   alert(data.message || "Applied.");
 }
-
 
 async function loadAdminSecurityProfile(){
   try{
@@ -2692,7 +2876,6 @@ function updateSidebarMessageBadges(){
   if (badge) badge.textContent = String(total || 0);
 }
 
-
 console.log("ADMIN CLICK PATCH LOADED");
 refreshCurrent();
 
@@ -2703,6 +2886,32 @@ window.addEventListener("resize", () => {
   }
 });
 
+async function loadChatbotLibrary(){
+  const body = document.getElementById("chatbotLibraryBody");
+  const cards = document.getElementById("chatbotLibraryCards");
+  if (body) body.innerHTML = '<tr><td colspan="6" class="empty">Chatbot library route is not connected yet.</td></tr>';
+  if (cards) cards.innerHTML = '<div class="empty">Chatbot library route is not connected yet.</div>';
+}
+function openChatbotModal(){
+  alert("Chatbot modal is not connected yet.");
+}
+function resetChatbotFilters(){
+  const a = document.getElementById("chatbotSearch");
+  const b = document.getElementById("chatbotStatusFilter");
+  if (a) a.value = "";
+  if (b) b.value = "";
+  if (typeof loadChatbotLibrary === "function") loadChatbotLibrary();
+}
+
+
+document.addEventListener("DOMContentLoaded", async function(){
+  try{
+    await loadOverview();
+  }catch(err){
+    console.error("loadOverview failed:", err);
+    alert("Overview failed: " + (err.message || err));
+  }
+});
 </script>
 
 <div class="modal-wrap" id="chatbotModalWrap">
@@ -2857,7 +3066,7 @@ window.saveSupportTicketReplyFromView = async function(){
   if (!replyText || !replyText.trim()) return;
 
   try{
-    const res = await fetch(`/admin/support-tickets/${ticketId}/reply`, {
+    const res = await fetch(`/admin/support/${ticketId}/reply`, {
       method: "POST",
       headers: {
         "Content-Type":"application/json",
@@ -2882,6 +3091,2182 @@ window.saveSupportTicketReplyFromView = async function(){
   }
 };
 </script>
+
+
+
+
+
+<!-- ADMIN_FALLBACK_PATCH_START -->
+<script>
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  window.esc = function(v){
+    return String(v ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  };
+
+  window.money = function(v){
+    const n = Number(v || 0);
+    return isNaN(n) ? "0.00" : n.toFixed(2);
+  };
+
+  window.fetchJSON = async function(url, options={}){
+    const res = await fetch(url, options);
+    const txt = await res.text();
+    let data = {};
+    try { data = txt ? JSON.parse(txt) : {}; }
+    catch(e){
+      console.error("Bad JSON:", url, txt);
+      throw new Error("Invalid server response from " + url);
+    }
+    if (!res.ok) throw new Error(data.error || data.message || ("HTTP " + res.status + " from " + url));
+    if (data && typeof data === "object" && "success" in data && !data.success) {
+      throw new Error(data.error || data.message || "Request failed");
+    }
+    return data;
+  };
+
+  function pickRows(data){
+    if (Array.isArray(data)) return data;
+    if (!data || typeof data !== "object") return [];
+    return data.data || data.rows || data.items || data.results || data.applications || data.products || data.messages || [];
+  }
+
+  function addDoc(arr, label, url){
+    if (!url || typeof url !== "string") return;
+    const clean = url.trim();
+    if (!clean) return;
+    if (arr.some(x => x.url === clean)) return;
+    arr.push({label, url: clean});
+  }
+
+  function extractDocuments(app){
+    const docs = [];
+    const raw = app.documents_list || app.documents || app.uploads || app.files || [];
+    if (Array.isArray(raw)){
+      raw.forEach(d => {
+        if (!d) return;
+        if (typeof d === "string") addDoc(docs, "Uploaded document", d);
+        else addDoc(docs, d.label || d.name || "Uploaded document", d.url || d.path || d.file_url);
+      });
+    }
+    addDoc(docs, "National ID", app.national_id_url);
+    addDoc(docs, "ID Front", app.id_front_url);
+    addDoc(docs, "ID Back", app.id_back_url);
+    addDoc(docs, "ID Copy", app.id_copy_url);
+    addDoc(docs, "Payslip", app.payslip_url);
+    addDoc(docs, "Bank Statement", app.bank_statement_url);
+    addDoc(docs, "Proof of Address", app.proof_of_address_url);
+    addDoc(docs, "Selfie / Photo", app.selfie_url);
+    addDoc(docs, "Employment Letter", app.employment_letter_url);
+    if (typeof app.bank_statement === "string") addDoc(docs, "Bank Statement", app.bank_statement);
+    if (typeof app.payslip === "string") addDoc(docs, "Payslip", app.payslip);
+    if (typeof app.id_document === "string") addDoc(docs, "ID Document", app.id_document);
+    return docs;
+  }
+
+  window.toggleSidebar = function(){
+    const s = byId("sidebar");
+    const o = byId("overlay");
+    if (s) s.classList.toggle("show");
+    if (o) o.classList.toggle("show");
+  };
+
+  window.closeSidebar = function(){
+    const s = byId("sidebar");
+    const o = byId("overlay");
+    if (s) s.classList.remove("show");
+    if (o) o.classList.remove("show");
+  };
+
+  window.openModal = function(id){
+    const el = byId(id);
+    if (el) el.classList.add("show");
+  };
+
+  window.closeModal = function(id){
+    const el = byId(id);
+    if (el) el.classList.remove("show");
+  };
+
+  window.statusPill = function(status){
+    const s = String(status || "PENDING").toUpperCase();
+    let cls = "pending";
+    if (["APPROVED","ACTIVE","RESOLVED","SUBMITTED"].includes(s)) cls = "approved";
+    if (["REJECTED","DISABLED","CLOSED","BLOCKED"].includes(s)) cls = "rejected";
+    return `<span class="pill ${cls}">${window.esc(s)}</span>`;
+  };
+
+  const titleMap = {
+    overview:["Overview","Manage applications, products, messages, approvals, and settings."],
+    applications:["Applications","View all client loan applications and uploaded documents."],
+    "documents-center":["Documents Center","Select an applicant and preview or download uploaded documents."],
+  "documents-center":["Documents Center","Select an applicant and preview or download uploaded documents."],
+    products:["Loan Products","Create, edit, delete, and activate real loan products."],
+    messages:["Messages","Reply to customers and manage support records."],
+    "site-settings":["System Rates","Save rates and apply them to products."],
+  "admin-team":["Admin Team","Create admins, block them, and assign tasks."],
+  "visitors":["Visitors & Devices","Track browser, device, platform, and visitor activity."],
+    "visitors":["Visitors & Devices","Track browser, device, platform, and visitor activity."],
+    "admin-team":["Admin Team","Create admins, block them, and assign tasks."],
+  "visitors":["Visitors & Devices","Track browser, device, platform, and visitor activity."],
+    "visitors":["Visitors & Devices","Track browser, device, platform, and visitor activity."],
+    cleanup:["Cleanup Tools","Delete old applications safely."],
+    security:["Security & Users","Change admin password, update support phone, and reset user access."],
+    visitors:["Visitors & Devices","Track browser, device, platform, and visitor activity."],
+    "chatbot-library":["Chatbot Library","Manage chatbot answers and knowledge records."]
+  };
+
+  function activateSection(name){
+    document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
+    const btn = document.querySelector('.nav-btn[data-section="' + name + '"]');
+    if (btn) btn.classList.add("active");
+
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+    const sec = byId("section-" + name);
+    if (sec) sec.classList.add("active");
+
+    const info = titleMap[name] || [name, ""];
+    if (byId("pageTitle")) byId("pageTitle").textContent = info[0];
+    if (byId("pageSubtitle")) byId("pageSubtitle").textContent = info[1];
+    window.__currentSection = name;
+    closeSidebar();
+  }
+
+  window.loadOverview = async function(){
+    const data = await fetchJSON("/api/admin/overview");
+    const counts = data.counts || data.data?.counts || {};
+    const rows = data.recent_applications || data.data?.recent_applications || [];
+
+    const stats = byId("overviewStats");
+    if (stats){
+      stats.innerHTML = `
+        <div class="stat"><small>Total Applications</small><div class="num">${esc(counts.applications || counts.total_applications || 0)}</div></div>
+        <div class="stat"><small>Pending</small><div class="num">${esc(counts.pending || 0)}</div></div>
+        <div class="stat"><small>Approved</small><div class="num">${esc(counts.approved || 0)}</div></div>
+        <div class="stat"><small>Rejected</small><div class="num">${esc(counts.rejected || 0)}</div></div>
+      `;
+    }
+
+    const body = byId("recentAppsBody");
+    const cards = byId("recentAppsCards");
+    if (!rows.length){
+      if (body) body.innerHTML = '<tr><td colspan="6" class="empty">No recent applications found.</td></tr>';
+      if (cards) cards.innerHTML = '<div class="empty">No recent applications found.</div>';
+      return;
+    }
+
+    if (body){
+      body.innerHTML = rows.map(a => `
+        <tr>
+          <td>${esc(a.reference || a.ref || "-")}</td>
+          <td>${esc(a.full_name || a.name || "-")}</td>
+          <td>${esc(a.product_name || a.product || "-")}</td>
+          <td>N$ ${money(a.amount)}</td>
+          <td>${statusPill(a.status)}</td>
+          <td><button class="btn sm secondary" type="button" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button></td>
+        </tr>
+      `).join("");
+    }
+
+    if (cards){
+      cards.innerHTML = rows.map(a => `
+        <div class="mobile-card">
+          <div class="mobile-card-head">
+            <div class="mobile-card-title">${esc(a.reference || a.ref || "-")}</div>
+            <div>${statusPill(a.status)}</div>
+          </div>
+          <div class="mobile-card-grid">
+            <div class="mobile-card-item"><strong>Applicant</strong><span>${esc(a.full_name || a.name || "-")}</span></div>
+            <div class="mobile-card-item"><strong>Product</strong><span>${esc(a.product_name || a.product || "-")}</span></div>
+            <div class="mobile-card-item"><strong>Amount</strong><span>N$ ${money(a.amount)}</span></div>
+          </div>
+          <div class="mobile-card-actions">
+            <button class="btn sm secondary" type="button" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button>
+          </div>
+        </div>
+      `).join("");
+    }
+  };
+
+  window.loadApplications = async function(){
+    const body = byId("applicationsBody");
+    const cards = byId("applicationsCards");
+    if (body) body.innerHTML = '<tr><td colspan="8" class="loading">Loading...</td></tr>';
+    if (cards) cards.innerHTML = '<div class="loading">Loading...</div>';
+
+    const data = await fetchJSON("/api/admin/applications");
+    const rows = pickRows(data);
+
+    if (!rows.length){
+      if (body) body.innerHTML = '<tr><td colspan="8" class="empty">No applications found.</td></tr>';
+      if (cards) cards.innerHTML = '<div class="empty">No applications found.</div>';
+      return;
+    }
+
+    if (body){
+      body.innerHTML = rows.map(a => `
+        <tr>
+          <td>${esc(a.reference || a.ref || "-")}</td>
+          <td>${esc(a.full_name || a.name || "-")}</td>
+          <td>${esc(a.phone || a.contact_number || "-")}</td>
+          <td>${esc(a.product_name || a.product || "-")}</td>
+          <td>N$ ${money(a.amount)}</td>
+          <td>${esc(a.term || a.loan_term || "-")}</td>
+          <td>${statusPill(a.status)}</td>
+          <td><button class="btn sm secondary" type="button" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button></td>
+        </tr>
+      `).join("");
+    }
+
+    if (cards){
+      cards.innerHTML = rows.map(a => `
+        <div class="mobile-card">
+          <div class="mobile-card-head">
+            <div class="mobile-card-title">${esc(a.reference || a.ref || "-")}</div>
+            <div>${statusPill(a.status)}</div>
+          </div>
+          <div class="mobile-card-grid">
+            <div class="mobile-card-item"><strong>Applicant</strong><span>${esc(a.full_name || a.name || "-")}</span></div>
+            <div class="mobile-card-item"><strong>Phone</strong><span>${esc(a.phone || a.contact_number || "-")}</span></div>
+            <div class="mobile-card-item"><strong>Product</strong><span>${esc(a.product_name || a.product || "-")}</span></div>
+            <div class="mobile-card-item"><strong>Amount</strong><span>N$ ${money(a.amount)}</span></div>
+            <div class="mobile-card-item"><strong>Term</strong><span>${esc(a.term || a.loan_term || "-")}</span></div>
+          </div>
+          <div class="mobile-card-actions">
+            <button class="btn sm secondary" type="button" onclick='viewApplication(${JSON.stringify(a.id)})'>Open</button>
+          </div>
+        </div>
+      `).join("");
+    }
+  };
+
+  window.viewApplication = async function(id){
+    const data = await fetchJSON("/api/admin/applications/" + encodeURIComponent(id));
+    const a = data.data || data.application || data.item || {};
+    window.__currentApplicationDocs = extractDocuments(a);
+
+    if (byId("app_detail_id")) byId("app_detail_id").value = a.id || "";
+    if (byId("app_reference_display")) byId("app_reference_display").textContent = a.reference || a.ref || "-";
+    if (byId("app_id_display")) byId("app_id_display").textContent = a.id || "-";
+    if (byId("app_full_name")) byId("app_full_name").value = a.full_name || a.name || "";
+    if (byId("app_phone")) byId("app_phone").value = a.phone || a.contact_number || "";
+    if (byId("app_email")) byId("app_email").value = a.email || "";
+    if (byId("app_product_name")) byId("app_product_name").value = a.product_name || a.product || "";
+    if (byId("app_amount")) byId("app_amount").value = a.amount || "";
+    if (byId("app_term")) byId("app_term").value = a.term || a.loan_term || "";
+    if (byId("app_status")) byId("app_status").value = a.status || "PENDING";
+    if (byId("app_review_note")) byId("app_review_note").value = a.review_note || "";
+
+    const holder = byId("applicationDocuments");
+    const docs = window.__currentApplicationDocs || [];
+    const pdfUrl = a.id ? `/admin/applications/${encodeURIComponent(a.id)}/profile-pdf` : "";
+
+    if (holder){
+      holder.innerHTML = `
+        ${pdfUrl ? `<div class="doc-item"><strong>Client Profile PDF</strong><br><a href="${esc(pdfUrl)}" target="_blank">Download premium client profile PDF</a></div>` : ""}
+        ${docs.length ? docs.map(d => `<div class="doc-item"><strong>${esc(d.label)}</strong><br><a href="${esc(d.url)}" target="_blank">Open / Download document</a></div>`).join("") : `<div class="doc-item">No uploaded documents were returned by the application detail API for this application.</div>`}
+      `;
+    }
+
+    openModal("applicationModalWrap");
+  };
+
+  
+window.deleteApplicationFromModal = async function(){
+  const id = document.getElementById("app_detail_id")?.value || "";
+  if (!id) return alert("Application id missing.");
+  if (!confirm("Delete this whole application? This is best for trial/test records.")) return;
+
+  const res = await fetch(`/admin/applications/${encodeURIComponent(id)}/delete`, {
+    method: "POST",
+    headers: { "Accept": "application/json", "X-Requested-With": "XMLHttpRequest" }
+  });
+
+  const txt = await res.text();
+  let data = {};
+  try { data = txt ? JSON.parse(txt) : {}; } catch(e) {}
+
+  if (!res.ok || (data && typeof data === "object" && "success" in data && !data.success)) {
+    alert((data && (data.error || data.message)) || "Failed to delete application.");
+    return;
+  }
+
+  alert(data.message || "Application deleted.");
+
+  const wrap = document.getElementById("applicationModalWrap");
+  if (wrap) wrap.classList.remove("show");
+
+  if (typeof window.loadApplications === "function") await window.loadApplications();
+  if (typeof window.loadOverview === "function") await window.loadOverview();
+  if (typeof window.loadDocumentsCenter === "function") await window.loadDocumentsCenter();
+};
+
+window.downloadApplicationProfilePDF = function(){
+    const id = byId("app_detail_id")?.value || "";
+    if (!id) return alert("Application id missing.");
+    window.open("/admin/applications/" + encodeURIComponent(id) + "/profile-pdf", "_blank");
+  };
+
+  window.downloadAllApplicationDocuments = function(){
+    const docs = window.__currentApplicationDocs || [];
+    const id = byId("app_detail_id")?.value || "";
+    if (id) window.open("/admin/applications/" + encodeURIComponent(id) + "/profile-pdf", "_blank");
+    if (!docs.length) return alert("No uploaded documents were returned for this application.");
+    docs.forEach((d, i) => setTimeout(() => window.open(d.url, "_blank"), i * 300));
+  };
+
+  window.loadProducts = async function(){
+    const body = byId("productsBody");
+    const cards = byId("productsCards");
+    if (body) body.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+    if (cards) cards.innerHTML = '<div class="loading">Loading...</div>';
+
+    const data = await fetchJSON("/api/admin/loan-products");
+    const rows = pickRows(data);
+
+    if (!rows.length){
+      if (body) body.innerHTML = '<tr><td colspan="7" class="empty">No loan products found.</td></tr>';
+      if (cards) cards.innerHTML = '<div class="empty">No loan products found.</div>';
+      return;
+    }
+
+    if (body){
+      body.innerHTML = rows.map(p => `
+        <tr>
+          <td>${esc(p.name || p.product_name || "-")}</td>
+          <td>${esc(p.interest_rate || p.rate || "-")}</td>
+          <td>N$ ${money(p.service_fee || p.fee)}</td>
+          <td>N$ ${money(p.min_amount || p.minimum_amount)}</td>
+          <td>N$ ${money(p.max_amount || p.maximum_amount)}</td>
+          <td>${(p.is_active === false || String(p.status).toUpperCase() === "DISABLED") ? '<span class="pill rejected">DISABLED</span>' : '<span class="pill approved">ACTIVE</span>'}</td>
+          <td><button class="btn sm secondary" type="button" onclick="openProductModal()">Open</button></td>
+        </tr>
+      `).join("");
+    }
+
+    if (cards){
+      cards.innerHTML = rows.map(p => `
+        <div class="mobile-card">
+          <div class="mobile-card-head">
+            <div class="mobile-card-title">${esc(p.name || p.product_name || "-")}</div>
+            <div>${(p.is_active === false || String(p.status).toUpperCase() === "DISABLED") ? '<span class="pill rejected">DISABLED</span>' : '<span class="pill approved">ACTIVE</span>'}</div>
+          </div>
+          <div class="mobile-card-grid">
+            <div class="mobile-card-item"><strong>Interest</strong><span>${esc(p.interest_rate || p.rate || "-")}</span></div>
+            <div class="mobile-card-item"><strong>Fee</strong><span>N$ ${money(p.service_fee || p.fee)}</span></div>
+            <div class="mobile-card-item"><strong>Min</strong><span>N$ ${money(p.min_amount || p.minimum_amount)}</span></div>
+            <div class="mobile-card-item"><strong>Max</strong><span>N$ ${money(p.max_amount || p.maximum_amount)}</span></div>
+          </div>
+        </div>
+      `).join("");
+    }
+  };
+
+  window.loadMessages = async function(){
+    const contacts = byId("contactsCards");
+    const customer = byId("customerMessagesCards");
+    const support = byId("supportTicketsCards");
+    if (contacts) contacts.innerHTML = '<div class="loading">Loading...</div>';
+    if (customer) customer.innerHTML = '<div class="loading">Loading...</div>';
+    if (support) support.innerHTML = '<div class="loading">Loading...</div>';
+
+    const data = await fetchJSON("/api/admin/messages-feed");
+    const contactsRows = data.contacts || data.data?.contacts || [];
+    const customerRows = data.customer_messages || data.data?.customer_messages || [];
+    const supportRows = data.support_tickets || data.data?.support_tickets || [];
+
+    if (byId("sidebarMessagesBadge")) {
+      byId("sidebarMessagesBadge").textContent = String(contactsRows.length + customerRows.length + supportRows.length);
+    }
+
+    if (contacts){
+      contacts.innerHTML = contactsRows.length ? contactsRows.map(r => `
+        <div class="msg-card">
+          <h4>${esc(r.name || r.full_name || "Contact")}</h4>
+          <div class="msg-meta">
+            <div>Email: ${esc(r.email || "-")}</div>
+            <div>Phone: ${esc(r.phone || "-")}</div>
+            <div>Date: ${esc(r.created_at || "-")}</div>
+          </div>
+          <div class="msg-body">${esc(r.message || r.subject || "-")}</div>
+        </div>
+      `).join("") : '<div class="empty">No contact records found.</div>';
+    }
+
+    if (customer){
+      customer.innerHTML = customerRows.length ? customerRows.map(r => `
+        <div class="msg-card">
+          <h4>${esc(r.subject || "Customer Message")}</h4>
+          <div class="msg-meta">
+            <div>Customer: ${esc(r.customer_name || r.name || "-")}</div>
+            <div>Email: ${esc(r.customer_email || r.email || "-")}</div>
+            <div>Date: ${esc(r.created_at || "-")}</div>
+          </div>
+          <div class="msg-body">${esc(r.message || "-")}</div>
+        </div>
+      `).join("") : '<div class="empty">No customer messages found.</div>';
+    }
+
+    if (support){
+      support.innerHTML = supportRows.length ? supportRows.map(r => `
+        <div class="msg-card">
+          <h4>${esc(r.subject || "Support Ticket")}</h4>
+          <div class="msg-meta">
+            <div>Customer: ${esc(r.customer_name || "-")}</div>
+            <div>Status: ${esc(r.status || "-")}</div>
+            <div>Date: ${esc(r.created_at || "-")}</div>
+          </div>
+          <div class="msg-body">${esc(r.message || "-")}</div>
+        </div>
+      `).join("") : '<div class="empty">No support tickets found.</div>';
+    }
+  };
+
+  window.loadSiteSettings = async function(){
+    const data = await fetchJSON("/api/admin/site-settings");
+    const row = data.data || data.settings || data.site_settings || {};
+    if (byId("ss_interest_rate")) byId("ss_interest_rate").value = row.interest_rate ?? row.base_interest_rate ?? "";
+    if (byId("ss_service_fee")) byId("ss_service_fee").value = row.service_fee ?? row.base_service_fee ?? "";
+    if (byId("ss_business_loan_rate")) byId("ss_business_loan_rate").value = row.business_loan_rate ?? "";
+    if (byId("ss_personal_loan_rate")) byId("ss_personal_loan_rate").value = row.personal_loan_rate ?? "";
+    if (byId("ss_salary_advance_rate")) byId("ss_salary_advance_rate").value = row.salary_advance_rate ?? "";
+  };
+
+  window.loadChatbotLibrary = async function(){
+    const body = byId("chatbotLibraryBody");
+    const cards = byId("chatbotLibraryCards");
+    if (body) body.innerHTML = '<tr><td colspan="6" class="empty">Chatbot library backend is not connected yet.</td></tr>';
+    if (cards) cards.innerHTML = '<div class="empty">Chatbot library backend is not connected yet.</div>';
+  };
+
+  window.refreshCurrent = async function(){
+    const section = window.__currentSection || "overview";
+    if (section === "overview") return loadOverview();
+    if (section === "applications") return loadApplications();
+    if (section === "products") return loadProducts();
+    if (section === "messages") return loadMessages();
+    if (section === "site-settings") return loadSiteSettings();
+    if (section === "chatbot-library") return loadChatbotLibrary();
+    if (typeof loadAdminSecurityProfile === "function" && section === "security") return loadAdminSecurityProfile();
+    if (typeof loadVisitors === "function" && section === "visitors") return loadVisitors();
+    if (typeof loadVisitors === "function" && section === "visitors") return loadVisitors();
+    return loadOverview();
+  };
+
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.onclick = null;
+    btn.addEventListener("click", function(){
+      activateSection(this.dataset.section);
+      refreshCurrent().catch(err => {
+        console.error(err);
+        alert("Section failed: " + String(err.message || err));
+      });
+    });
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") {
+      closeModal("applicationModalWrap");
+      closeModal("productModalWrap");
+      closeModal("replyModalWrap");
+      closeModal("messageViewModalWrap");
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function(){
+    activateSection("overview");
+    refreshCurrent().catch(err => {
+      console.error(err);
+      alert("Dashboard failed: " + String(err.message || err));
+    });
+  });
+})();
+</script>
+<!-- ADMIN_FALLBACK_PATCH_END -->
+
+
+
+
+
+
+<!-- ADMIN_DOCUMENTS_CENTER_PATCH_START -->
+<script>
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  window.__docsCenterApps = window.__docsCenterApps || [];
+  window.__docsCenterFiltered = window.__docsCenterFiltered || [];
+  window.__docsCenterSelectedApp = window.__docsCenterSelectedApp || null;
+  window.__docsCenterSelectedDocs = window.__docsCenterSelectedDocs || [];
+
+  function esc(v){
+    return String(v ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  function money(v){
+    const n = Number(v || 0);
+    return isNaN(n) ? "0.00" : n.toFixed(2);
+  }
+
+  async function fetchJSON(url, options={}){
+    const res = await fetch(url, options);
+    const txt = await res.text();
+    let data = {};
+    try { data = txt ? JSON.parse(txt) : {}; }
+    catch(e){ throw new Error("Invalid server response from " + url); }
+    if (!res.ok) throw new Error(data.error || data.message || ("HTTP " + res.status));
+    if (data && typeof data === "object" && "success" in data && !data.success) {
+      throw new Error(data.error || data.message || "Request failed");
+    }
+    return data;
+  }
+
+  function pickRows(data){
+    if (Array.isArray(data)) return data;
+    if (!data || typeof data !== "object") return [];
+    return data.data || data.rows || data.items || data.results || data.applications || [];
+  }
+
+  function statusPill(status){
+    const s = String(status || "PENDING").toUpperCase();
+    let cls = "pending";
+    if (["APPROVED","ACTIVE","RESOLVED","SUBMITTED"].includes(s)) cls = "approved";
+    if (["REJECTED","DISABLED","CLOSED","BLOCKED"].includes(s)) cls = "rejected";
+    return `<span class="pill ${cls}">${esc(s)}</span>`;
+  }
+
+  function addDoc(arr, label, url){
+    if (!url || typeof url !== "string") return;
+    const clean = url.trim();
+    if (!clean) return;
+    if (arr.some(d => d.url === clean)) return;
+    arr.push({label, url: clean});
+  }
+
+  function extractDocuments(app){
+    const docs = [];
+    const raw = app.documents_list || app.documents || app.uploads || app.files || [];
+    if (Array.isArray(raw)) {
+      raw.forEach(d => {
+        if (!d) return;
+        if (typeof d === "string") addDoc(docs, "Uploaded document", d);
+        else addDoc(docs, d.label || d.name || "Uploaded document", d.url || d.path || d.file_url);
+      });
+    }
+
+    addDoc(docs, "Certified ID Copy", app.id_copy_url);
+    addDoc(docs, "National ID", app.national_id_url);
+    addDoc(docs, "ID Front", app.id_front_url);
+    addDoc(docs, "ID Back", app.id_back_url);
+    addDoc(docs, "Passport / ID", app.passport_url);
+    addDoc(docs, "Bank Statement", app.bank_statement_url);
+    addDoc(docs, "Payslip", app.payslip_url);
+    addDoc(docs, "Proof of Address", app.proof_of_address_url);
+    addDoc(docs, "Proof of Residence", app.proof_of_residence_url);
+    addDoc(docs, "Proof of Income", app.proof_of_income_url);
+    addDoc(docs, "Supporting Document", app.supporting_doc_url);
+    addDoc(docs, "Selfie / Photo", app.selfie_url);
+    addDoc(docs, "Founding Statement", app.founding_statement_url);
+    addDoc(docs, "Letter of Request", app.request_letter_url);
+
+    if (typeof app.id_document === "string") addDoc(docs, "ID Document", app.id_document);
+    if (typeof app.bank_statement === "string") addDoc(docs, "Bank Statement", app.bank_statement);
+    if (typeof app.payslip === "string") addDoc(docs, "Payslip", app.payslip);
+    if (typeof app.salary_slip === "string") addDoc(docs, "Payslip", app.salary_slip);
+
+    return docs;
+  }
+
+  window.showDocumentPreview = function(url){
+    const frame = byId("docsCenterPreviewFrame");
+    const empty = byId("docsCenterPreviewEmpty");
+    if (!frame || !empty) return;
+
+    if (!url){
+      frame.style.display = "none";
+      frame.src = "";
+      empty.style.display = "block";
+      return;
+    }
+
+    frame.src = url;
+    frame.style.display = "block";
+    empty.style.display = "none";
+  };
+
+  function renderDocumentsCenterList(){
+    const holder = byId("docsCenterList");
+    if (!holder) return;
+
+    const rows = window.__docsCenterFiltered || [];
+    if (!rows.length){
+      holder.innerHTML = '<div class="empty">No applicants found.</div>';
+      return;
+    }
+
+    holder.innerHTML = rows.map(a => `
+      <button type="button" class="msg-card clickable-ticket" style="text-align:left;" onclick='selectApplicantForDocuments(${JSON.stringify(a.id)})'>
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;">
+          <h4 style="margin:0;">${esc(a.full_name || a.name || "Applicant")}</h4>
+          ${statusPill(a.status)}
+        </div>
+        <div class="msg-meta">
+          <div>Ref: ${esc(a.reference || a.ref || "-")}</div>
+          <div>Email: ${esc(a.email || "-")}</div>
+          <div>Phone: ${esc(a.phone || a.contact_number || "-")}</div>
+        </div>
+      </button>
+    `).join("");
+  }
+
+  window.filterDocumentsCenterList = function(){
+    const q = String(byId("docsCenterSearch")?.value || "").trim().toLowerCase();
+    const all = window.__docsCenterApps || [];
+    if (!q){
+      window.__docsCenterFiltered = all.slice();
+    } else {
+      window.__docsCenterFiltered = all.filter(a => {
+        const blob = [
+          a.reference, a.ref, a.full_name, a.name, a.email, a.phone, a.contact_number, a.product_name, a.product
+        ].join(" ").toLowerCase();
+        return blob.includes(q);
+      });
+    }
+    renderDocumentsCenterList();
+  };
+
+  window.loadDocumentsCenter = async function(){
+    const holder = byId("docsCenterList");
+    if (holder) holder.innerHTML = '<div class="loading">Loading applicants...</div>';
+
+    const data = await fetchJSON("/api/admin/applications");
+    window.__docsCenterApps = pickRows(data);
+    window.__docsCenterFiltered = window.__docsCenterApps.slice();
+    renderDocumentsCenterList();
+
+    if (window.__docsCenterApps.length && !window.__docsCenterSelectedApp){
+      await window.selectApplicantForDocuments(window.__docsCenterApps[0].id);
+    }
+  };
+
+  window.selectApplicantForDocuments = async function(id){
+    if (!id) return;
+    const data = await fetchJSON("/api/admin/applications/" + encodeURIComponent(id));
+    const a = data.data || data.application || data.item || {};
+    const docs = extractDocuments(a);
+
+    window.__docsCenterSelectedApp = a;
+    window.__docsCenterSelectedDocs = docs;
+
+    const label = byId("docsCenterSelectedLabel");
+    if (label) label.value = (a.full_name || a.name || "Applicant") + " • " + (a.reference || a.ref || "-");
+
+    const nameEl = byId("docsCenterApplicantName");
+    const metaEl = byId("docsCenterApplicantMeta");
+    if (nameEl) nameEl.textContent = a.full_name || a.name || "Applicant";
+    if (metaEl) {
+      metaEl.innerHTML = `
+        Ref: ${esc(a.reference || a.ref || "-")} •
+        Email: ${esc(a.email || "-")} •
+        Phone: ${esc(a.phone || a.contact_number || "-")} •
+        Amount: N$ ${money(a.amount)} •
+        Status: ${esc(a.status || "-")}
+      `;
+    }
+
+    const holder = byId("docsCenterDocuments");
+    const pdfUrl = a.id ? `/admin/applications/${encodeURIComponent(a.id)}/profile-pdf` : "";
+
+    const facePhoto = a.selfie_url || a.face_capture_data || "";
+    const geoText = [a.geo_lat, a.geo_lng].filter(Boolean).join(", ") || "Not captured";
+    const accText = a.geo_accuracy || "Not captured";
+    const deviceText = [a.device_type, a.platform_info].filter(Boolean).join(" • ") || "Not captured";
+    const tzText = [a.timezone_info, a.language_info].filter(Boolean).join(" • ") || "Not captured";
+    const uaText = a.user_agent || "Not captured";
+
+    if (holder){
+      holder.innerHTML = `
+        <div class="doc-item" style="background:rgba(255,255,255,.05);">
+          <strong>Verification & Device Details</strong>
+          <div style="margin-top:8px;display:grid;gap:6px;font-size:13px;color:var(--text);">
+            <div><strong style="display:inline;color:var(--muted);font-size:12px;">Coordinates:</strong> ${esc(geoText)}</div>
+            <div><strong style="display:inline;color:var(--muted);font-size:12px;">Accuracy:</strong> ${esc(accText)}</div>
+            <div><strong style="display:inline;color:var(--muted);font-size:12px;">Device:</strong> ${esc(deviceText)}</div>
+            <div><strong style="display:inline;color:var(--muted);font-size:12px;">Timezone / Language:</strong> ${esc(tzText)}</div>
+            <div><strong style="display:inline;color:var(--muted);font-size:12px;">User Agent:</strong> ${esc(uaText)}</div>
+          </div>
+        </div>
+
+        ${facePhoto ? `
+          <div class="doc-item">
+            <strong>Face Capture / Selfie</strong>
+            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn sm secondary" type="button" onclick='showDocumentPreview(${JSON.stringify(facePhoto)})'>Preview Face Photo</button>
+              <a href="${esc(facePhoto)}" target="_blank">Open / Download</a>
+            </div>
+          </div>
+        ` : ""}
+
+        ${pdfUrl ? `
+          <div class="doc-item" style="border:1px solid rgba(34,197,94,.22);background:rgba(34,197,94,.06);">
+            <strong>Premium Client Profile PDF</strong>
+            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+              <a href="${esc(pdfUrl)}" target="_blank">Open profile PDF</a>
+              <button class="btn sm secondary" type="button" onclick='showDocumentPreview(${JSON.stringify(pdfUrl)})'>Preview PDF</button>
+            </div>
+          </div>
+        ` : ""}
+
+        ${docs.length ? docs.map((d, i) => {
+          const openUrl = `/admin/applications/${encodeURIComponent(a.id)}/documents/${i}/open`;
+          const downloadUrl = `/admin/applications/${encodeURIComponent(a.id)}/documents/${i}/download`;
+          return `
+            <div class="doc-item">
+              <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;">
+                <strong>${esc(d.label || ("Document " + (i+1)))}</strong>
+                <span style="font-size:11px;color:var(--muted);text-transform:uppercase;">Uploaded file</span>
+              </div>
+              <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                <a href="${esc(downloadUrl)}" target="_blank">Open / Download</a>
+                <button class="btn sm secondary" type="button" onclick='showDocumentPreview(${JSON.stringify(openUrl)})'>Preview</button>
+                <button class="btn sm danger" type="button" onclick='deleteSelectedApplicantDocument(${i})'>Delete</button>
+              </div>
+            </div>
+          `;
+        }).join("") : `
+          <div class="doc-item" style="border:1px solid rgba(245,158,11,.25);background:rgba(245,158,11,.06);">
+            No uploaded document URLs were returned by the application detail API for this applicant.
+          </div>
+        `}
+      `;
+    }
+
+    showDocumentPreview("");
+  };
+
+  
+window.deleteSelectedApplication = async function(){
+  const a = window.__docsCenterSelectedApp;
+  if (!a || !a.id) return alert("No applicant selected.");
+  if (!confirm("Delete this whole application? This is best for trial/test records.")) return;
+
+  const res = await fetch(`/admin/applications/${encodeURIComponent(a.id)}/delete`, {
+    method: "POST",
+    headers: { "Accept": "application/json", "X-Requested-With": "XMLHttpRequest" }
+  });
+
+  const txt = await res.text();
+  let data = {};
+  try { data = txt ? JSON.parse(txt) : {}; } catch(e) {}
+
+  if (!res.ok || (data && typeof data === "object" && "success" in data && !data.success)) {
+    alert((data && (data.error || data.message)) || "Failed to delete application.");
+    return;
+  }
+
+  alert(data.message || "Application deleted.");
+
+  window.__docsCenterSelectedApp = null;
+  window.__docsCenterSelectedDocs = [];
+
+  const docsHolder = document.getElementById("docsCenterDocuments");
+  const previewFrame = document.getElementById("docsCenterPreviewFrame");
+  const previewEmpty = document.getElementById("docsCenterPreviewEmpty");
+  const nameEl = document.getElementById("docsCenterApplicantName");
+  const metaEl = document.getElementById("docsCenterApplicantMeta");
+  const selectedLabel = document.getElementById("docsCenterSelectedLabel");
+
+  if (docsHolder) docsHolder.innerHTML = '<div class="empty">Application deleted.</div>';
+  if (previewFrame) { previewFrame.src = ""; previewFrame.style.display = "none"; }
+  if (previewEmpty) previewEmpty.style.display = "block";
+  if (nameEl) nameEl.textContent = "No applicant selected";
+  if (metaEl) metaEl.textContent = "Choose an applicant from the left.";
+  if (selectedLabel) selectedLabel.value = "";
+
+  if (typeof window.loadDocumentsCenter === "function") await window.loadDocumentsCenter();
+  if (typeof window.loadApplications === "function") await window.loadApplications();
+  if (typeof window.loadOverview === "function") await window.loadOverview();
+};
+
+window.downloadSelectedApplicantPDF = function(){
+    const a = window.__docsCenterSelectedApp;
+    if (!a || !a.id) return alert("No applicant selected.");
+    window.open("/admin/applications/" + encodeURIComponent(a.id) + "/profile-pdf", "_blank");
+  };
+
+  
+window.deleteSelectedApplicantDocument = async function(docIndex){
+  const a = window.__docsCenterSelectedApp;
+  if (!a || !a.id) return alert("No applicant selected.");
+  if (docIndex === null || docIndex === undefined) return alert("Document index missing.");
+  if (!confirm("Delete this document from the applicant record?")) return;
+
+  const res = await fetch(`/admin/applications/${encodeURIComponent(a.id)}/documents/${docIndex}/delete`, {
+    method: "POST",
+    headers: { "Accept": "application/json", "X-Requested-With": "XMLHttpRequest" }
+  });
+
+  const txt = await res.text();
+  let data = {};
+  try { data = txt ? JSON.parse(txt) : {}; } catch(e) {}
+  if (!res.ok || (data && typeof data === "object" && "success" in data && !data.success)) {
+    alert((data && (data.error || data.message)) || "Failed to delete document.");
+    return;
+  }
+
+  alert(data.message || "Document deleted.");
+  await window.selectApplicantForDocuments(a.id);
+};
+
+window.downloadSelectedApplicantDocs = function(){
+    const a = window.__docsCenterSelectedApp;
+    const docs = window.__docsCenterSelectedDocs || [];
+    if (!a || !a.id) return alert("No applicant selected.");
+
+    window.open("/admin/applications/" + encodeURIComponent(a.id) + "/profile-pdf", "_blank");
+
+    if (!docs.length){
+      alert("No uploaded documents available for this applicant.");
+      return;
+    }
+
+    docs.forEach((d, i) => {
+      const url = `/admin/applications/${encodeURIComponent(a.id)}/documents/${i}/download`;
+      setTimeout(() => window.open(url, "_blank"), i * 350);
+    });
+  };
+
+  const oldRefresh = window.refreshCurrent;
+  window.refreshCurrent = async function(){
+    const section = window.__currentSection || "overview";
+    if (section === "documents-center") return window.loadDocumentsCenter();
+    if (typeof oldRefresh === "function") return oldRefresh();
+  };
+
+  document.addEventListener("DOMContentLoaded", function(){
+    const navs = document.querySelectorAll('.nav-btn[data-section="documents-center"]');
+    navs.forEach(btn => {
+      btn.onclick = null;
+      btn.addEventListener("click", function(){
+        document.querySelectorAll(".nav-btn").forEach(x => x.classList.remove("active"));
+        this.classList.add("active");
+        document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+        const sec = byId("section-documents-center");
+        if (sec) sec.classList.add("active");
+        if (byId("pageTitle")) byId("pageTitle").textContent = "Documents Center";
+        if (byId("pageSubtitle")) byId("pageSubtitle").textContent = "Select an applicant and preview or download uploaded documents.";
+        window.__currentSection = "documents-center";
+        if (window.closeSidebar) window.closeSidebar();
+        window.loadDocumentsCenter().catch(err => {
+          console.error(err);
+          alert("Documents Center failed: " + String(err.message || err));
+        });
+      });
+    });
+  });
+})();
+</script>
+<!-- ADMIN_DOCUMENTS_CENTER_PATCH_END -->
+
+
+
+<!-- ADMIN_MESSAGES_PATCH_START -->
+<script>
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  async function fetchJSON(url, options={}){
+    const res = await fetch(url, options);
+    const txt = await res.text();
+    let data = {};
+    try { data = txt ? JSON.parse(txt) : {}; } catch(e) {}
+    if (!res.ok || (data && typeof data === "object" && "success" in data && !data.success)) {
+      throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
+    }
+    return data;
+  }
+
+  function esc(v){
+    return String(v ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  function statusPill(status){
+    const s = String(status || "OPEN").toUpperCase();
+    let cls = "pending";
+    if (["APPROVED","ACTIVE","RESOLVED","SUBMITTED","IN PROGRESS"].includes(s)) cls = "approved";
+    if (["REJECTED","DISABLED","CLOSED","BLOCKED"].includes(s)) cls = "rejected";
+    return `<span class="pill ${cls}">${esc(s)}</span>`;
+  }
+
+  window.__supportTicketsMap = window.__supportTicketsMap || {};
+  window.__customerMessagesMap = window.__customerMessagesMap || {};
+  window.__contactsMap = window.__contactsMap || {};
+
+  window.openMessageView = function(type, id){
+    let source = null;
+    if (type === "support") source = window.__supportTicketsMap[id];
+    if (type === "customer") source = window.__customerMessagesMap[id];
+    if (type === "contact") source = window.__contactsMap[id];
+    if (!source) return alert("Message not found.");
+
+    byId("msg_view_id").value = source.id || "";
+    byId("msg_view_table").value = source.table_name || (type === "support" ? "support_tickets" : type === "customer" ? "customer_messages" : "contacts");
+    byId("msg_view_customer_id").value = source.customer_id || "";
+    byId("msg_view_name").value = source.customer_name || source.name || source.full_name || "Website Visitor";
+    byId("msg_view_email").value = source.customer_email || source.email || "";
+    byId("msg_view_subject").value = source.subject || "Support Ticket";
+    byId("msg_view_message").value = source.message || "";
+    byId("msg_view_reply").value = source.reply_message || source.reply || "";
+    byId("msg_view_status").value = source.status || "OPEN";
+
+    const wrap = byId("msgStatusWrap");
+    const saveBtn = byId("saveTicketReplyBtn");
+
+    if (type === "support"){
+      if (wrap) wrap.style.display = "block";
+      if (saveBtn) saveBtn.style.display = "inline-flex";
+    } else {
+      if (wrap) wrap.style.display = "none";
+      if (saveBtn) saveBtn.style.display = "none";
+    }
+
+    const modal = byId("messageViewModalWrap");
+    if (modal) modal.classList.add("show");
+  };
+
+  window.copyMessageToReplyModal = function(){
+    const customerId = byId("msg_view_customer_id")?.value || "";
+    const supportTicketId = byId("msg_view_table")?.value === "support_tickets" ? (byId("msg_view_id")?.value || "") : "";
+    const subject = byId("msg_view_subject")?.value || "";
+    const existingReply = byId("msg_view_reply")?.value || "";
+
+    if (byId("reply_customer_id")) byId("reply_customer_id").value = customerId;
+    if (byId("reply_support_ticket_id")) byId("reply_support_ticket_id").value = supportTicketId;
+    if (byId("reply_subject")) byId("reply_subject").value = "Re: " + subject;
+    if (byId("reply_message")) byId("reply_message").value = existingReply;
+
+    const viewWrap = byId("messageViewModalWrap");
+    if (viewWrap) viewWrap.classList.remove("show");
+    const replyWrap = byId("replyModalWrap");
+    if (replyWrap) replyWrap.classList.add("show");
+  };
+
+  window.saveSupportTicketReplyFromView = async function(){
+    const ticketId = byId("msg_view_id")?.value || "";
+    const reply_message = byId("msg_view_reply")?.value || "";
+    const status = byId("msg_view_status")?.value || "OPEN";
+
+    if (!ticketId) return alert("Ticket id missing.");
+
+    const data = await fetchJSON(`/admin/support/${encodeURIComponent(ticketId)}/reply`, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ reply_message, status })
+    });
+
+    alert(data.message || "Support ticket updated.");
+    if (typeof window.loadMessages === "function") await window.loadMessages();
+    const modal = byId("messageViewModalWrap");
+    if (modal) modal.classList.remove("show");
+  };
+
+  window.deleteMessageFromView = async function(){
+    const id = byId("msg_view_id")?.value || "";
+    const table = byId("msg_view_table")?.value || "";
+
+    if (!id || !table) return alert("Message information missing.");
+    if (!confirm("Delete this message/ticket?")) return;
+
+    const tryUrls = [
+      `/admin/messages/${encodeURIComponent(table)}/${encodeURIComponent(id)}/delete`,
+      `/admin/messages/${encodeURIComponent(table)}/${encodeURIComponent(id)}/delete`
+    ];
+
+    let lastErr = null;
+    for (const url of tryUrls){
+      try{
+        const data = await fetchJSON(url, {
+          method: "POST",
+          headers: { "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+        });
+        alert(data.message || "Deleted successfully.");
+        if (typeof window.loadMessages === "function") await window.loadMessages();
+        const modal = byId("messageViewModalWrap");
+        if (modal) modal.classList.remove("show");
+        return;
+      }catch(err){
+        lastErr = err;
+      }
+    }
+
+    alert((lastErr && lastErr.message) || "Failed to delete message.");
+  };
+
+  window.loadMessages = async function(){
+    const contacts = byId("contactsCards");
+    const customer = byId("customerMessagesCards");
+    const support = byId("supportTicketsCards");
+
+    if (contacts) contacts.innerHTML = '<div class="loading">Loading...</div>';
+    if (customer) customer.innerHTML = '<div class="loading">Loading...</div>';
+    if (support) support.innerHTML = '<div class="loading">Loading...</div>';
+
+    const data = await fetchJSON("/api/admin/messages-feed");
+
+    const contactsRows = data.contacts || data.data?.contacts || [];
+    const customerRows = data.customer_messages || data.data?.customer_messages || [];
+    const supportRows = data.support_tickets || data.data?.support_tickets || [];
+
+    window.__contactsMap = {};
+    window.__customerMessagesMap = {};
+    window.__supportTicketsMap = {};
+
+    contactsRows.forEach(r => { if (r && r.id) window.__contactsMap[r.id] = { ...r, table_name:"contacts" }; });
+    customerRows.forEach(r => { if (r && r.id) window.__customerMessagesMap[r.id] = { ...r, table_name:"customer_messages" }; });
+    supportRows.forEach(r => { if (r && r.id) window.__supportTicketsMap[r.id] = { ...r, table_name:"support_tickets" }; });
+
+    const totalCount = contactsRows.length + customerRows.length + supportRows.length;
+    const badge = byId("sidebarMessagesBadge");
+    if (badge) badge.textContent = String(totalCount);
+
+    if (contacts){
+      contacts.innerHTML = contactsRows.length ? contactsRows.map(r => `
+        <div class="msg-card clickable-ticket" onclick='openMessageView("contact", ${JSON.stringify(r.id)})'>
+          <h4>${esc(r.name || r.full_name || "Contact")}</h4>
+          <div class="msg-meta">
+            <div>Email: ${esc(r.email || "-")}</div>
+            <div>Phone: ${esc(r.phone || "-")}</div>
+            <div>Date: ${esc(r.created_at || "-")}</div>
+          </div>
+          <div class="msg-body">${esc(r.message || r.subject || "-")}</div>
+          <div class="msg-actions">
+            <button class="btn sm secondary" type="button" onclick='event.stopPropagation(); openMessageView("contact", ${JSON.stringify(r.id)})'>Open</button>
+          </div>
+        </div>
+      `).join("") : '<div class="empty">No contact records found.</div>';
+    }
+
+    if (customer){
+      customer.innerHTML = customerRows.length ? customerRows.map(r => `
+        <div class="msg-card clickable-ticket" onclick='openMessageView("customer", ${JSON.stringify(r.id)})'>
+          <h4>${esc(r.subject || "Customer Message")}</h4>
+          <div class="msg-meta">
+            <div>Customer: ${esc(r.customer_name || r.name || "-")}</div>
+            <div>Email: ${esc(r.customer_email || r.email || "-")}</div>
+            <div>Date: ${esc(r.created_at || "-")}</div>
+          </div>
+          <div class="msg-body">${esc(r.message || "-")}</div>
+          <div class="msg-actions">
+            <button class="btn sm secondary" type="button" onclick='event.stopPropagation(); openMessageView("customer", ${JSON.stringify(r.id)})'>Open</button>
+          </div>
+        </div>
+      `).join("") : '<div class="empty">No customer messages found.</div>';
+    }
+
+    if (support){
+      support.innerHTML = supportRows.length ? supportRows.map(r => `
+        <div class="msg-card clickable-ticket" onclick='openMessageView("support", ${JSON.stringify(r.id)})'>
+          <h4>${esc(r.subject || "Support Ticket")}</h4>
+          <div class="msg-meta">
+            <div>Customer: ${esc(r.customer_name || r.name || "Website Visitor")}</div>
+            <div>Status: ${statusPill(r.status || "OPEN")}</div>
+            <div>Date: ${esc(r.created_at || "-")}</div>
+          </div>
+          <div class="msg-body">${esc(r.message || "-")}</div>
+          <div class="msg-actions">
+            <button class="btn sm secondary" type="button" onclick='event.stopPropagation(); openMessageView("support", ${JSON.stringify(r.id)})'>Open</button>
+            <button class="btn sm warn" type="button" onclick='event.stopPropagation(); quickRejectTicket(${JSON.stringify(r.id)})'>Reject / Close</button>
+            <button class="btn sm danger" type="button" onclick='event.stopPropagation(); quickDeleteTicket(${JSON.stringify(r.id)})'>Delete</button>
+          </div>
+        </div>
+      `).join("") : '<div class="empty">No support tickets found.</div>';
+    }
+  };
+
+  window.quickRejectTicket = async function(ticketId){
+    if (!ticketId) return alert("Ticket id missing.");
+    if (!confirm("Mark this ticket as CLOSED?")) return;
+
+    const data = await fetchJSON(`/admin/support/${encodeURIComponent(ticketId)}/reply`, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ reply_message: "Ticket closed by admin.", status: "CLOSED" })
+    });
+
+    alert(data.message || "Ticket closed.");
+    await window.loadMessages();
+  };
+
+  window.quickDeleteTicket = async function(ticketId){
+    if (!ticketId) return alert("Ticket id missing.");
+    if (!confirm("Delete this support ticket?")) return;
+
+    const urls = [
+      `/admin/messages/support_tickets/${encodeURIComponent(ticketId)}/delete`,
+      `/admin/messages/support_tickets/${encodeURIComponent(ticketId)}/delete`
+    ];
+
+    let lastErr = null;
+    for (const url of urls){
+      try{
+        const data = await fetchJSON(url, {
+          method: "POST",
+          headers: { "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+        });
+        alert(data.message || "Support ticket deleted.");
+        await window.loadMessages();
+        return;
+      }catch(err){
+        lastErr = err;
+      }
+    }
+
+    alert((lastErr && lastErr.message) || "Failed to delete support ticket.");
+  };
+
+  window.sendReply = async function(){
+    const customer_id = byId("reply_customer_id")?.value || "";
+    const support_ticket_id = byId("reply_support_ticket_id")?.value || "";
+    const subject = byId("reply_subject")?.value || "";
+    const message = byId("reply_message")?.value || "";
+
+    if (!message.trim()) {
+      alert("Reply message is required.");
+      return;
+    }
+
+    let data;
+
+    if (support_ticket_id) {
+      data = await fetchJSON(`/admin/support/${encodeURIComponent(support_ticket_id)}/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type":"application/json",
+          "Accept":"application/json",
+          "X-Requested-With":"XMLHttpRequest"
+        },
+        body: JSON.stringify({
+          reply_message: message,
+          status: "IN PROGRESS",
+          subject: subject
+        })
+      });
+    } else {
+      data = await fetchJSON("/admin/messages/reply", {
+        method: "POST",
+        headers: {
+          "Content-Type":"application/json",
+          "Accept":"application/json",
+          "X-Requested-With":"XMLHttpRequest"
+        },
+        body: JSON.stringify({
+          customer_id,
+          subject,
+          message
+        })
+      });
+    }
+
+    alert(data.message || "Reply sent.");
+
+    if (byId("reply_message")) byId("reply_message").value = "";
+    if (byId("reply_support_ticket_id")) byId("reply_support_ticket_id").value = "";
+
+    const modal = byId("replyModalWrap");
+    if (modal) modal.classList.remove("show");
+
+    if (typeof window.loadMessages === "function") {
+      await window.loadMessages();
+    }
+  };
+})();
+</script>
+<!-- ADMIN_MESSAGES_PATCH_END -->
+
+
+<!-- ADMIN_CHATBOT_PATCH_START -->
+<script>
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  window.__chatbotRows = [];
+
+  function esc(v){
+    return String(v ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  async function fetchJSON2(url, options={}){
+    const res = await fetch(url, options);
+    const txt = await res.text();
+    let data = {};
+    try { data = txt ? JSON.parse(txt) : {}; } catch(e) {}
+    if (!res.ok || (data && typeof data === "object" && "success" in data && !data.success)) {
+      throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
+    }
+    return data;
+  }
+
+  window.openChatbotModal = function(row){
+    byId("chatbot_id").value = row?.id || "";
+    byId("chatbot_title").value = row?.title || "";
+    byId("chatbot_intent").value = row?.intent || "";
+    byId("chatbot_keywords").value = row?.keywords || "";
+    byId("chatbot_priority").value = row?.priority ?? 0;
+    byId("chatbot_status").value = row?.status || "ACTIVE";
+    byId("chatbot_answer").value = row?.answer || "";
+    byId("chatbotModalTitle").textContent = row?.id ? "Edit Bot Answer" : "New Bot Answer";
+    byId("deleteChatbotBtn").style.display = row?.id ? "inline-flex" : "none";
+    openModal("chatbotModalWrap");
+  };
+
+  window.resetChatbotFilters = function(){
+    byId("chatbotSearch").value = "";
+    byId("chatbotStatusFilter").value = "";
+    window.loadChatbotLibrary();
+  };
+
+  window.loadChatbotLibrary = async function(){
+    const body = byId("chatbotLibraryBody");
+    const cards = byId("chatbotLibraryCards");
+    const q = byId("chatbotSearch")?.value || "";
+    const status = byId("chatbotStatusFilter")?.value || "";
+
+    if (body) body.innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
+    if (cards) cards.innerHTML = '<div class="loading">Loading...</div>';
+
+    try{
+      const params = new URLSearchParams();
+      if (q.trim()) params.set("q", q.trim());
+      if (status.trim()) params.set("status", status.trim());
+
+      const url = "/api/admin/chatbot-library" + (params.toString() ? ("?" + params.toString()) : "");
+      const data = await fetchJSON2(url);
+      const rows = data.data || [];
+      window.__chatbotRows = rows;
+
+      if (!rows.length){
+        if (body) body.innerHTML = '<tr><td colspan="6" class="empty">No chatbot records found.</td></tr>';
+        if (cards) cards.innerHTML = '<div class="empty">No chatbot records found.</div>';
+        return;
+      }
+
+      if (body){
+        body.innerHTML = rows.map(r => `
+          <tr>
+            <td>${esc(r.title || "-")}</td>
+            <td>${esc(r.intent || "-")}</td>
+            <td>${esc(r.keywords || "-")}</td>
+            <td>${esc(r.priority ?? 0)}</td>
+            <td>${esc(r.status || "-")}</td>
+            <td><button class="btn sm secondary" type="button" onclick='openChatbotModal(${JSON.stringify(r)})'>Edit</button></td>
+          </tr>
+        `).join("");
+      }
+
+      if (cards){
+        cards.innerHTML = rows.map(r => `
+          <div class="mobile-card">
+            <div class="mobile-card-head">
+              <div class="mobile-card-title">${esc(r.title || "-")}</div>
+              <div><span class="pill ${String(r.status || "").toUpperCase() === "ACTIVE" ? "approved" : "rejected"}">${esc(r.status || "-")}</span></div>
+            </div>
+            <div class="mobile-card-grid">
+              <div class="mobile-card-item"><strong>Intent</strong><span>${esc(r.intent || "-")}</span></div>
+              <div class="mobile-card-item"><strong>Keywords</strong><span>${esc(r.keywords || "-")}</span></div>
+              <div class="mobile-card-item"><strong>Priority</strong><span>${esc(r.priority ?? 0)}</span></div>
+              <div class="mobile-card-item full"><strong>Answer</strong><span>${esc(r.answer || "-")}</span></div>
+            </div>
+            <div class="mobile-card-actions">
+              <button class="btn sm secondary" type="button" onclick='openChatbotModal(${JSON.stringify(r)})'>Edit</button>
+            </div>
+          </div>
+        `).join("");
+      }
+    }catch(err){
+      if (body) body.innerHTML = `<tr><td colspan="6" class="empty">${esc(err.message || "Failed to load chatbot library.")}</td></tr>`;
+      if (cards) cards.innerHTML = `<div class="empty">${esc(err.message || "Failed to load chatbot library.")}</div>`;
+    }
+  };
+
+  window.saveChatbotRecord = async function(){
+    const id = byId("chatbot_id").value || "";
+    const payload = {
+      title: byId("chatbot_title").value || "",
+      intent: byId("chatbot_intent").value || "",
+      keywords: byId("chatbot_keywords").value || "",
+      priority: parseInt(byId("chatbot_priority").value || "0", 10) || 0,
+      status: byId("chatbot_status").value || "ACTIVE",
+      answer: byId("chatbot_answer").value || ""
+    };
+
+    const url = id ? `/admin/chatbot-library/${encodeURIComponent(id)}/update` : "/admin/chatbot-library/create";
+    const data = await fetchJSON2(url, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    alert(data.message || "Saved.");
+    closeModal("chatbotModalWrap");
+    await window.loadChatbotLibrary();
+  };
+
+  window.deleteChatbotRecord = async function(){
+    const id = byId("chatbot_id").value || "";
+    if (!id) return alert("Chatbot record id missing.");
+    if (!confirm("Delete this chatbot record?")) return;
+
+    const data = await fetchJSON2(`/admin/chatbot-library/${encodeURIComponent(id)}/delete`, {
+      method: "POST",
+      headers: {
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      }
+    });
+
+    alert(data.message || "Deleted.");
+    closeModal("chatbotModalWrap");
+    await window.loadChatbotLibrary();
+  };
+})();
+</script>
+<!-- ADMIN_CHATBOT_PATCH_END -->
+
+
+<!-- ADMIN_PRODUCTS_PATCH_START -->
+<script>
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  async function fetchJSONProducts(url, options={}){
+    const res = await fetch(url, options);
+    const txt = await res.text();
+    let data = {};
+    try { data = txt ? JSON.parse(txt) : {}; } catch(e) {}
+    if (!res.ok || (data && typeof data === "object" && "success" in data && !data.success)) {
+      throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
+    }
+    return data;
+  }
+
+  function esc(v){
+    return String(v ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  function money(v){
+    const n = Number(v || 0);
+    return isNaN(n) ? "0.00" : n.toFixed(2);
+  }
+
+  window.__productsCache = window.__productsCache || [];
+
+  window.openProductModal = function(row=null){
+    byId("product_id").value = row?.id || "";
+    byId("product_name").value = row?.name || row?.product_name || "";
+    byId("product_rate").value = row?.interest_rate ?? row?.rate ?? 0;
+    byId("product_fee").value = row?.service_fee ?? row?.processing_fee ?? row?.fee ?? 0;
+    byId("product_min").value = row?.min_amount ?? row?.minimum_amount ?? 0;
+    byId("product_max").value = row?.max_amount ?? row?.maximum_amount ?? 0;
+    if (byId("product_terms")) byId("product_terms").value = row?.allowed_terms || row?.loan_months || row?.repayment_months || "1,2,3,6,12";
+
+    const active = row ? !((row.is_active === false) || String(row.status || "").toUpperCase() === "DISABLED") : true;
+    byId("product_active").value = active ? "true" : "false";
+
+    byId("productModalTitle").textContent = row?.id ? "Edit Product" : "Create Product";
+    byId("deleteProductBtn").style.display = row?.id ? "inline-flex" : "none";
+    openModal("productModalWrap");
+  };
+
+  function productMatches(row, q, status){
+    const blob = [
+      row.name, row.product_name,
+      row.interest_rate, row.rate,
+      row.service_fee, row.processing_fee, row.fee,
+      row.min_amount, row.minimum_amount,
+      row.max_amount, row.maximum_amount,
+      row.status
+    ].join(" ").toLowerCase();
+
+    const rowStatus = ((row.is_active === false) || String(row.status || "").toUpperCase() === "DISABLED")
+      ? "DISABLED" : "ACTIVE";
+
+    if (q && !blob.includes(q)) return false;
+    if (status && rowStatus !== status) return false;
+    return true;
+  }
+
+  window.renderProductsList = function(){
+    const body = byId("productsBody");
+    const cards = byId("productsCards");
+    const q = String(byId("productSearch")?.value || "").trim().toLowerCase();
+    const status = String(byId("productStatusFilter")?.value || "").trim().toUpperCase();
+
+    const rows = (window.__productsCache || []).filter(r => productMatches(r, q, status));
+
+    if (!rows.length){
+      if (body) body.innerHTML = '<tr><td colspan="7" class="empty">No loan products found.</td></tr>';
+      if (cards) cards.innerHTML = '<div class="empty">No loan products found.</div>';
+      return;
+    }
+
+    if (body){
+      body.innerHTML = rows.map(r => {
+        const active = !((r.is_active === false) || String(r.status || "").toUpperCase() === "DISABLED");
+        return `
+          <tr>
+            <td>${esc(r.name || r.product_name || "-")}</td>
+            <td>${esc(r.interest_rate ?? r.rate ?? 0)}</td>
+            <td>N$ ${money(r.service_fee ?? r.processing_fee ?? r.fee)}</td>
+            <td>N$ ${money(r.min_amount ?? r.minimum_amount)}</td>
+            <td>N$ ${money(r.max_amount ?? r.maximum_amount)}</td>
+            <td>${active ? '<span class="pill approved">ACTIVE</span>' : '<span class="pill rejected">DISABLED</span>'}</td>
+            <td><button class="btn sm secondary" type="button" onclick='openProductModal(${JSON.stringify(r)})'>Open</button></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    if (cards){
+      cards.innerHTML = rows.map(r => {
+        const active = !((r.is_active === false) || String(r.status || "").toUpperCase() === "DISABLED");
+        return `
+          <div class="mobile-card">
+            <div class="mobile-card-head">
+              <div class="mobile-card-title">${esc(r.name || r.product_name || "-")}</div>
+              <div>${active ? '<span class="pill approved">ACTIVE</span>' : '<span class="pill rejected">DISABLED</span>'}</div>
+            </div>
+            <div class="mobile-card-grid">
+              <div class="mobile-card-item"><strong>Interest</strong><span>${esc(r.interest_rate ?? r.rate ?? 0)}%</span></div>
+              <div class="mobile-card-item"><strong>Fee</strong><span>N$ ${money(r.service_fee ?? r.processing_fee ?? r.fee)}</span></div>
+              <div class="mobile-card-item"><strong>Minimum</strong><span>N$ ${money(r.min_amount ?? r.minimum_amount)}</span></div>
+              <div class="mobile-card-item"><strong>Maximum</strong><span>N$ ${money(r.max_amount ?? r.maximum_amount)}</span></div>
+            </div>
+            <div class="mobile-card-actions">
+              <button class="btn sm secondary" type="button" onclick='openProductModal(${JSON.stringify(r)})'>Open</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  };
+
+  window.loadProducts = async function(){
+    const body = byId("productsBody");
+    const cards = byId("productsCards");
+    if (body) body.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+    if (cards) cards.innerHTML = '<div class="loading">Loading...</div>';
+
+    const data = await fetchJSONProducts("/api/admin/loan-products");
+    window.__productsCache = data.data || data.products || data.loan_products || [];
+    window.renderProductsList();
+  };
+
+  window.resetProductFilters = function(){
+    if (byId("productSearch")) byId("productSearch").value = "";
+    if (byId("productStatusFilter")) byId("productStatusFilter").value = "";
+    window.renderProductsList();
+  };
+
+  window.saveProduct = async function(){
+    const id = byId("product_id").value || "";
+    const payload = {
+      name: byId("product_name").value || "",
+      interest_rate: parseFloat(byId("product_rate").value || "0") || 0,
+      service_fee: parseFloat(byId("product_fee").value || "0") || 0,
+      min_amount: parseFloat(byId("product_min").value || "0") || 0,
+      max_amount: parseFloat(byId("product_max").value || "0") || 0,
+      allowed_terms: (byId("product_terms")?.value || "1,2,3,6,12").trim(),
+      is_active: byId("product_active").value === "true",
+      status: byId("product_active").value === "true" ? "ACTIVE" : "DISABLED"
+    };
+
+    if (!payload.name.trim()) {
+      alert("Product name is required.");
+      return;
+    }
+    if (payload.max_amount < payload.min_amount) {
+      alert("Maximum amount cannot be less than minimum amount.");
+      return;
+    }
+
+    const url = id
+      ? `/admin/products/${encodeURIComponent(id)}/update`
+      : "/admin/products/create";
+
+    const data = await fetchJSONProducts(url, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    alert(data.message || "Product saved.");
+    closeModal("productModalWrap");
+    await window.loadProducts();
+    if (typeof window.loadOverview === "function") await window.loadOverview();
+  };
+
+  window.deleteProduct = async function(){
+    const id = byId("product_id").value || "";
+    if (!id) return alert("Product id missing.");
+    if (!confirm("Delete this loan product?")) return;
+
+    const data = await fetchJSONProducts(`/admin/products/${encodeURIComponent(id)}/delete`, {
+      method: "POST",
+      headers: {
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      }
+    });
+
+    alert(data.message || "Product deleted.");
+    closeModal("productModalWrap");
+    await window.loadProducts();
+    if (typeof window.loadOverview === "function") await window.loadOverview();
+  };
+
+  document.addEventListener("DOMContentLoaded", function(){
+    if (byId("productSearch")) {
+      byId("productSearch").addEventListener("input", function(){
+        if (typeof window.renderProductsList === "function") window.renderProductsList();
+      });
+    }
+    if (byId("productStatusFilter")) {
+      byId("productStatusFilter").addEventListener("change", function(){
+        if (typeof window.renderProductsList === "function") window.renderProductsList();
+      });
+    }
+  });
+})();
+</script>
+<!-- ADMIN_PRODUCTS_PATCH_END -->
+
+
+
+<!-- ADMIN_SECURITY_PATCH_START -->
+<script>
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  async function fetchJSONSecurity(url, options={}){
+    const res = await fetch(url, options);
+    const txt = await res.text();
+    let data = {};
+    try { data = txt ? JSON.parse(txt) : {}; } catch(e) {}
+    if (!res.ok || (data && typeof data === "object" && "success" in data && !data.success)) {
+      throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
+    }
+    return data;
+  }
+
+  function esc(v){
+    return String(v ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  window.loadAdminSecurityProfile = async function(){
+    const emailEl = byId("adminProfileEmail");
+    const phoneEl = byId("adminProfilePhone");
+    const updatedEl = byId("adminProfileUpdated");
+
+    if (emailEl) emailEl.textContent = "Loading...";
+    if (phoneEl) phoneEl.textContent = "Loading...";
+    if (updatedEl) updatedEl.textContent = "Loading...";
+
+    try{
+      const data = await fetchJSONSecurity("/api/admin/security/profile");
+      const row = data.data || data.profile || {};
+
+      if (emailEl) emailEl.textContent = row.email || row.admin_email || "Not set";
+      if (phoneEl) phoneEl.textContent = row.phone || row.support_phone || "Not set";
+      if (updatedEl) updatedEl.textContent = row.updated_at || row.last_updated || "Not available";
+
+      const phoneInput = byId("admin_support_phone");
+      if (phoneInput) phoneInput.value = row.phone || row.support_phone || "";
+    }catch(err){
+      if (emailEl) emailEl.textContent = "Could not load";
+      if (phoneEl) phoneEl.textContent = "Could not load";
+      if (updatedEl) updatedEl.textContent = "Could not load";
+      console.error("loadAdminSecurityProfile failed:", err);
+    }
+  };
+
+  window.changeAdminPassword = async function(){
+    const current_password = byId("admin_current_password")?.value || "";
+    const new_password = byId("admin_new_password")?.value || "";
+    const confirm_password = byId("admin_confirm_password")?.value || "";
+
+    if (!current_password.trim()) return alert("Current password is required.");
+    if (!new_password.trim()) return alert("New password is required.");
+    if (new_password.length < 6) return alert("New password must be at least 6 characters.");
+    if (new_password !== confirm_password) return alert("New password and confirm password do not match.");
+
+    const data = await fetchJSONSecurity("/admin/security/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ current_password, new_password })
+    });
+
+    byId("admin_current_password").value = "";
+    byId("admin_new_password").value = "";
+    byId("admin_confirm_password").value = "";
+
+    alert(data.message || "Password updated.");
+    await window.loadAdminSecurityProfile();
+  };
+
+  window.updateAdminContact = async function(){
+    const phone = byId("admin_support_phone")?.value || "";
+    if (!phone.trim()) return alert("Support number is required.");
+
+    const data = await fetchJSONSecurity("/admin/security/update-contact", {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ phone })
+    });
+
+    alert(data.message || "Support number updated.");
+    await window.loadAdminSecurityProfile();
+  };
+
+  window.searchResetUsers = async function(){
+    const holder = byId("userResetResults");
+    const q = (byId("userResetSearch")?.value || "").trim();
+
+    if (holder) holder.innerHTML = '<div class="loading">Loading...</div>';
+
+    try{
+      const url = q ? `/api/admin/customers?q=${encodeURIComponent(q)}` : "/api/admin/customers";
+      const data = await fetchJSONSecurity(url);
+      const rows = data.data || data.customers || [];
+
+      if (!rows.length){
+        if (holder) holder.innerHTML = '<div class="empty">No users found.</div>';
+        return;
+      }
+
+      if (holder){
+        holder.innerHTML = rows.map(u => `
+          <div class="user-reset-card">
+            <h4>${esc(u.full_name || u.name || u.email || "Customer")}</h4>
+            <div class="visitor-meta">
+              <div><strong style="color:var(--muted)">Email:</strong> ${esc(u.email || "-")}</div>
+              <div><strong style="color:var(--muted)">Phone:</strong> ${esc(u.phone || "-")}</div>
+              <div><strong style="color:var(--muted)">Status:</strong> ${esc(u.status || "-")}</div>
+              <div><strong style="color:var(--muted)">Last Login:</strong> ${esc(u.last_login || u.updated_at || "-")}</div>
+            </div>
+            <div class="quick-inline-actions">
+              <button class="btn sm warn" type="button" onclick='resetUserAccess(${JSON.stringify(u.id)})'>Reset Access</button>
+            </div>
+          </div>
+        `).join("");
+      }
+    }catch(err){
+      console.error("searchResetUsers failed:", err);
+      if (holder) holder.innerHTML = `<div class="empty">${esc(err.message || "Failed to search users.")}</div>`;
+    }
+  };
+
+  window.resetUserAccess = async function(userId){
+    if (!userId) return alert("User id missing.");
+    if (!confirm("Reset this user's access?")) return;
+
+    const data = await fetchJSONSecurity(`/admin/customers/${encodeURIComponent(userId)}/reset-access`, {
+      method: "POST",
+      headers: {
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      }
+    });
+
+    alert(data.message || "User access reset.");
+    await window.searchResetUsers();
+  };
+
+  document.addEventListener("DOMContentLoaded", function(){
+    const searchInput = byId("userResetSearch");
+    if (searchInput) {
+      searchInput.addEventListener("keydown", function(e){
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (typeof window.searchResetUsers === "function") window.searchResetUsers();
+        }
+      });
+    }
+  });
+})();
+</script>
+<!-- ADMIN_SECURITY_PATCH_END -->
+
+
+
+<div class="modal-wrap" id="adminUserModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add Admin</h3>
+      <div class="modal-head-actions">
+        <button class="btn secondary sm" type="button" onclick="closeModal('adminUserModalWrap')">Close</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Full Name</label><input id="new_admin_name"></div>
+        <div class="field"><label>Email</label><input id="new_admin_email" type="email"></div>
+        <div class="field"><label>Phone</label><input id="new_admin_phone"></div>
+        <div class="field"><label>Password</label><input id="new_admin_password" type="password"></div>
+        <div class="field"><label>Role</label>
+          <select id="new_admin_role">
+            <option value="ADMIN">ADMIN</option>
+            <option value="MANAGER">MANAGER</option>
+            <option value="SUPPORT">SUPPORT</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer-actions">
+        <button class="btn success" type="button" onclick="saveAdminUser()">Create Admin</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="adminTaskModalWrap">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Assign Task</h3>
+      <div class="modal-head-actions">
+        <button class="btn secondary sm" type="button" onclick="closeModal('adminTaskModalWrap')">Close</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="task_admin_id">
+      <div class="form-grid">
+        <div class="field"><label>Task Title</label><input id="task_title"></div>
+        <div class="field"><label>Due Date</label><input id="task_due_date" type="date"></div>
+        <div class="field full"><label>Description</label><textarea id="task_description"></textarea></div>
+      </div>
+      <div class="modal-footer-actions">
+        <button class="btn success" type="button" onclick="saveAdminTask()">Assign Task</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ADMIN_TEAM_PATCH_START -->
+<script>
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  async function fetchJSONTeam(url, options={}){
+    const res = await fetch(url, options);
+    const txt = await res.text();
+    let data = {};
+    try { data = txt ? JSON.parse(txt) : {}; } catch(e) {}
+    if (!res.ok || (data && typeof data === "object" && "success" in data && !data.success)) {
+      throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
+    }
+    return data;
+  }
+
+  function esc(v){
+    return String(v ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  window.__adminUsers = [];
+  window.__adminTasks = [];
+
+  window.openAdminUserModal = function(){
+    byId("new_admin_name").value = "";
+    byId("new_admin_email").value = "";
+    byId("new_admin_phone").value = "";
+    byId("new_admin_password").value = "";
+    byId("new_admin_role").value = "ADMIN";
+    openModal("adminUserModalWrap");
+  };
+
+  window.openAdminTaskModal = function(adminId){
+    byId("task_admin_id").value = adminId || "";
+    byId("task_title").value = "";
+    byId("task_description").value = "";
+    byId("task_due_date").value = "";
+    openModal("adminTaskModalWrap");
+  };
+
+  window.loadAdminTeam = async function(){
+    const teamHolder = byId("adminTeamGrid");
+    const taskHolder = byId("adminTasksGrid");
+    if (teamHolder) teamHolder.innerHTML = '<div class="loading">Loading...</div>';
+    if (taskHolder) taskHolder.innerHTML = '<div class="loading">Loading...</div>';
+
+    try{
+      const data = await fetchJSONTeam("/api/admin/team");
+      const admins = data.admins || [];
+      const tasks = data.tasks || [];
+
+      window.__adminUsers = admins;
+      window.__adminTasks = tasks;
+
+      if (teamHolder){
+        teamHolder.innerHTML = admins.length ? admins.map(a => `
+          <div class="visitor-card">
+            <h4>${esc(a.full_name || "Admin")}</h4>
+            <div class="visitor-meta">
+              <div><strong style="color:var(--muted)">Email:</strong> ${esc(a.email || "-")}</div>
+              <div><strong style="color:var(--muted)">Phone:</strong> ${esc(a.phone || "-")}</div>
+              <div><strong style="color:var(--muted)">Role:</strong> ${esc(a.role || "ADMIN")}</div>
+              <div><strong style="color:var(--muted)">Status:</strong> ${esc(a.status || "ACTIVE")}</div>
+            </div>
+            <div class="quick-inline-actions">
+              <button class="btn sm secondary" type="button" onclick='openAdminTaskModal(${JSON.stringify(a.id)})'>Assign Task</button>
+              <button class="btn sm warn" type="button" onclick='toggleAdminStatus(${JSON.stringify(a.id)}, ${JSON.stringify(a.status || "ACTIVE")})'>${String(a.status || "ACTIVE").toUpperCase() === "BLOCKED" ? "Unblock" : "Block"}</button>
+              <button class="btn sm danger" type="button" onclick='deleteAdminUser(${JSON.stringify(a.id)})'>Delete</button>
+            </div>
+          </div>
+        `).join("") : '<div class="empty">No admin users found.</div>';
+      }
+
+      if (taskHolder){
+        taskHolder.innerHTML = tasks.length ? tasks.map(t => {
+          const admin = admins.find(a => a.id === t.admin_id);
+          return `
+            <div class="msg-card">
+              <h4>${esc(t.title || "Task")}</h4>
+              <div class="msg-meta">
+                <div>Assigned To: ${esc(admin?.full_name || "Unknown Admin")}</div>
+                <div>Status: ${esc(t.status || "PENDING")}</div>
+                <div>Due Date: ${esc(t.due_date || "-")}</div>
+              </div>
+              <div class="msg-body">${esc(t.description || "-")}</div>
+              <div class="msg-actions">
+                <button class="btn sm success" type="button" onclick='updateTaskStatus(${JSON.stringify(t.id)}, "DONE")'>Mark Done</button>
+                <button class="btn sm warn" type="button" onclick='updateTaskStatus(${JSON.stringify(t.id)}, "IN PROGRESS")'>In Progress</button>
+                <button class="btn sm danger" type="button" onclick='updateTaskStatus(${JSON.stringify(t.id)}, "CANCELLED")'>Cancel</button>
+              </div>
+            </div>
+          `;
+        }).join("") : '<div class="empty">No admin tasks found.</div>';
+      }
+    }catch(err){
+      console.error("loadAdminTeam failed:", err);
+      const msg = esc(err.message || "Failed to load admin team.");
+      if (teamHolder) teamHolder.innerHTML = `<div class="empty">${msg}</div>`;
+      if (taskHolder) taskHolder.innerHTML = `<div class="empty">${msg}</div>`;
+    }
+  };
+
+  window.saveAdminUser = async function(){
+    const payload = {
+      full_name: byId("new_admin_name").value || "",
+      email: byId("new_admin_email").value || "",
+      phone: byId("new_admin_phone").value || "",
+      password: byId("new_admin_password").value || "",
+      role: byId("new_admin_role").value || "ADMIN"
+    };
+
+    const data = await fetchJSONTeam("/admin/team/create", {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    alert(data.message || "Admin created.");
+    closeModal("adminUserModalWrap");
+    await loadAdminTeam();
+  };
+
+  window.toggleAdminStatus = async function(adminId, currentStatus){
+    const nextStatus = String(currentStatus || "ACTIVE").toUpperCase() === "BLOCKED" ? "ACTIVE" : "BLOCKED";
+    const data = await fetchJSONTeam(`/admin/team/${encodeURIComponent(adminId)}/status`, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ status: nextStatus })
+    });
+
+    alert(data.message || "Admin status updated.");
+    await loadAdminTeam();
+  };
+
+  window.deleteAdminUser = async function(adminId){
+    if (!confirm("Delete this admin user and all their tasks?")) return;
+
+    const data = await fetchJSONTeam(`/admin/team/${encodeURIComponent(adminId)}/delete`, {
+      method: "POST",
+      headers: {
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      }
+    });
+
+    alert(data.message || "Admin deleted.");
+    await loadAdminTeam();
+  };
+
+  window.saveAdminTask = async function(){
+    const adminId = byId("task_admin_id").value || "";
+    const payload = {
+      title: byId("task_title").value || "",
+      description: byId("task_description").value || "",
+      due_date: byId("task_due_date").value || ""
+    };
+
+    const data = await fetchJSONTeam(`/admin/team/${encodeURIComponent(adminId)}/assign-task`, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    alert(data.message || "Task assigned.");
+    closeModal("adminTaskModalWrap");
+    await loadAdminTeam();
+  };
+
+  window.updateTaskStatus = async function(taskId, status){
+    const data = await fetchJSONTeam(`/admin/tasks/${encodeURIComponent(taskId)}/status`, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ status })
+    });
+
+    alert(data.message || "Task updated.");
+    await loadAdminTeam();
+  };
+})();
+</script>
+<!-- ADMIN_TEAM_PATCH_END -->
+
+
+
+<!-- ADMIN_VISITORS_PATCH_START -->
+<script>
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  async function fetchJSONVisitors(url, options={}){
+    const res = await fetch(url, options);
+    const txt = await res.text();
+    let data = {};
+    try { data = txt ? JSON.parse(txt) : {}; } catch(e) {}
+    if (!res.ok || (data && typeof data === "object" && "success" in data && !data.success)) {
+      throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
+    }
+    return data;
+  }
+
+  function esc(v){
+    return String(v ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  function statusPill(status){
+    const s = String(status || "ACTIVE").toUpperCase();
+    let cls = "pending";
+    if (["ACTIVE","VISITED","OPEN"].includes(s)) cls = "approved";
+    if (["BLOCKED","KICKED","DENIED"].includes(s)) cls = "rejected";
+    return `<span class="pill ${cls}">${esc(s)}</span>`;
+  }
+
+  function pickRows(data){
+    if (Array.isArray(data)) return data;
+    if (!data || typeof data !== "object") return [];
+    return data.data || data.rows || data.visitors || data.items || [];
+  }
+
+  function visitorInterest(v){
+    const parts = [
+      v.page_title,
+      v.path,
+      v.current_page,
+      v.referrer,
+      v.search_query,
+      v.interest,
+      v.message
+    ].filter(Boolean);
+    return parts.length ? parts.join(" • ") : "No clear interest recorded";
+  }
+
+  window.__visitorRows = [];
+  window.__blockedVisitorRows = [];
+
+  window.loadVisitors = async function(){
+    const holder = byId("visitorsCards");
+    const blockedHolder = byId("blockedVisitorsCards");
+
+    if (holder) holder.innerHTML = '<div class="loading">Loading...</div>';
+    if (blockedHolder) blockedHolder.innerHTML = '<div class="loading">Loading...</div>';
+
+    try{
+      const res = await fetch("/api/admin/visitors", {
+        headers: { "Accept":"application/json", "X-Requested-With":"XMLHttpRequest" }
+      });
+
+      const raw = await res.text();
+      let data = {};
+      try { data = raw ? JSON.parse(raw) : {}; }
+      catch(e){
+        throw new Error("Visitors API did not return valid JSON.");
+      }
+
+      if (!res.ok) {
+        throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
+      }
+
+      let rows = [];
+      if (Array.isArray(data)) rows = data;
+      else if (Array.isArray(data.data)) rows = data.data;
+      else if (Array.isArray(data.rows)) rows = data.rows;
+      else if (Array.isArray(data.visitors)) rows = data.visitors;
+      else if (data.data && Array.isArray(data.data.visitors)) rows = data.data.visitors;
+      else rows = [];
+
+      window.__visitorRows = rows;
+
+      if (!holder) return;
+
+      if (!rows.length){
+        holder.innerHTML = '<div class="empty">No visitor activity found.</div>';
+        if (blockedHolder) blockedHolder.innerHTML = '<div class="empty">No blocked visitors.</div>';
+        return;
+      }
+
+      holder.innerHTML = rows.map(v => `
+        <div class="visitor-card">
+          <h4>${esc(v.name || v.visitor_name || v.email || v.ip_address || "Visitor")}</h4>
+          <div class="visitor-meta">
+            <div><strong style="color:var(--muted)">Device:</strong> ${esc(v.device_type || "Unknown")}</div>
+            <div><strong style="color:var(--muted)">Browser:</strong> ${esc(v.browser || "Unknown")}</div>
+            <div><strong style="color:var(--muted)">Platform:</strong> ${esc(v.platform || v.platform_info || "Unknown")}</div>
+            <div><strong style="color:var(--muted)">IP:</strong> ${esc(v.ip_address || "-")}</div>
+            <div><strong style="color:var(--muted)">Location:</strong> ${esc(v.location || v.city || v.country || "-")}</div>
+            <div><strong style="color:var(--muted)">Visited:</strong> ${esc(v.created_at || v.visited_at || "-")}</div>
+            <div><strong style="color:var(--muted)">Interest:</strong> ${esc(
+              [v.page_title, v.path, v.current_page, v.referrer, v.search_query, v.interest, v.message]
+                .filter(Boolean).join(" • ") || "No clear interest recorded"
+            )}</div>
+            <div><strong style="color:var(--muted)">Status:</strong> ${esc(v.status || "ACTIVE")}</div>
+          </div>
+          <div class="quick-inline-actions">
+            <button class="btn sm warn" type="button" onclick='kickVisitor(${JSON.stringify(v.id)})'>Kick Out</button>
+            <button class="btn sm danger" type="button" onclick='blockVisitor(${JSON.stringify(v.id)})'>Block Visitor</button>
+          </div>
+        </div>
+      `).join("");
+
+      if (blockedHolder) blockedHolder.innerHTML = '<div class="empty">Blocked visitor list will appear here when records exist.</div>';
+    }catch(err){
+      console.error("loadVisitors failed:", err);
+      if (holder) holder.innerHTML = `<div class="empty">${esc(err.message || "Failed to load visitors.")}</div>`;
+      if (blockedHolder) blockedHolder.innerHTML = `<div class="empty">${esc(err.message || "Failed to load visitors.")}</div>`;
+    }
+  };
+
+  window.kickVisitor = async function(visitorId){
+    if (!visitorId) return alert("Visitor id missing.");
+    if (!confirm("Kick this visitor session?")) return;
+
+    const data = await fetchJSONVisitors(`/admin/visitors/${encodeURIComponent(visitorId)}/kick`, {
+      method: "POST",
+      headers: {
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      }
+    });
+
+    alert(data.message || "Visitor kicked.");
+    await window.loadVisitors();
+  };
+
+  window.blockVisitor = async function(visitorId){
+    if (!visitorId) return alert("Visitor id missing.");
+    const reason = prompt("Reason for blocking this visitor:", "Blocked by admin") || "Blocked by admin";
+    if (!confirm("Block this visitor?")) return;
+
+    const data = await fetchJSONVisitors(`/admin/visitors/${encodeURIComponent(visitorId)}/block`, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-Requested-With":"XMLHttpRequest"
+      },
+      body: JSON.stringify({ reason })
+    });
+
+    alert(data.message || "Visitor blocked.");
+    await window.loadVisitors();
+  };
+})();
+</script>
+<!-- ADMIN_VISITORS_PATCH_END -->
 
 </body>
 </html>

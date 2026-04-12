@@ -8,18 +8,21 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <style>
     :root{
-      --primary:#0b3d2e;
-      --primary-2:#145c46;
-      --accent:#ffd447;
-      --accent-2:#ffb703;
-      --bg:#f4f8f6;
-      --card:#ffffff;
-      --text:#243746;
-      --muted:#64748b;
-      --line:#dbe4ea;
-      --danger:#dc2626;
-      --success:#16a34a;
-      --shadow:0 20px 50px rgba(2,12,27,.10);
+      --primary:#0b4f3f;
+      --primary-2:#15634e;
+      --accent:#d8b45a;
+      --accent-2:#e3c67b;
+      --bg:#dcefe7;
+      --bg-soft:#eaf7f1;
+      --card:#f8fcfa;
+      --white:#ffffff;
+      --text:#233b36;
+      --muted:#5f766e;
+      --line:#b8d3c9;
+      --danger:#c62828;
+      --success:#166534;
+      --warning:#9a6700;
+      --shadow:0 22px 60px rgba(7,24,19,.18);
       --radius:22px;
     }
 
@@ -28,12 +31,15 @@
     body{
       margin:0;
       font-family:'Inter',sans-serif;
-      background:linear-gradient(135deg,#eef7f2 0%, #f8fbfa 100%);
+      background:
+        radial-gradient(circle at top right, #eef8f3 0, #eef8f3 8%, transparent 22%),
+        radial-gradient(circle at top left, #cfe6dd 0, #cfe6dd 6%, transparent 18%),
+        linear-gradient(135deg,#dcefe7 0%, #eef8f3 100%);
       color:var(--text);
     }
 
     .shell{
-      width:min(1100px,95%);
+      width:min(1120px,95%);
       margin:14px auto 30px;
     }
 
@@ -49,10 +55,11 @@
       text-decoration:none;
       color:var(--primary);
       font-weight:800;
-      background:#fff;
+      background:var(--white);
       border:1px solid var(--line);
       padding:10px 14px;
       border-radius:12px;
+      box-shadow:0 8px 20px rgba(7,24,19,.06);
     }
 
     .hero{
@@ -62,17 +69,32 @@
       padding:24px;
       box-shadow:var(--shadow);
       margin-bottom:18px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero:after{
+      content:"KATRAMONEY";
+      position:absolute;
+      right:16px;
+      bottom:-4px;
+      font-size:46px;
+      font-weight:900;
+      color:rgba(255,255,255,.07);
+      letter-spacing:2px;
+      pointer-events:none;
     }
 
     .hero h1{
       margin:0 0 10px;
-      font-size:clamp(1.8rem,4vw,2.8rem);
+      font-size:clamp(1.8rem,4vw,2.7rem);
     }
 
     .hero p{
       margin:0;
-      color:rgba(255,255,255,.88);
+      color:rgba(255,255,255,.9);
       line-height:1.7;
+      max-width:800px;
     }
 
     .layout{
@@ -83,8 +105,9 @@
     }
 
     .sidebar,.main-card{
-      background:#fff;
-      border:1px solid var(--line);
+      background:rgba(255,255,255,.72);
+      backdrop-filter:blur(8px);
+      border:1px solid rgba(184,211,201,.9);
       border-radius:24px;
       box-shadow:var(--shadow);
     }
@@ -109,15 +132,17 @@
       border:1px solid var(--line);
       border-radius:16px;
       padding:12px;
-      background:#f8fafc;
+      background:#f5fbf8;
       display:flex;
       gap:10px;
       align-items:flex-start;
+      transition:.2s ease;
     }
 
     .step-item.active{
-      background:#edf9f2;
-      border-color:#9fd7bf;
+      background:#e8f6ef;
+      border-color:#8ebfae;
+      transform:translateY(-1px);
     }
 
     .step-no{
@@ -178,7 +203,7 @@
       width:100%;
       height:10px;
       border-radius:999px;
-      background:#edf2f7;
+      background:#dfece6;
       overflow:hidden;
     }
 
@@ -233,8 +258,8 @@
     }
 
     input:focus,select:focus,textarea:focus{
-      border-color:#9fd7bf;
-      box-shadow:0 0 0 4px rgba(20,92,70,.08);
+      border-color:#8ebfae;
+      box-shadow:0 0 0 4px rgba(21,99,78,.08);
     }
 
     textarea{min-height:100px;resize:vertical}
@@ -248,10 +273,10 @@
 
     .doc-group{
       display:none;
-      margin-top:10px;
+      margin-top:14px;
       border:1px solid var(--line);
       border-radius:18px;
-      background:#f8fafc;
+      background:#f6fbf8;
       padding:16px;
     }
 
@@ -264,7 +289,7 @@
     }
 
     .upload-box{
-      border:1.5px dashed #a8b7c7;
+      border:1.5px dashed #9eb9af;
       border-radius:18px;
       background:#fff;
       padding:14px;
@@ -294,7 +319,7 @@
       border:1px solid var(--line);
       border-radius:18px;
       padding:14px;
-      background:#f8fafc;
+      background:#f6fbf8;
     }
 
     .camera-box video,
@@ -338,7 +363,7 @@
     .terms-box{
       border:1px solid var(--line);
       border-radius:18px;
-      background:#f8fafc;
+      background:#f6fbf8;
       padding:16px;
       color:var(--muted);
       line-height:1.7;
@@ -359,7 +384,7 @@
       border:1px solid var(--line);
       border-radius:18px;
       padding:16px;
-      background:#f8fafc;
+      background:#f6fbf8;
     }
 
     .loan-summary-box h4{
@@ -431,6 +456,82 @@
       color:#fff;
     }
 
+    .duplicate-help-box{
+      margin-top:10px;
+      border:1px solid #fecaca;
+      background:#fef2f2;
+      color:#991b1b;
+      border-radius:14px;
+      padding:14px;
+      font-size:14px;
+      line-height:1.6;
+      display:none;
+    }
+
+    .katra-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(9,35,28,.45);
+      backdrop-filter:blur(4px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:99999;
+    }
+
+    .katra-overlay.show{display:flex}
+
+    .katra-loader-card{
+      width:min(92vw,420px);
+      background:linear-gradient(180deg,#e5f4ee 0%, #d7ece4 100%);
+      border:1px solid rgba(11,79,63,.18);
+      box-shadow:0 24px 60px rgba(7,24,19,.22);
+      border-radius:28px;
+      padding:28px 24px;
+      text-align:center;
+    }
+
+    .katra-spinner{
+      width:82px;
+      height:82px;
+      margin:0 auto 18px;
+      border-radius:50%;
+      border:8px solid rgba(11,79,63,.10);
+      border-top-color:#0b4f3f;
+      animation:katraSpin 1s linear infinite;
+      position:relative;
+      display:grid;
+      place-items:center;
+      background:#f7fcfa;
+    }
+
+    .katra-spinner-text{
+      position:absolute;
+      font-weight:900;
+      color:#0b4f3f;
+      font-size:14px;
+      letter-spacing:2px;
+    }
+
+    .katra-loader-title{
+      color:#0b4f3f;
+      font-weight:900;
+      font-size:20px;
+      margin:0 0 8px;
+    }
+
+    .katra-loader-sub{
+      color:#45635b;
+      font-size:14px;
+      line-height:1.6;
+      margin:0;
+    }
+
+    @keyframes katraSpin{
+      from{transform:rotate(0deg)}
+      to{transform:rotate(360deg)}
+    }
+
     @media (max-width: 980px){
       .layout{grid-template-columns:1fr}
       .sidebar{position:static}
@@ -447,30 +548,17 @@
       .btn{width:100%;min-width:0}
       input,select,textarea{font-size:16px}
     }
-  
-    .duplicate-help-box{
-      margin-top:10px;
-      border:1px solid #fecaca;
-      background:#fef2f2;
-      color:#991b1b;
-      border-radius:14px;
-      padding:14px;
-      font-size:14px;
-      line-height:1.6;
-      display:none;
-    }
-
-  
-    .field-checking{
-      margin-top:6px;
-      font-size:12px;
-      color:var(--warning);
-      font-weight:700;
-    }
-
   </style>
 </head>
 <body>
+  <div class="katra-overlay" id="katraOverlay">
+    <div class="katra-loader-card">
+      <div class="katra-spinner"><div class="katra-spinner-text">KATRA</div></div>
+      <h3 class="katra-loader-title" id="katraOverlayTitle">Processing Application</h3>
+      <p class="katra-loader-sub" id="katraOverlayText">Please wait while your application is being processed...</p>
+    </div>
+  </div>
+
   <div class="shell">
     <div class="topbar">
       <a href="/">← Back to Home</a>
@@ -479,44 +567,24 @@
 
     <div class="hero">
       <h1>KATRAMONEY Smart Loan Application</h1>
-      <p>
-        Complete a shorter application, upload only the correct documents for your employment type, verify with face capture and location, accept the terms, then submit and download your PDF copy.
-      </p>
+      <p>Complete a shorter application, upload only the correct documents for your employment type, verify with face capture and location, accept the terms, then submit and download your premium application invoice.</p>
     </div>
 
     <div class="layout">
       <aside class="sidebar">
         <h3>Application Flow</h3>
         <div class="step-list">
-          <div class="step-item active" data-step="1">
-            <div class="step-no">1</div>
-            <div><strong>Identity</strong><span>Basic applicant details</span></div>
-          </div>
-          <div class="step-item" data-step="2">
-            <div class="step-no">2</div>
-            <div><strong>Employment & Documents</strong><span>Smart upload requirements</span></div>
-          </div>
-          <div class="step-item" data-step="3">
-            <div class="step-no">3</div>
-            <div><strong>Camera & Location</strong><span>Verification step</span></div>
-          </div>
-          <div class="step-item" data-step="4">
-            <div class="step-no">4</div>
-            <div><strong>Terms</strong><span>Accept and review</span></div>
-          </div>
-          <div class="step-item" data-step="5">
-            <div class="step-no">5</div>
-            <div><strong>Submit & PDF</strong><span>Download copy and continue</span></div>
-          </div>
+          <div class="step-item active" data-step="1"><div class="step-no">1</div><div><strong>Identity</strong><span>Basic applicant details</span></div></div>
+          <div class="step-item" data-step="2"><div class="step-no">2</div><div><strong>Employment & Documents</strong><span>Smart upload requirements</span></div></div>
+          <div class="step-item" data-step="3"><div class="step-no">3</div><div><strong>Camera & Location</strong><span>Verification step</span></div></div>
+          <div class="step-item" data-step="4"><div class="step-no">4</div><div><strong>Terms</strong><span>Accept and review</span></div></div>
+          <div class="step-item" data-step="5"><div class="step-no">5</div><div><strong>Submit & PDF</strong><span>Download copy and continue</span></div></div>
         </div>
       </aside>
 
       <main class="main-card">
         <div id="statusBanner" class="status-banner"></div>
         <div id="liveDuplicateStatus" class="status-banner warn" style="display:none;"></div>
-        <div id="duplicateWarningBox" class="status-banner error" style="display:none;">
-          This application appears to already exist. Please go back to the home page, click <strong>View My Application Progress</strong>, and log in using the same email and your phone number as password.
-        </div>
 
         <div class="progress-wrap">
           <div class="progress-top">
@@ -545,7 +613,6 @@
           <section class="section active" data-section="1">
             <h2>Identity</h2>
             <p class="lead">Enter the basic details required to start your application.</p>
-
             <div class="grid">
               <div class="field">
                 <label>Full Name *</label>
@@ -575,9 +642,7 @@
               </div>
             </div>
             <div id="duplicateHelpBox" class="duplicate-help-box">
-              We found an existing application using this email, phone number, or ID number.
-              Please go back to the home page and use <strong>View My Application Progress</strong>.
-              Log in with your application email and use your phone number as password.
+              These details were already used. Please go back and use <strong>View My Progress</strong> to log in to your existing application.
             </div>
           </section>
 
@@ -591,6 +656,7 @@
                 <select name="loan_product_select" id="apply_product_select" required>
                   <option value="">Loading products...</option>
                 </select>
+                <div class="hint" id="productLoadHint">Product list loading...</div>
               </div>
 
               <div class="field">
@@ -705,10 +771,7 @@
                 <video id="camera" autoplay playsinline style="display:none;"></video>
                 <canvas id="photoCanvas" style="display:none;"></canvas>
                 <img id="photoPreview" alt="Face capture preview" style="display:none;">
-                <div class="hint" style="margin-top:10px;">
-                  Take a clear face photo. This will be included in your application and PDF copy.
-                </div>
-
+                <div class="hint" style="margin-top:10px;">Take a clear face photo. This will be included in your premium PDF invoice.</div>
                 <div class="actions" style="margin-top:14px;">
                   <button type="button" class="btn btn-dark" id="startCameraBtn">Open Camera</button>
                   <button type="button" class="btn btn-secondary" id="capturePhotoBtn">Capture Photo</button>
@@ -719,31 +782,17 @@
               <div>
                 <div class="camera-box">
                   <h3 style="margin-top:0;color:var(--primary);">Location Snapshot</h3>
-                  <p style="margin-top:0;color:var(--muted);line-height:1.6;">
-                    Capture your current location to support verification.
-                  </p>
+                  <p style="margin-top:0;color:var(--muted);line-height:1.6;">Capture your current location to support verification.</p>
                   <div class="actions" style="margin-top:12px;">
                     <button type="button" class="btn btn-dark" id="captureLocationBtn">Capture Location</button>
                   </div>
                 </div>
 
                 <div class="meta-grid">
-                  <div class="meta-card">
-                    <strong>Coordinates</strong>
-                    <span id="geoDisplay">Not captured yet</span>
-                  </div>
-                  <div class="meta-card">
-                    <strong>Accuracy</strong>
-                    <span id="accuracyDisplay">Not captured yet</span>
-                  </div>
-                  <div class="meta-card">
-                    <strong>Device</strong>
-                    <span id="deviceDisplay">Will detect automatically</span>
-                  </div>
-                  <div class="meta-card">
-                    <strong>Timezone</strong>
-                    <span id="timezoneDisplay">Will detect automatically</span>
-                  </div>
+                  <div class="meta-card"><strong>Coordinates</strong><span id="geoDisplay">Not captured yet</span></div>
+                  <div class="meta-card"><strong>Accuracy</strong><span id="accuracyDisplay">Not captured yet</span></div>
+                  <div class="meta-card"><strong>Device</strong><span id="deviceDisplay">Will detect automatically</span></div>
+                  <div class="meta-card"><strong>Timezone</strong><span id="timezoneDisplay">Will detect automatically</span></div>
                 </div>
               </div>
             </div>
@@ -773,22 +822,18 @@
           </section>
 
           <section class="section" data-section="5">
-            <h2>Submit & Download PDF Copy</h2>
-            <p class="lead">Before final submission, you can generate and save a PDF copy of your application.</p>
+            <h2>Submit & Premium PDF</h2>
+            <p class="lead">Before final submission, download your premium application invoice.</p>
 
             <div class="loan-summary-box">
               <h4>Final Reminder</h4>
               <div class="hint">
-                Your PDF copy will include your identity details, selected product, loan values, employment type, verification details, and the captured face image.
+                Your premium PDF includes your identity details, selected product, loan values, employment type, verification details, and face image.
               </div>
             </div>
 
             <div class="actions" style="margin-top:18px;">
-              <button type="button" class="btn btn-secondary" id="downloadPdfBtn">Download My Application PDF</button>
-            </div>
-
-            <div class="hint" style="margin-top:10px;">
-              After you submit, the system should redirect you to the customer dashboard route.
+              <button type="button" class="btn btn-secondary" id="downloadPdfBtn">Download Premium Invoice</button>
             </div>
           </section>
 
@@ -802,154 +847,757 @@
     </div>
   </div>
 
-  
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const FALLBACK_PRODUCTS = [
+      { id: '1', name: 'Business Loan', interest_rate: 30, processing_fee: 50, min_amount: 1000, max_amount: 10000 },
+      { id: '2', name: 'Salary Advance', interest_rate: 30, processing_fee: 65, min_amount: 500, max_amount: 2000 },
+      { id: '3', name: 'Personal Loan', interest_rate: 30, processing_fee: 20, min_amount: 500, max_amount: 3000 }
+    ];
 
+    const q = new URLSearchParams(window.location.search);
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const idEl = document.getElementById('id_number');
-  const phoneEl = document.getElementById('phone');
-  const emailEl = document.getElementById('email');
-  const liveBox = document.getElementById('liveDuplicateStatus');
-  const nextBtn = document.getElementById('nextBtn');
-  const form = document.getElementById('loanApplicationForm');
+    const sections = Array.from(document.querySelectorAll('.section'));
+    const stepItems = Array.from(document.querySelectorAll('.step-item'));
+    const progressFill = document.getElementById('progressFill');
+    const progressLabel = document.getElementById('progressLabel');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('loanApplicationForm');
 
-  let duplicateBlocked = false;
+    const overlay = document.getElementById('katraOverlay');
+    const overlayTitle = document.getElementById('katraOverlayTitle');
+    const overlayText = document.getElementById('katraOverlayText');
 
-  function showBox(message, type='warn') {
-    if (!liveBox) return;
-    liveBox.className = 'status-banner show ' + type;
-    liveBox.style.display = 'block';
-    liveBox.innerHTML = message;
-  }
+    const statusBanner = document.getElementById('statusBanner');
+    const liveBox = document.getElementById('liveDuplicateStatus');
+    const duplicateHelpBox = document.getElementById('duplicateHelpBox');
 
-  function hideBox() {
-    if (!liveBox) return;
-    liveBox.style.display = 'none';
-    liveBox.textContent = '';
-    liveBox.className = 'status-banner warn';
-  }
+    const idEl = document.getElementById('id_number');
+    const phoneEl = document.getElementById('phone');
+    const emailEl = document.getElementById('email');
 
-  function cleanValue(name, value) {
-    const v = String(value || '').trim();
-    if (name === 'email') return v.toLowerCase();
-    if (name === 'phone') return v.replace(/\D/g, '');
-    if (name === 'id_number') return v.replace(/\s+/g, '').toUpperCase();
-    return v;
-  }
+    const productSelect = document.getElementById('apply_product_select');
+    const productLoadHint = document.getElementById('productLoadHint');
+    const productIdInput = document.getElementById('product_id');
+    const amountEl = document.getElementById('loan_amount');
+    const termEl = document.getElementById('loan_term');
+    const employmentSelect = document.getElementById('employment_status');
 
-  async function checkSingleField(fieldName, fieldValue) {
-    const value = cleanValue(fieldName, fieldValue);
-    if (!value) {
-      duplicateBlocked = false;
-      hideBox();
-      return { exists: false };
+    const docGroupEmployee = document.getElementById('docGroupEmployee');
+    const docGroupBusiness = document.getElementById('docGroupBusiness');
+
+    const liveProductName = document.getElementById('liveProductName');
+    const liveInterestRate = document.getElementById('liveInterestRate');
+    const liveMonthlyPayment = document.getElementById('liveMonthlyPayment');
+    const liveTotalRepayment = document.getElementById('liveTotalRepayment');
+    const liveLoanWarning = document.getElementById('liveLoanWarning');
+
+    const startCameraBtn = document.getElementById('startCameraBtn');
+    const capturePhotoBtn = document.getElementById('capturePhotoBtn');
+    const retakePhotoBtn = document.getElementById('retakePhotoBtn');
+    const captureLocationBtn = document.getElementById('captureLocationBtn');
+    const camera = document.getElementById('camera');
+    const photoCanvas = document.getElementById('photoCanvas');
+    const photoPreview = document.getElementById('photoPreview');
+    const faceCaptureData = document.getElementById('face_capture_data');
+
+    const geoLat = document.getElementById('geo_lat');
+    const geoLng = document.getElementById('geo_lng');
+    const geoAccuracy = document.getElementById('geo_accuracy');
+    const geoTimestamp = document.getElementById('geo_timestamp');
+
+    const geoDisplay = document.getElementById('geoDisplay');
+    const accuracyDisplay = document.getElementById('accuracyDisplay');
+    const deviceDisplay = document.getElementById('deviceDisplay');
+    const timezoneDisplay = document.getElementById('timezoneDisplay');
+
+    const deviceType = document.getElementById('device_type');
+    const userAgent = document.getElementById('user_agent');
+    const platformInfo = document.getElementById('platform_info');
+    const screenInfo = document.getElementById('screen_info');
+    const timezoneInfo = document.getElementById('timezone_info');
+    const languageInfo = document.getElementById('language_info');
+
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+
+    let currentStep = 1;
+    let duplicateBlocked = false;
+    let cameraStream = null;
+
+    function cleanText(v) {
+      return String(v || '').replace(/\s+/g, ' ').trim();
     }
 
-    showBox('Checking ' + fieldName.replace('_', ' ') + ' in the system...', 'warn');
+    function showOverlay(title, text) {
+      if (!overlay) return;
+      overlayTitle.textContent = title || 'Processing Application';
+      overlayText.textContent = text || 'Please wait...';
+      overlay.classList.add('show');
+    }
 
-    try {
-      const payload = {
-        email: fieldName === 'email' ? value : '',
-        phone: fieldName === 'phone' ? value : '',
-        id_number: fieldName === 'id_number' ? value : ''
-      };
+    function hideOverlay() {
+      if (overlay) overlay.classList.remove('show');
+    }
 
-      const res = await fetch('/api/check-application-identity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+    function showStatus(message, type='warn') {
+      if (!statusBanner) return;
+      statusBanner.className = 'status-banner show ' + type;
+      statusBanner.textContent = message;
+      statusBanner.style.display = 'block';
+    }
+
+    function hideStatus() {
+      if (!statusBanner) return;
+      statusBanner.style.display = 'none';
+      statusBanner.textContent = '';
+      statusBanner.className = 'status-banner';
+    }
+
+    function showDuplicate(msg) {
+      duplicateBlocked = true;
+      if (liveBox) {
+        liveBox.className = 'status-banner show error';
+        liveBox.style.display = 'block';
+        liveBox.innerHTML = msg || 'These details were already used. Please log in through View My Progress.';
+      }
+      if (duplicateHelpBox) duplicateHelpBox.style.display = 'block';
+    }
+
+    function hideDuplicate() {
+      duplicateBlocked = false;
+      if (liveBox) {
+        liveBox.style.display = 'none';
+        liveBox.textContent = '';
+        liveBox.className = 'status-banner warn';
+      }
+      if (duplicateHelpBox) duplicateHelpBox.style.display = 'none';
+    }
+
+    function updateProgress() {
+      progressLabel.textContent = `Step ${currentStep} of 5`;
+      progressFill.style.width = `${currentStep * 20}%`;
+
+      sections.forEach(sec => sec.classList.toggle('active', Number(sec.dataset.section) === currentStep));
+      stepItems.forEach(item => item.classList.toggle('active', Number(item.dataset.step) === currentStep));
+
+      prevBtn.style.display = currentStep === 1 ? 'none' : 'inline-flex';
+      nextBtn.style.display = currentStep === 5 ? 'none' : 'inline-flex';
+      submitBtn.style.display = currentStep === 5 ? 'inline-flex' : 'none';
+
+      hideOverlay();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setRequired(ids, on) {
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.required = !!on;
+      });
+    }
+
+    function toggleDocs() {
+      const value = cleanText(employmentSelect && employmentSelect.value || '');
+      const empFields = ['emp_certified_id','emp_bank_statement','emp_payslip'];
+      const bizFields = ['biz_certified_id','biz_bank_statement','biz_founding_statement','biz_request_letter'];
+
+      docGroupEmployee.classList.remove('active');
+      docGroupBusiness.classList.remove('active');
+      setRequired(empFields, false);
+      setRequired(bizFields, false);
+
+      if (value === 'employed' || value === 'self_employed') {
+        docGroupEmployee.classList.add('active');
+        setRequired(empFields, true);
+      } else if (value === 'business') {
+        docGroupBusiness.classList.add('active');
+        setRequired(bizFields, true);
+      }
+    }
+
+    async function loadProducts() {
+      try {
+        const res = await fetch('/api/public-loan-products');
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        const items = Array.isArray(data) ? data : (Array.isArray(data.products) ? data.products : []);
+
+        const rows = items.length ? items : FALLBACK_PRODUCTS;
+        productSelect.innerHTML = '<option value="">Select loan product</option>';
+
+        rows.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = String(p.id || p.product_id || '');
+          opt.dataset.name = cleanText(p.name || p.product_name || 'Loan Product');
+          opt.dataset.interest = String(p.interest_rate || p.interest || 0);
+          opt.dataset.fee = String(p.processing_fee || p.fee || 0);
+          opt.dataset.min = String(p.min_amount || p.min || 0);
+          opt.dataset.max = String(p.max_amount || p.max || 0);
+          opt.dataset.terms = String(p.allowed_terms || p.loan_months || p.repayment_months || "1,2,3,6,12");
+          opt.textContent = `${opt.dataset.name} — N$ ${Number(opt.dataset.min || 0).toFixed(2)} to N$ ${Number(opt.dataset.max || 0).toFixed(2)}`;
+          productSelect.appendChild(opt);
+        });
+
+        productLoadHint.textContent = items.length ? 'Products loaded.' : 'Using built-in product list.';
+        applyPrefillProduct();
+        updateLoanSummary();
+      } catch (err) {
+        productSelect.innerHTML = '<option value="">Select loan product</option>';
+        FALLBACK_PRODUCTS.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.dataset.name = p.name;
+          opt.dataset.interest = p.interest_rate;
+          opt.dataset.fee = p.processing_fee;
+          opt.dataset.min = p.min_amount;
+          opt.dataset.max = p.max_amount;
+          opt.dataset.terms = String(p.allowed_terms || "1,2,3,6,12");
+          opt.textContent = `${p.name} — N$ ${Number(p.min_amount).toFixed(2)} to N$ ${Number(p.max_amount).toFixed(2)}`;
+          productSelect.appendChild(opt);
+        });
+        productLoadHint.textContent = 'Using built-in product list.';
+        applyPrefillProduct();
+        updateLoanSummary();
+      }
+    }
+
+    function applyPrefillProduct() {
+      const pid = cleanText(q.get('product_id') || '');
+      const amount = cleanText(q.get('amount') || '');
+      const term = cleanText(q.get('term') || '');
+
+      if (amount && amountEl) amountEl.value = amount;
+      if (term && termEl) termEl.value = term;
+
+      if (!pid || !productSelect || !productSelect.options.length) return false;
+      const found = Array.from(productSelect.options).find(opt => cleanText(opt.value) === pid);
+      if (found) {
+        productSelect.value = found.value;
+        productSelect.dispatchEvent(new Event('change'));
+        updateLoanSummary();
+        return true;
+      }
+      return false;
+    }
+
+
+    function normalizeAllowedTerms(value) {
+      const raw = String(value || "").trim();
+      if (!raw) return [1,2,3,6,12];
+      const terms = raw
+        .split(",")
+        .map(v => parseInt(String(v).trim(), 10))
+        .filter(v => Number.isFinite(v) && v > 0);
+
+      return terms.length ? Array.from(new Set(terms)).sort((a,b) => a-b) : [1,2,3,6,12];
+    }
+
+    function renderLoanTermOptions(terms) {
+      if (!termEl) return;
+      const current = String(termEl.value || "");
+      termEl.innerHTML = "";
+
+      terms.forEach(month => {
+        const opt = document.createElement("option");
+        opt.value = String(month);
+        opt.textContent = `${month} Month${month > 1 ? "s" : ""}`;
+        termEl.appendChild(opt);
       });
 
-      const data = await res.json();
+      const match = Array.from(termEl.options).find(o => o.value === current);
+      termEl.value = match ? current : String(terms[0] || 1);
+    }
 
-      if (data && data.exists) {
-        duplicateBlocked = true;
+    function selectedProduct() {
+      if (!productSelect) return null;
+      const opt = productSelect.options[productSelect.selectedIndex];
+      if (!opt || !opt.value) return null;
+      return {
+        id: opt.value,
+        name: opt.dataset.name || opt.textContent || '',
+        interest: parseFloat(opt.dataset.interest || '0') || 0,
+        fee: parseFloat(opt.dataset.fee || '0') || 0,
+        min: parseFloat(opt.dataset.min || '0') || 0,
+        max: parseFloat(opt.dataset.max || '0') || 0,
+        terms: normalizeAllowedTerms(opt.dataset.terms || '1,2,3,6,12')
+      };
+    }
 
-        let msg = 'This value was once used.';
-        if (fieldName === 'id_number') msg = 'This ID number was once used. Please go to the home page, click <strong>View My Application Progress</strong>, and log in with your application email and phone number.';
-        if (fieldName === 'phone') msg = 'This cellphone number was once used. Please go to the home page, click <strong>View My Application Progress</strong>, and log in with your application email and phone number.';
-        if (fieldName === 'email') msg = 'This email was once used. Please go to the home page, click <strong>View My Application Progress</strong>, and log in with this email and your phone number.';
+    function updateLoanSummary() {
+      const p = selectedProduct();
+      const amount = parseFloat(amountEl && amountEl.value || '0') || 0;
+      const term = parseInt(termEl && termEl.value || '1', 10) || 1;
 
-        showBox(msg, 'error');
-        return { exists: true };
+      if (!p) {
+        liveProductName.textContent = 'Not selected yet';
+        liveInterestRate.textContent = '0%';
+        liveMonthlyPayment.textContent = 'N$ 0.00';
+        liveTotalRepayment.textContent = 'N$ 0.00';
+        liveLoanWarning.textContent = '';
+        productIdInput.value = '';
+        return;
       }
 
-      duplicateBlocked = false;
-      hideBox();
-      return { exists: false };
-    } catch (err) {
-      console.error('Single-field duplicate check failed:', err);
-      showBox('Could not verify this field right now.', 'warn');
-      return { exists: false };
-    }
-  }
+      productIdInput.value = p.id;
+      renderLoanTermOptions(p.terms || [1,2,3,6,12]);
+      liveProductName.textContent = cleanText(p.name);
+      liveInterestRate.textContent = `${p.interest}%`;
 
-  async function checkAllImportantFields() {
-    const idVal = idEl ? idEl.value : '';
-    const phoneVal = phoneEl ? phoneEl.value : '';
-    const emailVal = emailEl ? emailEl.value : '';
+      const interestAmount = amount * (p.interest / 100);
+      const total = amount + interestAmount + p.fee;
+      const monthly = term > 0 ? total / term : total;
 
-    if (idVal) {
-      const r1 = await checkSingleField('id_number', idVal);
-      if (r1.exists) return false;
+      liveMonthlyPayment.textContent = `N$ ${monthly.toFixed(2)}`;
+      liveTotalRepayment.textContent = `N$ ${total.toFixed(2)}`;
+
+      let warning = '';
+      if (p.min && amount && amount < p.min) warning = `Minimum allowed for this product is N$ ${p.min}.`;
+      if (p.max && amount && amount > p.max) warning = `Maximum allowed for this product is N$ ${p.max}.`;
+      liveLoanWarning.textContent = warning;
     }
 
-    if (phoneVal) {
-      const r2 = await checkSingleField('phone', phoneVal);
-      if (r2.exists) return false;
+    async function checkDuplicates() {
+      if (currentStep !== 1) return true;
+
+      const payload = {
+        email: cleanText(emailEl && emailEl.value || '').toLowerCase(),
+        phone: cleanText(phoneEl && phoneEl.value || ''),
+        id_number: cleanText(idEl && idEl.value || '')
+      };
+
+      if (!payload.email && !payload.phone && !payload.id_number) {
+        hideDuplicate();
+        return true;
+      }
+
+      try {
+        const res = await fetch('/api/check-application-identity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+
+        if (res.ok && data && data.exists) {
+          showDuplicate(data.message || 'These details were already used. Please log in through View My Progress.');
+          return false;
+        }
+
+        hideDuplicate();
+        return true;
+      } catch (err) {
+        hideDuplicate();
+        return true;
+      }
     }
 
-    if (emailVal) {
-      const r3 = await checkSingleField('email', emailVal);
-      if (r3.exists) return false;
-    }
+    function validateCurrentStep() {
+      hideStatus();
 
-    return true;
-  }
+      if (currentStep === 1) {
+        const required = [
+          form.querySelector('[name="full_name"]'),
+          idEl, phoneEl, emailEl,
+          form.querySelector('[name="gender"]')
+        ];
+        for (const field of required) {
+          if (!field || !cleanText(field.value || '')) {
+            showStatus('Please complete all required identity fields before continuing.', 'warn');
+            field && field.focus();
+            return false;
+          }
+        }
+      }
 
-  if (idEl) {
-    idEl.addEventListener('blur', function () {
-      checkSingleField('id_number', idEl.value);
-    });
-  }
+      if (currentStep === 2) {
+        if (!productSelect.value) {
+          showStatus('Please select a loan product.', 'warn');
+          productSelect.focus();
+          return false;
+        }
+        if (!employmentSelect.value) {
+          showStatus('Please select employment status.', 'warn');
+          employmentSelect.focus();
+          return false;
+        }
+        if (!cleanText(amountEl.value)) {
+          showStatus('Please enter requested loan amount.', 'warn');
+          amountEl.focus();
+          return false;
+        }
+        if (!cleanText(termEl.value)) {
+          showStatus('Please select repayment term.', 'warn');
+          termEl.focus();
+          return false;
+        }
+        const purpose = form.querySelector('[name="loan_purpose"]');
+        if (!purpose || !cleanText(purpose.value)) {
+          showStatus('Please enter loan purpose.', 'warn');
+          purpose && purpose.focus();
+          return false;
+        }
 
-  if (phoneEl) {
-    phoneEl.addEventListener('blur', function () {
-      checkSingleField('phone', phoneEl.value);
-    });
-  }
+        const value = cleanText(employmentSelect.value);
+        if (value === 'employed' || value === 'self_employed') {
+          const ids = ['emp_certified_id','emp_bank_statement','emp_payslip'];
+          for (const id of ids) {
+            const el = document.getElementById(id);
+            if (!el || !el.files || !el.files.length) {
+              showStatus('Please upload all required employed/self-employed documents before continuing.', 'warn');
+              el && el.focus();
+              return false;
+            }
+          }
+        } else if (value === 'business') {
+          const ids = ['biz_certified_id','biz_bank_statement','biz_founding_statement','biz_request_letter'];
+          for (const id of ids) {
+            const el = document.getElementById(id);
+            if (!el || !el.files || !el.files.length) {
+              showStatus('Please upload all required business documents before continuing.', 'warn');
+              el && el.focus();
+              return false;
+            }
+          }
+        }
+      }
 
-  if (emailEl) {
-    emailEl.addEventListener('blur', function () {
-      checkSingleField('email', emailEl.value);
-    });
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener('click', async function (e) {
-      const activeSection = document.querySelector('.section.active');
-      if (activeSection && activeSection.dataset.section === '1') {
-        const ok = await checkAllImportantFields();
-        if (!ok || duplicateBlocked) {
-          e.preventDefault();
+      if (currentStep === 3) {
+        if (!cleanText(faceCaptureData.value)) {
+          showStatus('Please capture your face photo before continuing.', 'warn');
+          return false;
+        }
+        if (!cleanText(geoLat.value) || !cleanText(geoLng.value)) {
+          showStatus('Please capture your location before continuing.', 'warn');
           return false;
         }
       }
-    }, true);
-  }
 
-  if (form) {
-    form.addEventListener('submit', async function (e) {
-      const ok = await checkAllImportantFields();
-      if (!ok || duplicateBlocked) {
-        e.preventDefault();
-        return false;
+      if (currentStep === 4) {
+        const agree = document.getElementById('agree_terms');
+        const truth = document.getElementById('confirm_truth');
+        if (!agree.checked || !truth.checked) {
+          showStatus('Please accept the terms and confirm your details before continuing.', 'warn');
+          return false;
+        }
       }
-    }, true);
-  }
-});
-</script>
 
+      return true;
+    }
+
+    async function goNext() {
+      showOverlay('Processing Application', 'Your application is being processed. KATRA is verifying your information...');
+
+      if (currentStep === 1) {
+        const ok = validateCurrentStep();
+        if (!ok) { hideOverlay(); return; }
+        const dupOk = await checkDuplicates();
+        if (!dupOk) { hideOverlay(); return; }
+      } else {
+        const ok = validateCurrentStep();
+        if (!ok) { hideOverlay(); return; }
+      }
+
+      if (currentStep < 5) {
+        currentStep += 1;
+        updateProgress();
+      } else {
+        hideOverlay();
+      }
+    }
+
+    function goPrev() {
+      showOverlay('Loading Previous Step', 'Please wait while KATRA loads your previous application step...');
+      if (currentStep > 1) currentStep -= 1;
+      updateProgress();
+    }
+
+    function updateDeviceMeta() {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+      const lang = navigator.language || 'Unknown';
+      const screenText = window.screen ? `${window.screen.width} x ${window.screen.height}` : 'Unknown';
+      const ua = navigator.userAgent || '';
+      let device = 'Desktop';
+      if (/ipad|tablet/i.test(ua)) device = 'Tablet';
+      if (/mobi|android|iphone/i.test(ua)) device = 'Mobile';
+
+      deviceType.value = device;
+      userAgent.value = ua;
+      platformInfo.value = navigator.platform || '';
+      screenInfo.value = screenText;
+      timezoneInfo.value = tz;
+      languageInfo.value = lang;
+
+      deviceDisplay.textContent = `${device} • ${navigator.platform || 'Unknown platform'}`;
+      timezoneDisplay.textContent = `${tz} • ${lang}`;
+    }
+
+    async function openCamera() {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        camera.srcObject = cameraStream;
+        camera.style.display = 'block';
+        photoPreview.style.display = 'none';
+      } catch (err) {
+        showStatus('Could not open camera. Please allow camera access.', 'error');
+      }
+    }
+
+    function capturePhoto() {
+      try {
+        if (!camera.srcObject) {
+          showStatus('Open the camera first.', 'warn');
+          return;
+        }
+        const w = camera.videoWidth || 640;
+        const h = camera.videoHeight || 480;
+        photoCanvas.width = w;
+        photoCanvas.height = h;
+        const ctx = photoCanvas.getContext('2d');
+        ctx.drawImage(camera, 0, 0, w, h);
+        const dataUrl = photoCanvas.toDataURL('image/jpeg', 0.92);
+        faceCaptureData.value = dataUrl;
+        photoPreview.src = dataUrl;
+        photoPreview.style.display = 'block';
+        camera.style.display = 'none';
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(track => track.stop());
+          camera.srcObject = null;
+        }
+      } catch (err) {
+        showStatus('Could not capture photo.', 'error');
+      }
+    }
+
+    function retakePhoto() {
+      faceCaptureData.value = '';
+      photoPreview.src = '';
+      photoPreview.style.display = 'none';
+      openCamera();
+    }
+
+    function captureLocation() {
+      if (!navigator.geolocation) {
+        showStatus('Geolocation is not supported on this device.', 'error');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          geoLat.value = pos.coords.latitude;
+          geoLng.value = pos.coords.longitude;
+          geoAccuracy.value = pos.coords.accuracy;
+          geoTimestamp.value = new Date().toISOString();
+          geoDisplay.textContent = `${Number(pos.coords.latitude).toFixed(6)}, ${Number(pos.coords.longitude).toFixed(6)}`;
+          accuracyDisplay.textContent = `${Math.round(pos.coords.accuracy)} meters`;
+        },
+        function () {
+          showStatus('Could not capture location. Please allow location access.', 'error');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    async function buildPremiumPdfClient() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      const pageW = 210, pageH = 297;
+      const greenDark = [11,79,63];
+      const greenMid = [21,99,78];
+      const mint = [220,239,231];
+      const soft = [234,247,241];
+      const gold = [216,180,90];
+      const dark = [35,59,54];
+      const muted = [95,118,110];
+
+      const now = new Date();
+      const ref = `KAT-NAM-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
+
+      doc.setFillColor(...mint);
+      doc.rect(0,0,pageW,pageH,'F');
+
+      doc.setFillColor(...soft);
+      doc.circle(165, 28, 34, 'F');
+      doc.circle(30, 18, 23, 'F');
+      doc.setTextColor(197,219,210);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(40);
+      doc.text('KATRAMONEY', 105, 156, {align:'center', angle:28});
+
+      doc.setFillColor(...greenDark);
+      doc.roundedRect(12, 16, 186, 24, 7, 7, 'F');
+      doc.setFillColor(...gold);
+      doc.roundedRect(12, 12, 186, 4, 1.5, 1.5, 'F');
+
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(22);
+      doc.text('KATRAMONEY', 18, 28);
+      doc.setFontSize(11);
+      doc.text('PREMIUM APPLICATION INVOICE', 18, 35);
+      doc.setFontSize(8.5);
+      doc.text(`Reference: ${ref}`, 192, 26, {align:'right'});
+      doc.text(`Generated: ${now.toLocaleString()}`, 192, 32, {align:'right'});
+
+      doc.setFillColor(248,252,250);
+      doc.roundedRect(12, 52, 123, 66, 5, 5, 'F');
+      doc.setTextColor(...greenDark);
+      doc.setFontSize(11);
+      doc.text('APPLICANT DETAILS', 17, 60);
+
+      const details = [
+        ['FULL NAME', form.querySelector('[name="full_name"]').value],
+        ['ID NUMBER', idEl.value],
+        ['PHONE', phoneEl.value],
+        ['EMAIL', emailEl.value],
+        ['GENDER', form.querySelector('[name="gender"]').value],
+        ['EMPLOYMENT', employmentSelect.value],
+        ['PRODUCT', selectedProduct() ? cleanText(selectedProduct().name) : '-']
+      ];
+
+      let y = 68;
+      details.forEach(([k,v])=>{
+        doc.setTextColor(...muted);
+        doc.setFontSize(7);
+        doc.setFont('helvetica','bold');
+        doc.text(k, 17, y);
+        doc.setTextColor(...dark);
+        doc.setFontSize(9.5);
+        doc.setFont('helvetica','normal');
+        doc.text(String(v || '-'), 50, y);
+        y += 7;
+      });
+
+      doc.setFillColor(248,252,250);
+      doc.roundedRect(140, 52, 58, 66, 5, 5, 'F');
+      doc.setTextColor(...greenDark);
+      doc.setFontSize(11);
+      doc.text('PASSPORT PHOTO', 169, 60, {align:'center'});
+      doc.setFillColor(217,230,225);
+      doc.rect(152, 68, 34, 38, 'F');
+
+      if (faceCaptureData.value) {
+        try { doc.addImage(faceCaptureData.value, 'JPEG', 152, 68, 34, 38); } catch(e) {}
+      } else {
+        doc.setTextColor(...muted);
+        doc.setFontSize(7);
+        doc.text('FACE CAPTURE', 169, 88, {align:'center'});
+      }
+
+      doc.setTextColor(...muted);
+      doc.setFontSize(7);
+      doc.text('Passport size crop area', 169, 110, {align:'center'});
+
+      doc.setFillColor(248,252,250);
+      doc.roundedRect(12, 127, 186, 45, 5, 5, 'F');
+      doc.setTextColor(...greenDark);
+      doc.setFontSize(11);
+      doc.text('FINANCIAL OVERVIEW', 17, 135);
+
+      const boxes = [
+        ['Requested Amount', amountEl.value ? `N$ ${Number(amountEl.value).toFixed(2)}` : 'N$ 0.00'],
+        ['Repayment Term', `${termEl.value || '0'} Month(s)`],
+        ['Interest Rate', cleanText(liveInterestRate.textContent || '0%')],
+        ['Monthly Estimate', cleanText(liveMonthlyPayment.textContent || 'N$ 0.00')],
+        ['Total Repayment', cleanText(liveTotalRepayment.textContent || 'N$ 0.00')],
+        ['Location', [geoLat.value, geoLng.value].filter(Boolean).join(', ') || 'Not captured']
+      ];
+
+      let bx = 17, by = 145;
+      boxes.forEach((item, i) => {
+        const col = i % 3, row = Math.floor(i / 3);
+        const x = bx + col * 58, yy = by + row * 15;
+        doc.setFillColor(255,255,255);
+        doc.roundedRect(x, yy, 55, 12, 2.5, 2.5, 'F');
+        doc.setDrawColor(...greenMid);
+        doc.roundedRect(x, yy, 55, 12, 2.5, 2.5);
+        doc.setTextColor(...muted);
+        doc.setFontSize(6.8);
+        doc.setFont('helvetica','bold');
+        doc.text(item[0].toUpperCase(), x + 2, yy + 4.3);
+        doc.setTextColor(...dark);
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica','normal');
+        doc.text(String(item[1]), x + 2, yy + 9);
+      });
+
+      doc.setFillColor(248,252,250);
+      doc.roundedRect(12, 179, 118, 34, 5, 5, 'F');
+      doc.setTextColor(...greenDark);
+      doc.setFontSize(10);
+      doc.setFont('helvetica','bold');
+      doc.text('LOAN PURPOSE', 17, 187);
+      doc.setTextColor(...dark);
+      doc.setFontSize(8.6);
+      doc.setFont('helvetica','normal');
+      const purposeLines = doc.splitTextToSize(form.querySelector('[name="loan_purpose"]').value || '-', 100);
+      doc.text(purposeLines.slice(0,4), 17, 194);
+
+      doc.setFillColor(248,252,250);
+      doc.roundedRect(135, 179, 63, 34, 5, 5, 'F');
+      doc.setTextColor(...greenDark);
+      doc.setFontSize(10);
+      doc.setFont('helvetica','bold');
+      doc.text('OFFICIAL STAMP', 166.5, 187, {align:'center'});
+      doc.setDrawColor(...greenMid);
+      doc.setLineWidth(1.5);
+      doc.circle(166.5, 197, 11);
+      doc.circle(166.5, 197, 8.2);
+      doc.setTextColor(...greenMid);
+      doc.setFontSize(6.8);
+      doc.text('KATRAMONEY', 166.5, 194.5, {align:'center'});
+      doc.text('RECEIVED', 166.5, 198.5, {align:'center'});
+      doc.setFontSize(5.8);
+      doc.text(now.toLocaleDateString(), 166.5, 202.5, {align:'center'});
+
+      doc.setFillColor(...greenDark);
+      doc.roundedRect(12, 265, 186, 20, 5, 5, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(7.6);
+      doc.setFont('helvetica','bold');
+      doc.text('IMPORTANT NOTICE', 17, 273.5);
+      doc.setFontSize(6.8);
+      doc.setFont('helvetica','normal');
+      doc.text('This is not an invoice to claim funds, not proof of approval, and may not be used for payment demand.', 17, 279.5);
+      doc.text('It is a premium KATRAMONEY application record for review, internal processing, and applicant saving only.', 17, 283.2);
+
+      doc.save(`${ref}.pdf`);
+    }
+
+    updateDeviceMeta();
+    loadProducts();
+    toggleDocs();
+    updateProgress();
+
+    employmentSelect.addEventListener('change', toggleDocs);
+    productSelect.addEventListener('change', function(){
+      updateLoanSummary();
+    });
+    amountEl.addEventListener('input', updateLoanSummary);
+    termEl.addEventListener('change', updateLoanSummary);
+
+    nextBtn.addEventListener('click', goNext);
+    prevBtn.addEventListener('click', goPrev);
+
+    startCameraBtn.addEventListener('click', openCamera);
+    capturePhotoBtn.addEventListener('click', capturePhoto);
+    retakePhotoBtn.addEventListener('click', retakePhoto);
+    captureLocationBtn.addEventListener('click', captureLocation);
+
+    downloadPdfBtn.addEventListener('click', async function(e){
+      e.preventDefault();
+      showOverlay('Preparing Premium PDF', 'Your premium KATRAMONEY application invoice is being generated. Please wait...');
+      setTimeout(async () => {
+        await buildPremiumPdfClient();
+        hideOverlay();
+      }, 500);
+    });
+
+    form.addEventListener('submit', function() {
+      showOverlay('Submitting Application', 'Your application is being submitted for review. Please wait...');
+    });
+  });
+  </script>
 </body>
 </html>

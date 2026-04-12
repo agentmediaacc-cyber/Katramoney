@@ -2460,5 +2460,64 @@ document.addEventListener("DOMContentLoaded", function(){
 })();
 </script>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const buttons = Array.from(document.querySelectorAll('a,button'));
+  const proceed = buttons.find(el => /proceed to application/i.test((el.textContent || '').trim()));
+  if (!proceed) return;
+
+  function getSelectedProductText() {
+    const productSelect =
+      document.querySelector('#loan_product') ||
+      document.querySelector('#product') ||
+      document.querySelector('select[name="loan_product"]') ||
+      document.querySelector('select[name="product"]') ||
+      document.querySelector('select');
+
+    if (!productSelect) return { id: '', name: '' };
+    const opt = productSelect.options[productSelect.selectedIndex];
+    return {
+      id: productSelect.value || '',
+      name: opt ? (opt.dataset.name || opt.textContent || '') : ''
+    };
+  }
+
+  function getAmount() {
+    const el =
+      document.querySelector('#loan_amount') ||
+      document.querySelector('#amount') ||
+      document.querySelector('input[name="loan_amount"]') ||
+      document.querySelector('input[name="amount"]') ||
+      document.querySelector('input[type="number"]');
+    return el ? (el.value || '') : '';
+  }
+
+  function getTerm() {
+    const el =
+      document.querySelector('#loan_term') ||
+      document.querySelector('#term') ||
+      document.querySelector('select[name="loan_term"]') ||
+      document.querySelector('select[name="term"]');
+    return el ? (el.value || '') : '';
+  }
+
+  proceed.addEventListener('click', function (e) {
+    e.preventDefault();
+    const p = getSelectedProductText();
+    const amount = getAmount();
+    const term = getTerm();
+
+    const url = new URL('/apply', window.location.origin);
+    if (p.id) url.searchParams.set('product_id', p.id);
+    if (p.name) url.searchParams.set('product_name', p.name);
+    if (amount) url.searchParams.set('amount', amount);
+    if (term) url.searchParams.set('term', term);
+
+    window.location.href = url.toString();
+  });
+});
+</script>
+
 </body>
 </html>

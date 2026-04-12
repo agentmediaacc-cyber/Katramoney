@@ -20,3 +20,8 @@ customer_portal_routes.py.backup*
 customer_portal_routes.py.fixindent*
 
 .env
+venv/
+*.backup
+*.fix*
+*.html.*
+app.py.*

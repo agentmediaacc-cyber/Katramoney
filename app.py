@@ -1,3 +1,9 @@
+import mimetypes
+from io import BytesIO
+from flask import abort
+from reportlab.lib.units import mm
+from reportlab.lib import colors
+import traceback
 import io
 import csv
 import tempfile
@@ -15,7 +21,7 @@ from functools import wraps
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify, flash
+from flask import Flask, request, jsonify, render_template, request, jsonify, render_template, render_template, request, session, redirect, url_for, jsonify, flash
 from supabase import create_client, Client
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -1152,26 +1158,65 @@ def customer_secure_apply():
 
         reference = "KATRA-" + datetime.now(timezone.utc).strftime("%Y%m%d") + "-" + uuid.uuid4().hex[:6].upper()
 
+        # Accept both old upload names and the real apply.html names
         id_front_url = _save_upload(request.files.get("id_front"), "id_front")
         id_back_url = _save_upload(request.files.get("id_back"), "id_back")
-        bank_statement_url = _save_upload(request.files.get("bank_statement"), "bank_statement")
+
+        id_copy_url = (
+            _save_upload(request.files.get("emp_certified_id"), "id_copy")
+            or _save_upload(request.files.get("biz_certified_id"), "id_copy")
+            or _save_upload(request.files.get("certified_id"), "id_copy")
+            or _save_upload(request.files.get("id_copy"), "id_copy")
+        )
+
+        bank_statement_url = (
+            _save_upload(request.files.get("bank_statement"), "bank_statement")
+            or _save_upload(request.files.get("emp_bank_statement"), "bank_statement")
+            or _save_upload(request.files.get("biz_bank_statement"), "bank_statement")
+        )
+
+        payslip_url = (
+            _save_upload(request.files.get("emp_payslip"), "payslip")
+            or _save_upload(request.files.get("payslip"), "payslip")
+            or _save_upload(request.files.get("salary_slip"), "payslip")
+        )
+
+        founding_statement_url = (
+            _save_upload(request.files.get("biz_founding_statement"), "founding_statement")
+            or _save_upload(request.files.get("founding_statement"), "founding_statement")
+        )
+
+        request_letter_url = (
+            _save_upload(request.files.get("biz_request_letter"), "request_letter")
+            or _save_upload(request.files.get("letter_of_request"), "request_letter")
+            or _save_upload(request.files.get("request_letter"), "request_letter")
+        )
+
         proof_of_income_url = _save_upload(request.files.get("proof_of_income"), "proof_of_income")
         proof_of_address_url = _save_upload(request.files.get("proof_of_address"), "proof_of_address")
         supporting_doc_url = _save_upload(request.files.get("supporting_doc"), "supporting_doc")
 
         documents = []
         if id_front_url:
-            documents.append({"label": "id_front", "url": id_front_url})
+            documents.append({"label": "ID Front", "url": id_front_url})
         if id_back_url:
-            documents.append({"label": "id_back", "url": id_back_url})
+            documents.append({"label": "ID Back", "url": id_back_url})
+        if id_copy_url:
+            documents.append({"label": "Certified ID Copy", "url": id_copy_url})
         if bank_statement_url:
-            documents.append({"label": "bank_statement", "url": bank_statement_url})
+            documents.append({"label": "Bank Statement", "url": bank_statement_url})
+        if payslip_url:
+            documents.append({"label": "Payslip", "url": payslip_url})
+        if founding_statement_url:
+            documents.append({"label": "Founding Statement", "url": founding_statement_url})
+        if request_letter_url:
+            documents.append({"label": "Letter of Request", "url": request_letter_url})
         if proof_of_income_url:
-            documents.append({"label": "proof_of_income", "url": proof_of_income_url})
+            documents.append({"label": "Proof of Income", "url": proof_of_income_url})
         if proof_of_address_url:
-            documents.append({"label": "proof_of_address", "url": proof_of_address_url})
+            documents.append({"label": "Proof of Address", "url": proof_of_address_url})
         if supporting_doc_url:
-            documents.append({"label": "supporting_doc", "url": supporting_doc_url})
+            documents.append({"label": "Supporting Document", "url": supporting_doc_url})
 
         app_table = _first_existing_table("applications", "loan_applications")
 
@@ -1214,7 +1259,11 @@ def customer_secure_apply():
             "face_capture_data": to_str(form.get("face_capture_data")),
             "id_front_url": id_front_url,
             "id_back_url": id_back_url,
+            "id_copy_url": id_copy_url,
             "bank_statement_url": bank_statement_url,
+            "payslip_url": payslip_url,
+            "founding_statement_url": founding_statement_url,
+            "request_letter_url": request_letter_url,
             "proof_of_income_url": proof_of_income_url,
             "proof_of_address_url": proof_of_address_url,
             "supporting_doc_url": supporting_doc_url,
@@ -1437,7 +1486,6 @@ def customer_payment_proof_upload():
         return f"PAYMENT PROOF ERROR: {e}", 500
 
 
-
 # --- duplicate application identity check ---
 
 def _norm_email(v):
@@ -1494,8 +1542,7 @@ def check_application_identity():
     id_number = _norm_id(payload.get("id_number"))
 
     if not email and not phone and not id_number:
-        return jsonify({"exists": False})
-
+        return jsonify
     base_url, key = _supabase_rest_config()
     if not base_url or not key:
         return jsonify({
@@ -1566,11 +1613,8 @@ def check_application_identity():
             "details": debug_errors[:8]
         }), 500
 
-    return jsonify({"exists": False})
-
+    return jsonify
 # --- end duplicate application identity check ---
-
-
 
 
 @app.route("/health", methods=["GET"])
@@ -1580,8 +1624,6 @@ def health():
         "service": "katramoney",
         "status": "up"
     }), 200
-
-
 
 
 # ===== Admin security / visitors / user reset =====
@@ -1919,8 +1961,6 @@ def track_visitors_for_admin():
 # ===== End admin security / visitors / user reset =====
 
 
-
-
 @app.route("/admin/applications/delete-old", methods=["POST"])
 def admin_delete_old_applications():
     admin_email = session.get("admin_email") or session.get("email") or session.get("user_email")
@@ -1983,8 +2023,6 @@ def admin_delete_old_applications():
     })
 
 
-
-
 @app.route("/admin/applications/<app_id>/delete", methods=["POST"])
 def admin_delete_application(app_id):
     admin_email = session.get("admin_email") or session.get("email") or session.get("user_email")
@@ -2031,8 +2069,6 @@ def admin_delete_application(app_id):
         "success": True,
         "message": "Application deleted successfully."
     })
-
-
 
 
 # ===== Reports / Application profile PDF =====
@@ -2376,8 +2412,6 @@ def admin_application_profile_pdf(app_id):
 # ===== End Reports / Application profile PDF =====
 
 
-
-
 @app.route("/admin/messages/<table_name>/<item_id>/delete", methods=["POST"])
 def admin_message_delete_route(table_name, item_id):
     admin_email = session.get("admin_email") or session.get("email") or session.get("user_email")
@@ -2447,7 +2481,6 @@ def admin_support_reply_route(ticket_id):
     return jsonify({"success": True, "message": "Support reply saved."})
 
 
-
 @app.route("/api/public-loan-products", methods=["GET"])
 def api_public_loan_products():
     base_url = os.getenv("SUPABASE_URL", "").rstrip("/")
@@ -2510,6 +2543,635 @@ def api_public_loan_products():
 
     return jsonify({"success": True, "data": cleaned})
 
+
+
+
+# =========================
+# ADMIN APPLICATION DEBUG + DOCUMENT BROWSER
+# =========================
+@app.route("/debug/applications/<app_id>")
+def debug_application_row(app_id):
+    try:
+        row = {}
+        error = None
+
+        # Try normal detail route helper data if already available later in file
+        try:
+            result = supabase.table("applications").select("*").eq("id", app_id).limit(1).execute()
+            rows = getattr(result, "data", None) or []
+            if rows:
+                row = rows[0] or {}
+        except Exception as inner_err:
+            error = str(inner_err)
+
+        return jsonify({
+            "success": True,
+            "app_id": app_id,
+            "found": bool(row),
+            "keys": sorted(list(row.keys())) if isinstance(row, dict) else [],
+            "data": row,
+            "error": error
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/applications/<app_id>/documents")
+def admin_application_documents(app_id):
+    try:
+        result = supabase.table("applications").select("*").eq("id", app_id).limit(1).execute()
+        rows = getattr(result, "data", None) or []
+        if not rows:
+            return jsonify({"success": False, "error": "Application not found"}), 404
+
+        app_row = rows[0] or {}
+
+        docs = []
+
+        def add_doc(label, url):
+            if not url or not isinstance(url, str):
+                return
+            u = url.strip()
+            if not u:
+                return
+            if any(d.get("url") == u for d in docs):
+                return
+            docs.append({"label": label, "url": u})
+
+        raw_list = app_row.get("documents_list") or app_row.get("documents") or app_row.get("uploads") or app_row.get("files") or []
+        if isinstance(raw_list, list):
+            for d in raw_list:
+                if isinstance(d, str):
+                    add_doc("Uploaded document", d)
+                elif isinstance(d, dict):
+                    add_doc(d.get("label") or d.get("name") or "Uploaded document", d.get("url") or d.get("path") or d.get("file_url"))
+
+        # Common document fields
+        add_doc("National ID", app_row.get("national_id_url"))
+        add_doc("ID Front", app_row.get("id_front_url"))
+        add_doc("ID Back", app_row.get("id_back_url"))
+        add_doc("ID Copy", app_row.get("id_copy_url"))
+        add_doc("Passport / ID", app_row.get("passport_url"))
+        add_doc("Payslip", app_row.get("payslip_url"))
+        add_doc("Bank Statement", app_row.get("bank_statement_url"))
+        add_doc("Proof of Address", app_row.get("proof_of_address_url"))
+        add_doc("Selfie / Photo", app_row.get("selfie_url"))
+        add_doc("Employment Letter", app_row.get("employment_letter_url"))
+
+        if isinstance(app_row.get("id_document"), str):
+            add_doc("ID Document", app_row.get("id_document"))
+        if isinstance(app_row.get("bank_statement"), str):
+            add_doc("Bank Statement", app_row.get("bank_statement"))
+        if isinstance(app_row.get("payslip"), str):
+            add_doc("Payslip", app_row.get("payslip"))
+
+        return jsonify({
+            "success": True,
+            "app_id": app_id,
+            "reference": app_row.get("reference") or app_row.get("ref"),
+            "full_name": app_row.get("full_name") or app_row.get("name"),
+            "documents": docs,
+            "raw_keys": sorted(list(app_row.keys()))
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+
+# =========================
+# ADMIN DOCUMENT PROXY HELPERS
+# =========================
+def _admin_extract_documents_from_row(app_row):
+    docs = []
+
+    def add_doc(label, url):
+        if not url or not isinstance(url, str):
+            return
+        u = url.strip()
+        if not u:
+            return
+        if any(d.get("url") == u for d in docs):
+            return
+        docs.append({"label": label, "url": u})
+
+    raw_list = app_row.get("documents_list") or app_row.get("documents") or app_row.get("uploads") or app_row.get("files") or []
+    if isinstance(raw_list, list):
+        for d in raw_list:
+            if isinstance(d, str):
+                add_doc("Uploaded document", d)
+            elif isinstance(d, dict):
+                add_doc(d.get("label") or d.get("name") or "Uploaded document", d.get("url") or d.get("path") or d.get("file_url"))
+
+    # known fields already present in your app
+    field_map = [
+        ("Certified ID Copy", "id_copy_url"),
+        ("National ID", "national_id_url"),
+        ("ID Front", "id_front_url"),
+        ("ID Back", "id_back_url"),
+        ("Passport / ID", "passport_url"),
+        ("Bank Statement", "bank_statement_url"),
+        ("Payslip", "payslip_url"),
+        ("Proof of Address", "proof_of_address_url"),
+        ("Proof of Residence", "proof_of_residence_url"),
+        ("Proof of Income", "proof_of_income_url"),
+        ("Supporting Document", "supporting_doc_url"),
+        ("Selfie / Photo", "selfie_url"),
+        ("Founding Statement", "founding_statement_url"),
+        ("Letter of Request", "request_letter_url"),
+    ]
+    for label, key in field_map:
+        add_doc(label, app_row.get(key))
+
+    # older/raw names
+    if isinstance(app_row.get("id_document"), str):
+        add_doc("ID Document", app_row.get("id_document"))
+    if isinstance(app_row.get("bank_statement"), str):
+        add_doc("Bank Statement", app_row.get("bank_statement"))
+    if isinstance(app_row.get("payslip"), str):
+        add_doc("Payslip", app_row.get("payslip"))
+    if isinstance(app_row.get("salary_slip"), str):
+        add_doc("Payslip", app_row.get("salary_slip"))
+
+    return docs
+
+
+def _admin_get_application_row_for_docs(app_id):
+    result = supabase.table("applications").select("*").eq("id", app_id).limit(1).execute()
+    rows = getattr(result, "data", None) or []
+    return rows[0] if rows else None
+
+
+def _admin_guess_filename(label, url):
+    name = (url or "").split("?")[0].rstrip("/").split("/")[-1] or "document"
+    if "." not in name:
+        ext = ".pdf" if "pdf" in (url or "").lower() else ".bin"
+        safe_label = re.sub(r"[^A-Za-z0-9_-]+", "_", label or "document").strip("_") or "document"
+        name = safe_label + ext
+    return name
+
+
+def _admin_stream_document_url(label, url, as_attachment=False):
+    if not url:
+        return abort(404)
+
+    # absolute HTTP/HTTPS URL
+    if url.startswith("http://") or url.startswith("https://"):
+        r = requests.get(url, timeout=45)
+        if r.status_code >= 400:
+            return Response(f"Could not fetch file: HTTP {r.status_code}", status=502)
+
+        filename = _admin_guess_filename(label, url)
+        content_type = r.headers.get("Content-Type") or mimetypes.guess_type(filename)[0] or "application/octet-stream"
+
+        return send_file(
+            BytesIO(r.content),
+            mimetype=content_type,
+            as_attachment=as_attachment,
+            download_name=filename
+        )
+
+    # local file path
+    possible_paths = [
+        url,
+        os.path.join(os.getcwd(), url.lstrip("/")),
+        os.path.join(os.getcwd(), "static", url.lstrip("/")),
+        os.path.join(os.getcwd(), "uploads", url.lstrip("/")),
+    ]
+
+    for path in possible_paths:
+        if os.path.exists(path) and os.path.isfile(path):
+            filename = os.path.basename(path)
+            content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+            return send_file(path, mimetype=content_type, as_attachment=as_attachment, download_name=filename)
+
+    return Response(f"File path/URL not accessible: {url}", status=404)
+
+
+@app.route("/admin/applications/<app_id>/documents/<int:doc_index>/open")
+def admin_application_document_open(app_id, doc_index):
+    app_row = _admin_get_application_row_for_docs(app_id)
+    if not app_row:
+        return jsonify({"success": False, "error": "Application not found"}), 404
+
+    docs = _admin_extract_documents_from_row(app_row)
+    if doc_index < 0 or doc_index >= len(docs):
+        return jsonify({"success": False, "error": "Document not found"}), 404
+
+    doc_item = docs[doc_index]
+    return _admin_stream_document_url(doc_item.get("label"), doc_item.get("url"), as_attachment=False)
+
+
+@app.route("/admin/applications/<app_id>/documents/<int:doc_index>/download")
+def admin_application_document_download(app_id, doc_index):
+    app_row = _admin_get_application_row_for_docs(app_id)
+    if not app_row:
+        return jsonify({"success": False, "error": "Application not found"}), 404
+
+    docs = _admin_extract_documents_from_row(app_row)
+    if doc_index < 0 or doc_index >= len(docs):
+        return jsonify({"success": False, "error": "Document not found"}), 404
+
+    doc_item = docs[doc_index]
+    return _admin_stream_document_url(doc_item.get("label"), doc_item.get("url"), as_attachment=True)
+
+
+@app.route("/admin/applications/<app_id>/documents/<int:doc_index>/delete", methods=["POST"])
+def admin_application_document_delete(app_id, doc_index):
+    try:
+        app_row = _admin_get_application_row_for_docs(app_id)
+        if not app_row:
+            return jsonify({"success": False, "error": "Application not found"}), 404
+
+        docs = _admin_extract_documents_from_row(app_row)
+        if doc_index < 0 or doc_index >= len(docs):
+            return jsonify({"success": False, "error": "Document not found"}), 404
+
+        target = docs[doc_index]
+        target_url = (target.get("url") or "").strip()
+        target_label = (target.get("label") or "").strip()
+
+        def _clean_doc_list(raw_docs):
+            cleaned = []
+            for d in raw_docs or []:
+                if isinstance(d, str):
+                    if d.strip() != target_url:
+                        cleaned.append(d)
+                elif isinstance(d, dict):
+                    d_url = str(d.get("url") or d.get("path") or d.get("file_url") or "").strip()
+                    if d_url != target_url:
+                        cleaned.append(d)
+            return cleaned
+
+        update_payload = {}
+
+        # Remove from stored list fields if present
+        if isinstance(app_row.get("documents_list"), list):
+            update_payload["documents_list"] = _clean_doc_list(app_row.get("documents_list"))
+        if isinstance(app_row.get("documents"), list):
+            update_payload["documents"] = _clean_doc_list(app_row.get("documents"))
+
+        # Clear matching direct URL fields
+        direct_fields = [
+            "id_copy_url", "national_id_url", "id_front_url", "id_back_url", "passport_url",
+            "bank_statement_url", "payslip_url", "proof_of_address_url", "proof_of_residence_url",
+            "proof_of_income_url", "supporting_doc_url", "selfie_url",
+            "founding_statement_url", "request_letter_url"
+        ]
+        legacy_fields = ["id_document", "bank_statement", "payslip", "salary_slip"]
+
+        for key in direct_fields + legacy_fields:
+            val = app_row.get(key)
+            if isinstance(val, str) and val.strip() == target_url:
+                update_payload[key] = None
+
+        # Best-effort local file delete only
+        try:
+            if target_url and not target_url.startswith("http://") and not target_url.startswith("https://"):
+                possible_paths = [
+                    target_url,
+                    os.path.join(os.getcwd(), target_url.lstrip("/")),
+                    os.path.join(os.getcwd(), "static", target_url.lstrip("/")),
+                    os.path.join(os.getcwd(), "uploads", target_url.lstrip("/")),
+                ]
+                for p in possible_paths:
+                    if os.path.exists(p) and os.path.isfile(p):
+                        try:
+                            os.remove(p)
+                            break
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+
+        if update_payload:
+            supabase.table("applications").update(update_payload).eq("id", app_id).execute()
+
+        return jsonify({
+            "success": True,
+            "message": f"Document removed from application record: {target_label or 'document'}",
+            "removed_url": target_url
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+
+# =========================
+# CHATBOT LIBRARY ADMIN API
+# =========================
+def _chatbot_table_exists():
+    try:
+        supabase.table("chatbot_library").select("id").limit(1).execute()
+        return True
+    except Exception:
+        return False
+
+@app.route("/api/admin/chatbot-library", methods=["GET"])
+def api_admin_chatbot_library():
+    try:
+        if not _chatbot_table_exists():
+            return jsonify({"success": True, "data": [], "message": "chatbot_library table not found yet"})
+
+        q = (request.args.get("q") or "").strip().lower()
+        status = (request.args.get("status") or "").strip().upper()
+
+        result = supabase.table("chatbot_library").select("*").order("priority", desc=True).order("created_at", desc=True).execute()
+        rows = getattr(result, "data", None) or []
+
+        filtered = []
+        for row in rows:
+            blob = " ".join([
+                str(row.get("title") or ""),
+                str(row.get("intent") or ""),
+                str(row.get("keywords") or ""),
+                str(row.get("answer") or ""),
+                str(row.get("status") or "")
+            ]).lower()
+
+            if q and q not in blob:
+                continue
+            if status and str(row.get("status") or "").upper() != status:
+                continue
+            filtered.append(row)
+
+        return jsonify({"success": True, "data": filtered})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/chatbot-library/create", methods=["POST"])
+def admin_chatbot_library_create():
+    try:
+        payload = request.get_json(silent=True) or {}
+        title = (payload.get("title") or "").strip()
+        intent = (payload.get("intent") or "").strip()
+        keywords = payload.get("keywords") or ""
+        answer = (payload.get("answer") or "").strip()
+        priority = payload.get("priority") or 0
+        status = (payload.get("status") or "ACTIVE").strip().upper()
+
+        if not title:
+            return jsonify({"success": False, "error": "Title is required"}), 400
+        if not answer:
+            return jsonify({"success": False, "error": "Answer is required"}), 400
+
+        if not _chatbot_table_exists():
+            return jsonify({"success": False, "error": "Table chatbot_library does not exist in Supabase yet"}), 400
+
+        insert_payload = {
+            "title": title,
+            "intent": intent,
+            "keywords": keywords,
+            "answer": answer,
+            "priority": int(priority or 0),
+            "status": status
+        }
+
+        result = supabase.table("chatbot_library").insert(insert_payload).execute()
+        row = (getattr(result, "data", None) or [{}])[0]
+        return jsonify({"success": True, "message": "Chatbot record created.", "data": row})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/chatbot-library/<row_id>/update", methods=["POST"])
+def admin_chatbot_library_update(row_id):
+    try:
+        payload = request.get_json(silent=True) or {}
+        update_payload = {
+            "title": (payload.get("title") or "").strip(),
+            "intent": (payload.get("intent") or "").strip(),
+            "keywords": payload.get("keywords") or "",
+            "answer": (payload.get("answer") or "").strip(),
+            "priority": int(payload.get("priority") or 0),
+            "status": (payload.get("status") or "ACTIVE").strip().upper()
+        }
+
+        if not update_payload["title"]:
+            return jsonify({"success": False, "error": "Title is required"}), 400
+        if not update_payload["answer"]:
+            return jsonify({"success": False, "error": "Answer is required"}), 400
+
+        result = supabase.table("chatbot_library").update(update_payload).eq("id", row_id).execute()
+        row = (getattr(result, "data", None) or [{}])[0]
+        return jsonify({"success": True, "message": "Chatbot record updated.", "data": row})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/chatbot-library/<row_id>/delete", methods=["POST"])
+def admin_chatbot_library_delete(row_id):
+    try:
+        supabase.table("chatbot_library").delete().eq("id", row_id).execute()
+        return jsonify({"success": True, "message": "Chatbot record deleted."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+
+# =========================
+# ADMIN TEAM MANAGEMENT
+# =========================
+@app.route("/api/admin/team", methods=["GET"])
+def api_admin_team():
+    try:
+        admins_res = supabase.table("admin_users").select("*").order("created_at", desc=True).execute()
+        tasks_res = supabase.table("admin_tasks").select("*").order("created_at", desc=True).execute()
+        admins = getattr(admins_res, "data", None) or []
+        tasks = getattr(tasks_res, "data", None) or []
+        return jsonify({"success": True, "admins": admins, "tasks": tasks})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/team/create", methods=["POST"])
+def admin_team_create():
+    try:
+        payload = request.get_json(silent=True) or {}
+        full_name = (payload.get("full_name") or "").strip()
+        email = (payload.get("email") or "").strip().lower()
+        phone = (payload.get("phone") or "").strip()
+        password = (payload.get("password") or "").strip()
+        role = (payload.get("role") or "ADMIN").strip().upper()
+
+        if not full_name:
+            return jsonify({"success": False, "error": "Full name is required"}), 400
+        if not email:
+            return jsonify({"success": False, "error": "Email is required"}), 400
+        if not password:
+            return jsonify({"success": False, "error": "Password is required"}), 400
+
+        insert_payload = {
+            "full_name": full_name,
+            "email": email,
+            "phone": phone,
+            "password": password,
+            "role": role,
+            "status": "ACTIVE"
+        }
+
+        res = supabase.table("admin_users").insert(insert_payload).execute()
+        row = (getattr(res, "data", None) or [{}])[0]
+        return jsonify({"success": True, "message": "Admin created successfully.", "data": row})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/team/<admin_id>/status", methods=["POST"])
+def admin_team_status(admin_id):
+    try:
+        payload = request.get_json(silent=True) or {}
+        status = (payload.get("status") or "").strip().upper()
+        if status not in {"ACTIVE", "BLOCKED"}:
+            return jsonify({"success": False, "error": "Invalid status"}), 400
+
+        res = supabase.table("admin_users").update({
+            "status": status,
+            "updated_at": datetime.now().isoformat()
+        }).eq("id", admin_id).execute()
+
+        row = (getattr(res, "data", None) or [{}])[0]
+        return jsonify({"success": True, "message": f"Admin status updated to {status}.", "data": row})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/team/<admin_id>/delete", methods=["POST"])
+def admin_team_delete(admin_id):
+    try:
+        supabase.table("admin_tasks").delete().eq("admin_id", admin_id).execute()
+        supabase.table("admin_users").delete().eq("id", admin_id).execute()
+        return jsonify({"success": True, "message": "Admin deleted successfully."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/team/<admin_id>/assign-task", methods=["POST"])
+def admin_team_assign_task(admin_id):
+    try:
+        payload = request.get_json(silent=True) or {}
+        title = (payload.get("title") or "").strip()
+        description = (payload.get("description") or "").strip()
+        due_date = (payload.get("due_date") or "").strip()
+
+        if not title:
+            return jsonify({"success": False, "error": "Task title is required"}), 400
+
+        insert_payload = {
+            "admin_id": admin_id,
+            "title": title,
+            "description": description,
+            "due_date": due_date,
+            "status": "PENDING"
+        }
+
+        res = supabase.table("admin_tasks").insert(insert_payload).execute()
+        row = (getattr(res, "data", None) or [{}])[0]
+        return jsonify({"success": True, "message": "Task assigned successfully.", "data": row})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/tasks/<task_id>/status", methods=["POST"])
+def admin_task_status(task_id):
+    try:
+        payload = request.get_json(silent=True) or {}
+        status = (payload.get("status") or "").strip().upper()
+        if status not in {"PENDING", "IN PROGRESS", "DONE", "CANCELLED"}:
+            return jsonify({"success": False, "error": "Invalid task status"}), 400
+
+        res = supabase.table("admin_tasks").update({"status": status}).eq("id", task_id).execute()
+        row = (getattr(res, "data", None) or [{}])[0]
+        return jsonify({"success": True, "message": "Task status updated.", "data": row})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+
+# =========================
+# VISITOR SECURITY HELPERS
+# =========================
+def _visitor_table_exists():
+    try:
+        supabase.table("visitor_logs").select("id").limit(1).execute()
+        return True
+    except Exception:
+        return False
+
+def _visitor_blocklist_table_exists():
+    try:
+        supabase.table("visitor_blocklist").select("id").limit(1).execute()
+        return True
+    except Exception:
+        return False
+
+@app.route("/admin/visitors/<visitor_id>/block", methods=["POST"])
+def admin_block_visitor(visitor_id):
+    try:
+        payload = request.get_json(silent=True) or {}
+        reason = (payload.get("reason") or "Blocked by admin").strip()
+
+        if not _visitor_table_exists():
+            return jsonify({"success": False, "error": "visitor_logs table not found"}), 400
+        if not _visitor_blocklist_table_exists():
+            return jsonify({"success": False, "error": "visitor_blocklist table not found"}), 400
+
+        row_res = supabase.table("visitor_logs").select("*").eq("id", visitor_id).limit(1).execute()
+        rows = getattr(row_res, "data", None) or []
+        if not rows:
+            return jsonify({"success": False, "error": "Visitor not found"}), 404
+
+        row = rows[0] or {}
+        insert_payload = {
+            "visitor_id": row.get("id"),
+            "ip_address": row.get("ip_address"),
+            "device_type": row.get("device_type"),
+            "browser": row.get("browser"),
+            "platform": row.get("platform"),
+            "user_agent": row.get("user_agent"),
+            "reason": reason,
+            "status": "BLOCKED"
+        }
+        supabase.table("visitor_blocklist").insert(insert_payload).execute()
+        return jsonify({"success": True, "message": "Visitor blocked successfully."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/admin/visitors/<visitor_id>/kick", methods=["POST"])
+def admin_kick_visitor(visitor_id):
+    try:
+        if not _visitor_table_exists():
+            return jsonify({"success": False, "error": "visitor_logs table not found"}), 400
+
+        res = supabase.table("visitor_logs").update({
+            "status": "KICKED",
+            "kicked_at": datetime.now().isoformat()
+        }).eq("id", visitor_id).execute()
+
+        row = (getattr(res, "data", None) or [{}])[0]
+        return jsonify({"success": True, "message": "Visitor session marked as kicked.", "data": row})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/admin/visitors/security", methods=["GET"])
+def api_admin_visitors_security():
+    try:
+        visitors = []
+        blocked = []
+
+        if _visitor_table_exists():
+            vres = supabase.table("visitor_logs").select("*").order("created_at", desc=True).limit(200).execute()
+            visitors = getattr(vres, "data", None) or []
+
+        if _visitor_blocklist_table_exists():
+            bres = supabase.table("visitor_blocklist").select("*").order("created_at", desc=True).limit(200).execute()
+            blocked = getattr(bres, "data", None) or []
+
+        return jsonify({"success": True, "visitors": visitors, "blocked": blocked})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == "__main__":
     print_all_routes()
@@ -2687,16 +3349,753 @@ def _loan_payments_for(email=None, phone=None):
     return out
 
 
-
 # duplicate removed
 
 
+# ===== FRONTEND SAFE PATCH ROUTES =====
+def _frontend_safe_json():
+    try:
+        return request.get_json(silent=True) or {}
+    except Exception:
+        return {}
+
+def _frontend_get_supabase():
+    try:
+        if 'supabase' in globals() and globals().get('supabase') is not None:
+            return globals().get('supabase')
+    except Exception:
+        pass
+    try:
+        if 'supabase_admin' in globals() and globals().get('supabase_admin') is not None:
+            return globals().get('supabase_admin')
+    except Exception:
+        pass
+    return None
+
+def _frontend_try_table_rows(table_name):
+    sb = _frontend_get_supabase()
+    if sb is None:
+        return []
+    try:
+        result = sb.table(table_name).select("*").limit(100).execute()
+        data = getattr(result, "data", None)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+@app.context_processor
+def inject_apply_prefill_defaults():
+    try:
+        return {
+            "apply_prefill": {
+                "product_id": request.args.get("product_id", ""),
+                "product_name": request.args.get("product_name", ""),
+                "amount": request.args.get("amount", ""),
+                "term": request.args.get("term", "")
+            }
+        }
+    except Exception:
+        return {
+            "apply_prefill": {
+                "product_id": "",
+                "product_name": "",
+                "amount": "",
+                "term": ""
+            }
+        }
+# ===== END FRONTEND SAFE PATCH ROUTES =====
+
+
+# ===== APPLY PREFILL + DUPLICATE CHECK PATCH =====
+
+def _safe_get_json():
+    try:
+        return request.get_json(silent=True) or {}
+    except Exception:
+        return {}
+
+def _get_supabase_client_for_patch():
+    for name in ["supabase_admin", "supabase", "sb", "client"]:
+        try:
+            obj = globals().get(name)
+            if obj is not None:
+                return obj
+        except Exception:
+            pass
+    return None
+
+def _clean_email(v):
+    return str(v or "").strip().lower()
+
+def _clean_phone(v):
+    return re.sub(r"\D", "", str(v or ""))
+
+def _clean_id(v):
+    return re.sub(r"\s+", "", str(v or "")).upper()
+
+def _table_rows_patch(table_name):
+    sb = _get_supabase_client_for_patch()
+    if sb is None:
+        return []
+    try:
+        result = sb.table(table_name).select("*").limit(300).execute()
+        data = getattr(result, "data", None)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+@app.route("/customer/application-premium-pdf", methods=["GET"])
+def customer_application_premium_pdf():
+    try:
+        from datetime import datetime
+
+        application_data = {
+            "reference": katra_ref(),
+            "timestamp": datetime.now().strftime("%d %B %Y %H:%M:%S"),
+            "stamp_date": datetime.now().strftime("%d %b %Y"),
+            "full_name": request.args.get("full_name", ""),
+            "id_number": request.args.get("id_number", ""),
+            "phone": request.args.get("phone", ""),
+            "email": request.args.get("email", ""),
+            "gender": request.args.get("gender", ""),
+            "employment_status": request.args.get("employment_status", ""),
+            "loan_product": request.args.get("loan_product", ""),
+            "loan_amount": request.args.get("loan_amount", ""),
+            "loan_term": request.args.get("loan_term", ""),
+            "loan_purpose": request.args.get("loan_purpose", ""),
+            "interest_rate": request.args.get("interest_rate", ""),
+            "monthly_payment": request.args.get("monthly_payment", ""),
+            "total_repayment": request.args.get("total_repayment", ""),
+            "location": request.args.get("location", ""),
+        }
+
+        pdf = create_premium_application_pdf(application_data, None)
+        return send_file(
+            pdf,
+            as_attachment=True,
+            download_name=f"{application_data['reference']}.pdf",
+            mimetype="application/pdf"
+        )
+    except Exception as e:
+        return f"Premium PDF error: {e}", 500
+# ===== END PREMIUM APPLICATION PDF PATCH =====
+
+
+
+# ===== WORLD-CLASS PREMIUM PDF PATCH =====
+def katra_safe(v, default=""):
+    try:
+        return str(v or default).strip()
+    except Exception:
+        return default
+
+def katra_money(v):
+    try:
+        return f"N$ {float(v):,.2f}"
+    except Exception:
+        return "N$ 0.00"
+
+def katra_reference():
+    from datetime import datetime
+    now = datetime.now()
+    return f"KAT-NAM-{now.strftime('%Y%m%d-%H%M%S')}"
+
+def build_worldclass_pdf(data):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    page_w, page_h = A4
+
+    # colors
+    bg_main = colors.HexColor("#DCEFE7")
+    bg_soft = colors.HexColor("#EAF7F1")
+    bg_soft2 = colors.HexColor("#CFE6DD")
+    green_dark = colors.HexColor("#0B4F3F")
+    green_mid = colors.HexColor("#15634E")
+    green_line = colors.HexColor("#7AA797")
+    gold = colors.HexColor("#D8B45A")
+    white = colors.white
+    text_dark = colors.HexColor("#233B36")
+    text_muted = colors.HexColor("#5F766E")
+
+    # page background
+    c.setFillColor(bg_main)
+    c.rect(0, 0, page_w, page_h, fill=1, stroke=0)
+
+    # glossy circles
+    c.setFillColor(bg_soft)
+    c.circle(page_w - 50*mm, page_h - 30*mm, 35*mm, fill=1, stroke=0)
+    c.setFillColor(bg_soft2)
+    c.circle(35*mm, page_h - 15*mm, 24*mm, fill=1, stroke=0)
+    c.setFillColor(colors.HexColor("#E7F3EE"))
+    c.circle(105*mm, 150*mm, 45*mm, fill=1, stroke=0)
+
+    # watermark
+    c.saveState()
+    c.setFillColor(colors.HexColor("#C5DBD2"))
+    c.setFont("Helvetica-Bold", 42)
+    c.translate(page_w/2, page_h/2)
+    c.rotate(26)
+    c.drawCentredString(0, 0, "KATRAMONEY")
+    c.restoreState()
+
+    # top premium band
+    c.setFillColor(green_dark)
+    c.roundRect(12*mm, page_h - 40*mm, page_w - 24*mm, 24*mm, 7*mm, fill=1, stroke=0)
+
+    c.setFillColor(gold)
+    c.roundRect(12*mm, page_h - 44*mm, page_w - 24*mm, 4*mm, 1.5*mm, fill=1, stroke=0)
+
+    c.setFillColor(white)
+    c.setFont("Helvetica-Bold", 22)
+    c.drawString(18*mm, page_h - 24*mm, "KATRAMONEY")
+
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(18*mm, page_h - 30*mm, "PREMIUM APPLICATION INVOICE")
+
+    c.setFont("Helvetica", 8.5)
+    c.drawRightString(page_w - 18*mm, page_h - 22*mm, f"Reference: {katra_safe(data.get('reference'))}")
+    c.drawRightString(page_w - 18*mm, page_h - 28*mm, f"Generated: {katra_safe(data.get('timestamp'))}")
+
+    # applicant card
+    left_x = 12*mm
+    card_top = page_h - 115*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(left_x, card_top, 123*mm, 66*mm, 5*mm, fill=1, stroke=0)
+
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(left_x + 5*mm, card_top + 58*mm, "APPLICANT DETAILS")
+
+    rows = [
+        ("FULL NAME", data.get("full_name")),
+        ("ID NUMBER", data.get("id_number")),
+        ("PHONE", data.get("phone")),
+        ("EMAIL", data.get("email")),
+        ("GENDER", data.get("gender")),
+        ("EMPLOYMENT", data.get("employment_status")),
+        ("PRODUCT", data.get("loan_product")),
+    ]
+
+    y = card_top + 50*mm
+    for label, value in rows:
+        c.setFillColor(text_muted)
+        c.setFont("Helvetica-Bold", 7)
+        c.drawString(left_x + 5*mm, y, label)
+        c.setFillColor(text_dark)
+        c.setFont("Helvetica", 9.5)
+        c.drawString(left_x + 38*mm, y, katra_safe(value, "-"))
+        y -= 7*mm
+
+    # passport photo card
+    photo_x = 140*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(photo_x, card_top, 58*mm, 66*mm, 5*mm, fill=1, stroke=0)
+
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(photo_x + 29*mm, card_top + 58*mm, "PASSPORT PHOTO")
+
+    c.setFillColor(colors.HexColor("#D9E6E1"))
+    c.rect(photo_x + 12*mm, card_top + 16*mm, 34*mm, 38*mm, fill=1, stroke=0)
+
+    c.setFillColor(text_muted)
+    c.setFont("Helvetica", 7)
+    c.drawCentredString(photo_x + 29*mm, card_top + 35*mm, "FACE CAPTURE")
+    c.drawCentredString(photo_x + 29*mm, card_top + 11*mm, "Passport size crop area")
+
+    # financial summary card
+    sec2_y = page_h - 170*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(12*mm, sec2_y, 186*mm, 45*mm, 5*mm, fill=1, stroke=0)
+
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(17*mm, sec2_y + 37*mm, "FINANCIAL OVERVIEW")
+
+    boxes = [
+        ("Requested Amount", katra_money(data.get("loan_amount"))),
+        ("Repayment Term", f"{katra_safe(data.get('loan_term'), '0')} Month(s)"),
+        ("Interest Rate", katra_safe(data.get("interest_rate"), "0%")),
+        ("Monthly Estimate", katra_money(data.get("monthly_payment"))),
+        ("Total Repayment", katra_money(data.get("total_repayment"))),
+        ("Location", katra_safe(data.get("location"), "Not captured")),
+    ]
+
+    base_x = 17*mm
+    base_y = sec2_y + 22*mm
+    box_w = 55*mm
+    box_h = 12*mm
+
+    for i, (title, value) in enumerate(boxes):
+        col = i % 3
+        row = i // 3
+        x = base_x + col * 58*mm
+        y = base_y - row * 15*mm
+
+        c.setFillColor(white)
+        c.roundRect(x, y, box_w, box_h, 2.5*mm, fill=1, stroke=0)
+        c.setStrokeColor(green_line)
+        c.roundRect(x, y, box_w, box_h, 2.5*mm, fill=0, stroke=1)
+
+        c.setFillColor(text_muted)
+        c.setFont("Helvetica-Bold", 6.8)
+        c.drawString(x + 2*mm, y + 8.2*mm, title.upper())
+
+        c.setFillColor(text_dark)
+        c.setFont("Helvetica", 8.5)
+        c.drawString(x + 2*mm, y + 3.3*mm, katra_safe(value, "-"))
+
+    # purpose card
+    sec3_y = page_h - 222*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(12*mm, sec3_y, 118*mm, 34*mm, 5*mm, fill=1, stroke=0)
+
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(17*mm, sec3_y + 26*mm, "LOAN PURPOSE")
+
+    purpose = katra_safe(data.get("loan_purpose"), "-")
+    purpose_lines = [purpose[i:i+74] for i in range(0, len(purpose), 74)]
+
+    text = c.beginText(17*mm, sec3_y + 19*mm)
+    text.setFont("Helvetica", 8.6)
+    text.setFillColor(text_dark)
+    for line in purpose_lines[:4]:
+        text.textLine(line)
+    c.drawText(text)
+
+    # official stamp card
+    stamp_x = 135*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(stamp_x, sec3_y, 63*mm, 34*mm, 5*mm, fill=1, stroke=0)
+
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(stamp_x + 31.5*mm, sec3_y + 26*mm, "OFFICIAL STAMP")
+
+    c.setStrokeColor(green_mid)
+    c.setLineWidth(1.5)
+    c.circle(stamp_x + 31.5*mm, sec3_y + 14*mm, 11*mm)
+    c.circle(stamp_x + 31.5*mm, sec3_y + 14*mm, 8.2*mm)
+
+    c.setFillColor(green_mid)
+    c.setFont("Helvetica-Bold", 6.8)
+    c.drawCentredString(stamp_x + 31.5*mm, sec3_y + 17*mm, "KATRAMONEY")
+    c.drawCentredString(stamp_x + 31.5*mm, sec3_y + 13*mm, "RECEIVED")
+    c.setFont("Helvetica", 5.8)
+    c.drawCentredString(stamp_x + 31.5*mm, sec3_y + 9*mm, katra_safe(data.get("stamp_date")))
+
+    # footer notice
+    c.setFillColor(green_dark)
+    c.roundRect(12*mm, 12*mm, 186*mm, 20*mm, 5*mm, fill=1, stroke=0)
+
+    c.setFillColor(white)
+    c.setFont("Helvetica-Bold", 7.6)
+    c.drawString(17*mm, 26*mm, "IMPORTANT NOTICE")
+
+    c.setFont("Helvetica", 6.8)
+    c.drawString(17*mm, 21.5*mm, "This is not an invoice to claim funds, not proof of approval, and may not be used for payment demand.")
+    c.drawString(17*mm, 17.7*mm, "It is a premium KATRAMONEY application record for review, internal processing, and applicant saving only.")
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+@app.route("/customer/application-premium-pdf", methods=["GET"])
+def customer_application_premium_pdf_2():
+    try:
+        from datetime import datetime
+
+        payload = {
+            "reference": katra_reference(),
+            "timestamp": datetime.now().strftime("%d %B %Y %H:%M:%S"),
+            "stamp_date": datetime.now().strftime("%d %b %Y"),
+            "full_name": request.args.get("full_name", ""),
+            "id_number": request.args.get("id_number", ""),
+            "phone": request.args.get("phone", ""),
+            "email": request.args.get("email", ""),
+            "gender": request.args.get("gender", ""),
+            "employment_status": request.args.get("employment_status", ""),
+            "loan_product": request.args.get("loan_product", ""),
+            "loan_amount": request.args.get("loan_amount", ""),
+            "loan_term": request.args.get("loan_term", ""),
+            "loan_purpose": request.args.get("loan_purpose", ""),
+            "interest_rate": request.args.get("interest_rate", ""),
+            "monthly_payment": request.args.get("monthly_payment", ""),
+            "total_repayment": request.args.get("total_repayment", ""),
+            "location": request.args.get("location", ""),
+        }
+
+        pdf_buffer = build_worldclass_pdf(payload)
+        return send_file(
+            pdf_buffer,
+            as_attachment=True,
+            download_name=f"{payload['reference']}.pdf",
+            mimetype="application/pdf"
+        )
+    except Exception as e:
+        return f"Premium PDF error: {e}", 500
+# ===== END WORLD-CLASS PREMIUM PDF PATCH =====
 
 
 
 
+# ===== SAFE FAST CHECK + PDF V2 PATCH =====
+def km_safe(v, default=""):
+    try:
+        return str(v or default).strip()
+    except Exception:
+        return default
+
+def km_money(v):
+    try:
+        return f"N$ {float(v):,.2f}"
+    except Exception:
+        return "N$ 0.00"
+
+def km_ref():
+    from datetime import datetime
+    now = datetime.now()
+    return f"KAT-NAM-{now.strftime('%Y%m%d-%H%M%S')}"
+
+def km_get_supabase():
+    for name in ["supabase_admin", "supabase", "sb", "client"]:
+        try:
+            obj = globals().get(name)
+            if obj is not None:
+                return obj
+        except Exception:
+            pass
+    return None
+
+@app.route("/api/check-application-identity-fast", methods=["POST"])
+def check_application_identity_fast():
+    try:
+        payload = request.get_json(silent=True) or {}
+        email = str(payload.get("email") or "").strip().lower()
+        phone = re.sub(r"\D", "", str(payload.get("phone") or ""))
+        id_number = re.sub(r"\s+", "", str(payload.get("id_number") or "")).upper()
+
+        if not email and not phone and not id_number:
+            return jsonify({"exists": False})
+
+        sb = km_get_supabase()
+        if sb is None:
+            return jsonify({"exists": False, "safe_error": True}), 200
+
+        tables = [
+            "applications",
+            "loan_applications",
+            "customer_applications",
+            "customers",
+            "customer_profiles",
+            "applicants"
+        ]
+        email_fields = ["email", "email_address", "client_email"]
+        phone_fields = ["phone", "cellphone", "mobile", "phone_number"]
+        id_fields = ["id_number", "national_id", "id_no", "identity_number"]
+
+        for table_name in tables:
+            try:
+                result = sb.table(table_name).select("*").limit(300).execute()
+                rows = getattr(result, "data", None) or []
+            except Exception:
+                continue
+
+            for row in rows:
+                for f in email_fields:
+                    v = str(row.get(f) or "").strip().lower()
+                    if email and v and v == email:
+                        return jsonify({
+                            "exists": True,
+                            "match_type": "email",
+                            "message": "This email was already used. Please log in through View My Progress."
+                        })
+                for f in phone_fields:
+                    v = re.sub(r"\D", "", str(row.get(f) or ""))
+                    if phone and v and v == phone:
+                        return jsonify({
+                            "exists": True,
+                            "match_type": "phone",
+                            "message": "This phone number was already used. Please log in through View My Progress."
+                        })
+                for f in id_fields:
+                    v = re.sub(r"\s+", "", str(row.get(f) or "")).upper()
+                    if id_number and v and v == id_number:
+                        return jsonify({
+                            "exists": True,
+                            "match_type": "id_number",
+                            "message": "This ID number was already used. Please log in through View My Progress."
+                        })
+
+        return jsonify({"exists": False})
+    except Exception:
+        return jsonify({"exists": False, "safe_error": True}), 200
+
+def build_katra_premium_pdf_v2(data):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    page_w, page_h = A4
+
+    bg = colors.HexColor("#DCEFE7")
+    soft1 = colors.HexColor("#EAF7F1")
+    soft2 = colors.HexColor("#CFE6DD")
+    green_dark = colors.HexColor("#0B4F3F")
+    green_mid = colors.HexColor("#15634E")
+    gold = colors.HexColor("#D8B45A")
+    white = colors.white
+    text_dark = colors.HexColor("#233B36")
+    text_muted = colors.HexColor("#5F766E")
+
+    c.setFillColor(bg)
+    c.rect(0, 0, page_w, page_h, fill=1, stroke=0)
+    c.setFillColor(soft1)
+    c.circle(page_w - 55*mm, page_h - 25*mm, 36*mm, fill=1, stroke=0)
+    c.setFillColor(soft2)
+    c.circle(32*mm, page_h - 12*mm, 24*mm, fill=1, stroke=0)
+    c.setFillColor(colors.HexColor("#E7F3EE"))
+    c.circle(105*mm, 150*mm, 46*mm, fill=1, stroke=0)
+
+    c.saveState()
+    c.setFillColor(colors.HexColor("#C5DBD2"))
+    c.setFont("Helvetica-Bold", 42)
+    c.translate(page_w/2, page_h/2)
+    c.rotate(28)
+    c.drawCentredString(0, 0, "KATRAMONEY")
+    c.restoreState()
+
+    c.setFillColor(green_dark)
+    c.roundRect(12*mm, page_h - 40*mm, page_w - 24*mm, 24*mm, 7*mm, fill=1, stroke=0)
+    c.setFillColor(gold)
+    c.roundRect(12*mm, page_h - 44*mm, page_w - 24*mm, 4*mm, 1.5*mm, fill=1, stroke=0)
+
+    c.setFillColor(white)
+    c.setFont("Helvetica-Bold", 22)
+    c.drawString(18*mm, page_h - 24*mm, "KATRAMONEY")
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(18*mm, page_h - 30*mm, "PREMIUM APPLICATION INVOICE")
+
+    c.setFont("Helvetica", 8.5)
+    c.drawRightString(page_w - 18*mm, page_h - 22*mm, f"Reference: {km_safe(data.get('reference'))}")
+    c.drawRightString(page_w - 18*mm, page_h - 28*mm, f"Generated: {km_safe(data.get('timestamp'))}")
+
+    card_top = page_h - 115*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(12*mm, card_top, 123*mm, 66*mm, 5*mm, fill=1, stroke=0)
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(17*mm, card_top + 58*mm, "APPLICANT DETAILS")
+
+    rows = [
+        ("FULL NAME", data.get("full_name")),
+        ("ID NUMBER", data.get("id_number")),
+        ("PHONE", data.get("phone")),
+        ("EMAIL", data.get("email")),
+        ("GENDER", data.get("gender")),
+        ("EMPLOYMENT", data.get("employment_status")),
+        ("PRODUCT", data.get("loan_product")),
+    ]
+    y = card_top + 50*mm
+    for label, value in rows:
+        c.setFillColor(text_muted)
+        c.setFont("Helvetica-Bold", 7)
+        c.drawString(17*mm, y, label)
+        c.setFillColor(text_dark)
+        c.setFont("Helvetica", 9.5)
+        c.drawString(50*mm, y, km_safe(value, "-"))
+        y -= 7*mm
+
+    photo_x = 140*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(photo_x, card_top, 58*mm, 66*mm, 5*mm, fill=1, stroke=0)
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(photo_x + 29*mm, card_top + 58*mm, "PASSPORT PHOTO")
+    c.setFillColor(colors.HexColor("#D9E6E1"))
+    c.rect(photo_x + 12*mm, card_top + 16*mm, 34*mm, 38*mm, fill=1, stroke=0)
+    c.setFillColor(text_muted)
+    c.setFont("Helvetica", 7)
+    c.drawCentredString(photo_x + 29*mm, card_top + 35*mm, "FACE CAPTURE")
+    c.drawCentredString(photo_x + 29*mm, card_top + 11*mm, "Passport size crop area")
+
+    sec2_y = page_h - 170*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(12*mm, sec2_y, 186*mm, 45*mm, 5*mm, fill=1, stroke=0)
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(17*mm, sec2_y + 37*mm, "FINANCIAL OVERVIEW")
+
+    boxes = [
+        ("Requested Amount", km_money(data.get("loan_amount"))),
+        ("Repayment Term", f"{km_safe(data.get('loan_term'), '0')} Month(s)"),
+        ("Interest Rate", km_safe(data.get("interest_rate"), "0%")),
+        ("Monthly Estimate", km_money(data.get("monthly_payment"))),
+        ("Total Repayment", km_money(data.get("total_repayment"))),
+        ("Location", km_safe(data.get("location"), "Not captured")),
+    ]
+
+    base_x = 17*mm
+    base_y = sec2_y + 22*mm
+    box_w = 55*mm
+    box_h = 12*mm
+    for i, (title, value) in enumerate(boxes):
+        col = i % 3
+        row = i // 3
+        x = base_x + col * 58*mm
+        y = base_y - row * 15*mm
+        c.setFillColor(white)
+        c.roundRect(x, y, box_w, box_h, 2.5*mm, fill=1, stroke=0)
+        c.setStrokeColor(green_mid)
+        c.roundRect(x, y, box_w, box_h, 2.5*mm, fill=0, stroke=1)
+        c.setFillColor(text_muted)
+        c.setFont("Helvetica-Bold", 6.8)
+        c.drawString(x + 2*mm, y + 8.2*mm, title.upper())
+        c.setFillColor(text_dark)
+        c.setFont("Helvetica", 8.5)
+        c.drawString(x + 2*mm, y + 3.3*mm, km_safe(value, "-"))
+
+    sec3_y = page_h - 222*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(12*mm, sec3_y, 118*mm, 34*mm, 5*mm, fill=1, stroke=0)
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(17*mm, sec3_y + 26*mm, "LOAN PURPOSE")
+    purpose = km_safe(data.get("loan_purpose"), "-")
+    lines = [purpose[i:i+74] for i in range(0, len(purpose), 74)]
+    text = c.beginText(17*mm, sec3_y + 19*mm)
+    text.setFont("Helvetica", 8.6)
+    text.setFillColor(text_dark)
+    for line in lines[:4]:
+        text.textLine(line)
+    c.drawText(text)
+
+    stamp_x = 135*mm
+    c.setFillColor(colors.HexColor("#F8FCFA"))
+    c.roundRect(stamp_x, sec3_y, 63*mm, 34*mm, 5*mm, fill=1, stroke=0)
+    c.setFillColor(green_dark)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(stamp_x + 31.5*mm, sec3_y + 26*mm, "OFFICIAL STAMP")
+    c.setStrokeColor(green_mid)
+    c.setLineWidth(1.5)
+    c.circle(stamp_x + 31.5*mm, sec3_y + 14*mm, 11*mm)
+    c.circle(stamp_x + 31.5*mm, sec3_y + 14*mm, 8.2*mm)
+    c.setFillColor(green_mid)
+    c.setFont("Helvetica-Bold", 6.8)
+    c.drawCentredString(stamp_x + 31.5*mm, sec3_y + 17*mm, "KATRAMONEY")
+    c.drawCentredString(stamp_x + 31.5*mm, sec3_y + 13*mm, "RECEIVED")
+    c.setFont("Helvetica", 5.8)
+    c.drawCentredString(stamp_x + 31.5*mm, sec3_y + 9*mm, km_safe(data.get("stamp_date")))
+
+    c.setFillColor(green_dark)
+    c.roundRect(12*mm, 12*mm, 186*mm, 20*mm, 5*mm, fill=1, stroke=0)
+    c.setFillColor(white)
+    c.setFont("Helvetica-Bold", 7.6)
+    c.drawString(17*mm, 26*mm, "IMPORTANT NOTICE")
+    c.setFont("Helvetica", 6.8)
+    c.drawString(17*mm, 21.5*mm, "This is not an invoice to claim funds, not proof of approval, and may not be used for payment demand.")
+    c.drawString(17*mm, 17.7*mm, "It is a premium KATRAMONEY application record for review, internal processing, and applicant saving only.")
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+@app.route("/customer/application-premium-pdf-v2", methods=["GET"])
+def customer_application_premium_pdf_v2():
+    try:
+        from datetime import datetime
+        payload = {
+            "reference": km_ref(),
+            "timestamp": datetime.now().strftime("%d %B %Y %H:%M:%S"),
+            "stamp_date": datetime.now().strftime("%d %b %Y"),
+            "full_name": request.args.get("full_name", ""),
+            "id_number": request.args.get("id_number", ""),
+            "phone": request.args.get("phone", ""),
+            "email": request.args.get("email", ""),
+            "gender": request.args.get("gender", ""),
+            "employment_status": request.args.get("employment_status", ""),
+            "loan_product": request.args.get("loan_product", ""),
+            "loan_amount": request.args.get("loan_amount", ""),
+            "loan_term": request.args.get("loan_term", ""),
+            "loan_purpose": request.args.get("loan_purpose", ""),
+            "interest_rate": request.args.get("interest_rate", ""),
+            "monthly_payment": request.args.get("monthly_payment", ""),
+            "total_repayment": request.args.get("total_repayment", ""),
+            "location": request.args.get("location", ""),
+        }
+        pdf_buffer = build_katra_premium_pdf_v2(payload)
+        return send_file(
+            pdf_buffer,
+            as_attachment=True,
+            download_name=f"{payload['reference']}.pdf",
+            mimetype="application/pdf"
+        )
+    except Exception as e:
+        return f"Premium PDF V2 error: {e}", 500
+# ===== END SAFE FAST CHECK + PDF V2 PATCH =====
 
 
 
 
+# ===== ADMIN VIEW APPLICANT DOCUMENTS PATCH =====
+def _admin_get_supabase_client():
+    for name in ["supabase_admin", "supabase", "sb", "client"]:
+        try:
+            obj = globals().get(name)
+            if obj is not None:
+                return obj
+        except Exception:
+            pass
+    return None
+
+def _admin_fetch_application_row(app_id):
+    sb = _admin_get_supabase_client()
+    if sb is None:
+        return None
+
+    tables = [
+        "applications",
+        "loan_applications",
+        "customer_applications",
+    ]
+
+    for table_name in tables:
+        try:
+            res = sb.table(table_name).select("*").eq("id", app_id).limit(1).execute()
+            rows = getattr(res, "data", None) or []
+            if rows:
+                row = rows[0]
+                row["_source_table"] = table_name
+                return row
+        except Exception:
+            pass
+
+    return None
+
+def _admin_extract_document_links(row):
+    if not isinstance(row, dict):
+        return []
+
+    possible_fields = [
+        ("Certified ID Copy", ["emp_certified_id", "biz_certified_id", "certified_id", "id_copy_url", "id_document_url"]),
+        ("Bank Statement", ["emp_bank_statement", "biz_bank_statement", "bank_statement_url", "bank_statement"]),
+        ("Payslip", ["emp_payslip", "payslip_url", "salary_slip"]),
+        ("Founding Statement", ["biz_founding_statement", "founding_statement_url"]),
+        ("Letter of Request", ["biz_request_letter", "request_letter_url", "letter_of_request"]),
+        ("Face Capture", ["face_capture_data", "face_image_url", "photo_url"]),
+    ]
+
+    docs = []
+    for label, keys in possible_fields:
+        for key in keys:
+            value = row.get(key)
+            if isinstance(value, str) and value.strip():
+                docs.append({
+                    "label": label,
+                    "key": key,
+                    "value": value.strip()
+                })
+                break
+    return docs
 
